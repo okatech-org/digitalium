@@ -205,6 +205,8 @@ const translations = {
     "auth.nameMin": "Le nom doit contenir au moins 2 caractères",
     "auth.nameMax": "Le nom est trop long",
     "auth.passwordMismatch": "Les mots de passe ne correspondent pas",
+    "auth.noAccount": "Pas encore de compte ?",
+    "auth.hasAccount": "Déjà un compte ?",
   },
   en: {
     // Navigation
@@ -402,6 +404,8 @@ const translations = {
     "auth.nameMin": "Name must be at least 2 characters",
     "auth.nameMax": "Name is too long",
     "auth.passwordMismatch": "Passwords do not match",
+    "auth.noAccount": "Don't have an account?",
+    "auth.hasAccount": "Already have an account?",
   },
 };
 
