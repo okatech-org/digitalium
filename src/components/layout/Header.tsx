@@ -1,7 +1,9 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Brain } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 
 const navLinks = [
   { name: "Accueil", href: "#hero" },
@@ -13,6 +15,7 @@ const navLinks = [
 
 export const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { user } = useAuth();
 
   return (
     <motion.header
@@ -53,15 +56,20 @@ export const Header = () => {
 
           {/* CTA Buttons */}
           <div className="hidden md:flex items-center gap-4">
-            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
-              Connexion
-            </Button>
-            <Button 
-              size="sm" 
-              className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity"
-            >
-              Commencer
-            </Button>
+            {user ? (
+              <Button asChild size="sm" className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity">
+                <Link to="/dashboard">Mon Espace</Link>
+              </Button>
+            ) : (
+              <>
+                <Button asChild variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+                  <Link to="/auth">Connexion</Link>
+                </Button>
+                <Button asChild size="sm" className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity">
+                  <Link to="/auth">Commencer</Link>
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -95,12 +103,20 @@ export const Header = () => {
                 </a>
               ))}
               <div className="flex flex-col gap-3 pt-4 border-t border-border/50">
-                <Button variant="outline" className="w-full">
-                  Connexion
-                </Button>
-                <Button className="w-full bg-gradient-to-r from-primary to-secondary">
-                  Commencer
-                </Button>
+                {user ? (
+                  <Button asChild className="w-full bg-gradient-to-r from-primary to-secondary">
+                    <Link to="/dashboard">Mon Espace</Link>
+                  </Button>
+                ) : (
+                  <>
+                    <Button asChild variant="outline" className="w-full">
+                      <Link to="/auth">Connexion</Link>
+                    </Button>
+                    <Button asChild className="w-full bg-gradient-to-r from-primary to-secondary">
+                      <Link to="/auth">Commencer</Link>
+                    </Button>
+                  </>
+                )}
               </div>
             </nav>
           </motion.div>
