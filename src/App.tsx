@@ -27,6 +27,7 @@ const pageVariants = {
     x: '0%',
     rotateY: 0,
     zIndex: 1,
+    filter: 'blur(0px)',
     boxShadow: '0 0 0 rgba(0,0,0,0)',
   },
   enter: { 
@@ -35,6 +36,7 @@ const pageVariants = {
     x: '0%',
     rotateY: 0,
     zIndex: 1,
+    filter: 'blur(0px)',
     boxShadow: '0 0 0 rgba(0,0,0,0)',
     transition: { 
       duration: 0.9, 
@@ -48,11 +50,13 @@ const pageVariants = {
     x: '-20%',
     scale: 0.88,
     zIndex: 10,
+    filter: 'blur(4px)',
     boxShadow: '-30px 0 80px rgba(0,0,0,0.5), -10px 0 40px rgba(0,0,0,0.3)',
     transition: { 
       duration: 1.4, 
       ease: [0.32, 0, 0.15, 1] as const,
       opacity: { duration: 1, delay: 0.35 },
+      filter: { duration: 1.2, ease: "easeIn" },
       boxShadow: { duration: 1.2, ease: "easeOut" }
     } 
   },
