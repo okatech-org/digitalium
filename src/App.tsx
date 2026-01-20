@@ -22,7 +22,7 @@ const queryClient = new QueryClient();
 
 const pageVariants = {
   initial: { 
-    opacity: 1,
+    opacity: 0,
     rotateY: 0,
     zIndex: 1,
   },
@@ -30,13 +30,13 @@ const pageVariants = {
     opacity: 1, 
     rotateY: 0,
     zIndex: 1,
-    transition: { duration: 0.01 } 
+    transition: { duration: 0.5, ease: [0.4, 0, 0.2, 1] as const } 
   },
   exit: { 
-    opacity: 1,
-    rotateY: -120,
+    opacity: 0,
+    rotateY: -90,
     zIndex: 10,
-    transition: { duration: 0.8, ease: [0.4, 0, 0.2, 1] as const } 
+    transition: { duration: 0.6, ease: [0.4, 0, 0.2, 1] as const } 
   },
 };
 

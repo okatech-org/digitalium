@@ -43,22 +43,25 @@ export const Header = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">
-            {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                to={link.href}
-                className={`text-sm font-medium transition-colors relative group ${
-                  location.pathname === link.href
-                    ? 'text-foreground'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                {link.name}
-                <span className={`absolute -bottom-1 left-0 h-0.5 bg-gradient-to-r from-primary to-secondary transition-all duration-300 ${
-                  location.pathname === link.href ? 'w-full' : 'w-0 group-hover:w-full'
-                }`} />
-              </Link>
-            ))}
+            {navLinks.map((link) => {
+              const isActive = location.pathname === link.href;
+              return (
+                <Link
+                  key={link.name}
+                  to={link.href}
+                  className={`text-sm font-medium transition-colors relative group px-3 py-2 rounded-lg ${
+                    isActive
+                      ? 'text-primary-foreground bg-gradient-to-r from-primary to-secondary'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                  }`}
+                >
+                  {link.name}
+                  {!isActive && (
+                    <span className="absolute -bottom-1 left-0 h-0.5 w-0 bg-gradient-to-r from-primary to-secondary transition-all duration-300 group-hover:w-full" />
+                  )}
+                </Link>
+              );
+            })}
           </nav>
 
           {/* CTA Buttons */}
@@ -99,20 +102,23 @@ export const Header = () => {
             className="md:hidden border-t border-border/50 bg-background/95 backdrop-blur-xl"
           >
             <nav className="container mx-auto px-4 py-6 flex flex-col gap-4">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.name}
-                  to={link.href}
-                  onClick={() => setIsOpen(false)}
-                  className={`text-lg font-medium transition-colors py-2 ${
-                    location.pathname === link.href
-                      ? 'text-foreground'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  {link.name}
-                </Link>
-              ))}
+              {navLinks.map((link) => {
+                const isActive = location.pathname === link.href;
+                return (
+                  <Link
+                    key={link.name}
+                    to={link.href}
+                    onClick={() => setIsOpen(false)}
+                    className={`text-lg font-medium transition-colors py-2 px-4 rounded-lg ${
+                      isActive
+                        ? 'text-primary-foreground bg-gradient-to-r from-primary to-secondary'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                    }`}
+                  >
+                    {link.name}
+                  </Link>
+                );
+              })}
               <div className="flex flex-col gap-3 pt-4 border-t border-border/50">
                 {user ? (
                   <Button asChild className="w-full bg-gradient-to-r from-primary to-secondary">
