@@ -68,24 +68,31 @@ const AnimatedRoutes = () => {
   return (
     <div className="relative" style={{ perspective: '1200px', perspectiveOrigin: '30% 50%', overflow: 'hidden', minHeight: '100vh' }}>
       <AnimatePresence mode="popLayout">
-        <motion.div
-          key={location.pathname}
-          variants={pageVariants}
-          initial="initial"
-          animate="enter"
-          exit="exit"
-          className="w-full min-h-screen bg-background"
-          style={{ 
-            transformStyle: 'preserve-3d',
-            transformOrigin: 'left center',
-            backfaceVisibility: 'hidden',
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            boxShadow: '10px 0 30px rgba(0,0,0,0.3)',
-          }}
-        >
+          <motion.div
+            key={location.pathname}
+            variants={pageVariants}
+            initial="initial"
+            animate="enter"
+            exit="exit"
+            className="w-full min-h-screen bg-background relative"
+            style={{ 
+              transformStyle: 'preserve-3d',
+              transformOrigin: 'left center',
+              backfaceVisibility: 'hidden',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+            }}
+          >
+            {/* Paper texture overlay */}
+            <div 
+              className="pointer-events-none absolute inset-0 z-50 opacity-[0.03]"
+              style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+                backgroundRepeat: 'repeat',
+              }}
+            />
           <Routes location={location}>
             <Route path="/" element={<Index />} />
             <Route path="/services" element={<Services />} />
