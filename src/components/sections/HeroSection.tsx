@@ -83,25 +83,6 @@ export const HeroSection = () => {
             </Button>
           </motion.div>
 
-
-          {/* Stats */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.8 }}
-            className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-16 max-w-3xl mx-auto"
-          >
-            {[
-              { value: "99.9%", label: "Précision IA" },
-              { value: "< 2s", label: "Traitement" },
-              { value: "24/7", label: "Disponibilité" },
-            ].map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className="text-2xl md:text-3xl font-bold gradient-text">{stat.value}</div>
-                <div className="text-sm text-muted-foreground mt-1">{stat.label}</div>
-              </div>
-            ))}
-          </motion.div>
         </div>
       </div>
 
