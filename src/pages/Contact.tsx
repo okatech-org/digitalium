@@ -88,9 +88,6 @@ const Contact = () => {
               transition={{ duration: 0.6 }}
               className="text-center mb-10"
             >
-              <span className="inline-block px-4 py-1.5 rounded-full glass-card text-sm font-medium text-primary mb-4">
-                Contact
-              </span>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
                 Parlons de Votre{" "}
                 <span className="gradient-text">Projet</span>
