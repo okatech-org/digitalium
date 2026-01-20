@@ -90,31 +90,6 @@ export const HeroSection = () => {
             transition={{ duration: 0.8, delay: 0.4 }}
             className="relative w-72 h-72 mx-auto"
           >
-            {/* Central Brain/Core */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="relative">
-                <div className="w-40 h-40 rounded-full bg-gradient-to-br from-primary/30 to-secondary/30 backdrop-blur-sm border border-primary/30 flex items-center justify-center pulse-glow">
-                  <div className="w-28 h-28 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
-                    <svg
-                      viewBox="0 0 24 24"
-                      className="w-16 h-16 text-primary-foreground"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                    >
-                      <path d="M12 2a9 9 0 0 1 9 9c0 3.1-1.6 5.8-4 7.4V21a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1v-2.6A9 9 0 0 1 12 2z" />
-                      <path d="M9 21v-1M15 21v-1M9 10h.01M15 10h.01M12 14h.01" />
-                      <path d="M7 11a5 5 0 0 1 10 0" />
-                    </svg>
-                  </div>
-                </div>
-                
-                {/* Orbiting rings */}
-                <div className="absolute inset-0 animate-spin" style={{ animationDuration: "20s" }}>
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-accent" />
-                </div>
-              </div>
-            </div>
 
             {/* Floating Icons */}
             {floatingIcons.map(({ Icon, delay, x, y }, index) => (
