@@ -59,9 +59,6 @@ const Solutions = () => {
               transition={{ duration: 0.6 }}
               className="text-center mb-12"
             >
-              <span className="inline-block px-4 py-1.5 rounded-full glass-card text-sm font-medium text-secondary mb-4">
-                Nos Solutions
-              </span>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
                 Une Solution{" "}
                 <span className="gradient-text">Adaptée</span>
