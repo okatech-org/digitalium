@@ -24,28 +24,36 @@ const pageVariants = {
   initial: { 
     opacity: 0,
     scale: 1,
+    x: '0%',
+    rotateY: 0,
     zIndex: 1,
+    boxShadow: '0 0 0 rgba(0,0,0,0)',
   },
   enter: { 
     opacity: 1, 
     scale: 1,
+    x: '0%',
+    rotateY: 0,
     zIndex: 1,
+    boxShadow: '0 0 0 rgba(0,0,0,0)',
     transition: { 
-      duration: 0.8, 
-      ease: [0.25, 0.1, 0.25, 1] as const,
-      opacity: { duration: 0.6, delay: 0.2 }
+      duration: 0.9, 
+      ease: [0.22, 1, 0.36, 1] as const,
+      opacity: { duration: 0.7, delay: 0.25 }
     } 
   },
   exit: { 
     opacity: 0,
-    rotateY: -45,
-    x: '-15%',
-    scale: 0.92,
+    rotateY: -55,
+    x: '-20%',
+    scale: 0.88,
     zIndex: 10,
+    boxShadow: '-30px 0 80px rgba(0,0,0,0.5), -10px 0 40px rgba(0,0,0,0.3)',
     transition: { 
-      duration: 1.2, 
-      ease: [0.4, 0, 0.2, 1] as const,
-      opacity: { duration: 0.8, delay: 0.3 }
+      duration: 1.4, 
+      ease: [0.32, 0, 0.15, 1] as const,
+      opacity: { duration: 1, delay: 0.35 },
+      boxShadow: { duration: 1.2, ease: "easeOut" }
     } 
   },
 };
@@ -54,7 +62,7 @@ const AnimatedRoutes = () => {
   const location = useLocation();
   
   return (
-    <div className="relative" style={{ perspective: '1500px', overflow: 'hidden', minHeight: '100vh' }}>
+    <div className="relative" style={{ perspective: '1200px', perspectiveOrigin: '30% 50%', overflow: 'hidden', minHeight: '100vh' }}>
       <AnimatePresence mode="popLayout">
         <motion.div
           key={location.pathname}
