@@ -147,7 +147,6 @@ export const HeroSection = () => {
             {[
               { value: "99.9%", label: "Précision IA" },
               { value: "< 2s", label: "Traitement" },
-              { value: "256-bit", label: "Chiffrement" },
               { value: "24/7", label: "Disponibilité" },
             ].map((stat, index) => (
               <div key={index} className="text-center">
