@@ -95,17 +95,28 @@ const AnimatedRoutes = () => {
                 backgroundRepeat: 'repeat',
               }}
             />
-            {/* Worn edges effect */}
+            {/* Aged paper yellowing effect on edges */}
             <div 
               className="pointer-events-none absolute inset-0 z-40"
               style={{
-                boxShadow: 'inset 0 0 60px rgba(0,0,0,0.15), inset 0 0 120px rgba(0,0,0,0.08)',
                 background: `
-                  radial-gradient(ellipse at top left, rgba(139,90,43,0.04) 0%, transparent 50%),
-                  radial-gradient(ellipse at top right, rgba(139,90,43,0.03) 0%, transparent 40%),
-                  radial-gradient(ellipse at bottom left, rgba(139,90,43,0.05) 0%, transparent 45%),
-                  radial-gradient(ellipse at bottom right, rgba(139,90,43,0.04) 0%, transparent 50%)
+                  radial-gradient(ellipse 80% 60% at 0% 0%, rgba(180,140,80,0.12) 0%, rgba(160,120,60,0.06) 30%, transparent 60%),
+                  radial-gradient(ellipse 70% 50% at 100% 0%, rgba(170,130,70,0.10) 0%, rgba(150,110,50,0.05) 25%, transparent 55%),
+                  radial-gradient(ellipse 90% 70% at 0% 100%, rgba(190,150,90,0.14) 0%, rgba(170,130,70,0.07) 35%, transparent 65%),
+                  radial-gradient(ellipse 75% 55% at 100% 100%, rgba(175,135,75,0.11) 0%, rgba(155,115,55,0.05) 30%, transparent 60%),
+                  linear-gradient(to right, rgba(160,120,60,0.08) 0%, transparent 8%),
+                  linear-gradient(to left, rgba(155,115,55,0.07) 0%, transparent 7%),
+                  linear-gradient(to bottom, rgba(150,110,50,0.06) 0%, transparent 5%),
+                  linear-gradient(to top, rgba(165,125,65,0.08) 0%, transparent 6%)
                 `,
+                boxShadow: 'inset 0 0 80px rgba(139,90,43,0.08), inset 0 0 150px rgba(0,0,0,0.06)',
+              }}
+            />
+            {/* Worn edges effect with vignette */}
+            <div 
+              className="pointer-events-none absolute inset-0 z-35"
+              style={{
+                boxShadow: 'inset 0 0 100px rgba(0,0,0,0.12)',
               }}
             />
             {/* Paper curl effect on edges */}
@@ -113,70 +124,39 @@ const AnimatedRoutes = () => {
               className="pointer-events-none absolute inset-0 z-30"
               style={{
                 background: `
-                  linear-gradient(to right, rgba(0,0,0,0.03) 0%, transparent 1.5%, transparent 98.5%, rgba(0,0,0,0.02) 100%),
-                  linear-gradient(to bottom, rgba(0,0,0,0.02) 0%, transparent 1%, transparent 99%, rgba(0,0,0,0.03) 100%)
+                  linear-gradient(to right, rgba(0,0,0,0.04) 0%, transparent 2%, transparent 98%, rgba(0,0,0,0.03) 100%),
+                  linear-gradient(to bottom, rgba(0,0,0,0.03) 0%, transparent 1.5%, transparent 98.5%, rgba(0,0,0,0.04) 100%)
                 `,
               }}
             />
             {/* Left edge curl highlight */}
             <div 
-              className="pointer-events-none absolute left-0 top-0 bottom-0 w-3 z-35"
+              className="pointer-events-none absolute left-0 top-0 bottom-0 w-4 z-35"
               style={{
-                background: 'linear-gradient(to right, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.02) 40%, transparent 100%)',
-                boxShadow: 'inset 2px 0 4px rgba(0,0,0,0.04)',
+                background: 'linear-gradient(to right, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 40%, transparent 100%)',
+                boxShadow: 'inset 2px 0 6px rgba(0,0,0,0.05)',
               }}
             />
             {/* Right edge curl shadow */}
             <div 
-              className="pointer-events-none absolute right-0 top-0 bottom-0 w-4 z-35"
+              className="pointer-events-none absolute right-0 top-0 bottom-0 w-5 z-35"
               style={{
-                background: 'linear-gradient(to left, rgba(0,0,0,0.06) 0%, rgba(0,0,0,0.02) 50%, transparent 100%)',
+                background: 'linear-gradient(to left, rgba(0,0,0,0.07) 0%, rgba(0,0,0,0.02) 50%, transparent 100%)',
               }}
             />
             {/* Top edge subtle curl */}
             <div 
-              className="pointer-events-none absolute top-0 left-0 right-0 h-2 z-35"
+              className="pointer-events-none absolute top-0 left-0 right-0 h-3 z-35"
               style={{
-                background: 'linear-gradient(to bottom, rgba(255,255,255,0.03) 0%, transparent 100%)',
-                boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.03)',
+                background: 'linear-gradient(to bottom, rgba(255,255,255,0.04) 0%, transparent 100%)',
+                boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.04)',
               }}
             />
             {/* Bottom edge curl shadow */}
             <div 
-              className="pointer-events-none absolute bottom-0 left-0 right-0 h-3 z-35"
+              className="pointer-events-none absolute bottom-0 left-0 right-0 h-4 z-35"
               style={{
-                background: 'linear-gradient(to top, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.02) 40%, transparent 100%)',
-              }}
-            />
-            {/* Center book fold effect */}
-            <div 
-              className="pointer-events-none absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-12 z-40"
-              style={{
-                background: `
-                  linear-gradient(to right, 
-                    transparent 0%, 
-                    rgba(0,0,0,0.03) 20%, 
-                    rgba(0,0,0,0.06) 45%, 
-                    rgba(0,0,0,0.08) 50%, 
-                    rgba(0,0,0,0.06) 55%, 
-                    rgba(0,0,0,0.03) 80%, 
-                    transparent 100%
-                  )
-                `,
-              }}
-            />
-            {/* Center fold highlight (left side) */}
-            <div 
-              className="pointer-events-none absolute top-0 bottom-0 left-1/2 -translate-x-[calc(50%+3px)] w-[6px] z-41"
-              style={{
-                background: 'linear-gradient(to right, transparent 0%, rgba(255,255,255,0.04) 50%, rgba(255,255,255,0.06) 100%)',
-              }}
-            />
-            {/* Center fold highlight (right side) */}
-            <div 
-              className="pointer-events-none absolute top-0 bottom-0 left-1/2 -translate-x-[calc(50%-3px)] w-[6px] z-41"
-              style={{
-                background: 'linear-gradient(to left, transparent 0%, rgba(255,255,255,0.04) 50%, rgba(255,255,255,0.06) 100%)',
+                background: 'linear-gradient(to top, rgba(0,0,0,0.06) 0%, rgba(0,0,0,0.02) 40%, transparent 100%)',
               }}
             />
           <Routes location={location}>
