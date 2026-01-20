@@ -83,34 +83,6 @@ export const HeroSection = () => {
             </Button>
           </motion.div>
 
-          {/* Hero Visual - AI Brain with floating documents */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="relative w-72 h-72 mx-auto"
-          >
-
-            {/* Floating Icons */}
-            {floatingIcons.map(({ Icon, delay, x, y }, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, delay: 0.6 + delay }}
-                className="absolute top-1/2 left-1/2"
-                style={{ x, y }}
-              >
-                <motion.div
-                  animate={{ y: [0, -10, 0] }}
-                  transition={{ duration: 3, delay: delay, repeat: Infinity, ease: "easeInOut" }}
-                  className="w-12 h-12 rounded-xl glass-card flex items-center justify-center"
-                >
-                  <Icon className="w-6 h-6 text-primary" />
-                </motion.div>
-              </motion.div>
-            ))}
-          </motion.div>
 
           {/* Stats */}
           <motion.div
