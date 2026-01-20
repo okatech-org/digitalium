@@ -157,9 +157,13 @@ export const AuthModal = ({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ type: "spring", duration: 0.5, bounce: 0.3 }}
-            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[101] w-full max-w-md px-4"
+            className="fixed inset-0 z-[101] flex items-center justify-center p-4"
+            style={{ pointerEvents: 'none' }}
           >
-            <div className="glass-card border border-primary/20 rounded-3xl overflow-hidden shadow-2xl bg-background/80 backdrop-blur-xl">
+            <div 
+              className="glass-card border border-primary/20 rounded-3xl overflow-hidden shadow-2xl bg-background/80 backdrop-blur-xl w-full max-w-md"
+              style={{ pointerEvents: 'auto' }}
+            >
               {/* Close button */}
               <button
                 onClick={onClose}
