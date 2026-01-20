@@ -106,6 +106,46 @@ const AnimatedRoutes = () => {
                 `,
               }}
             />
+            {/* Paper curl effect on edges */}
+            <div 
+              className="pointer-events-none absolute inset-0 z-30"
+              style={{
+                background: `
+                  linear-gradient(to right, rgba(0,0,0,0.03) 0%, transparent 1.5%, transparent 98.5%, rgba(0,0,0,0.02) 100%),
+                  linear-gradient(to bottom, rgba(0,0,0,0.02) 0%, transparent 1%, transparent 99%, rgba(0,0,0,0.03) 100%)
+                `,
+              }}
+            />
+            {/* Left edge curl highlight */}
+            <div 
+              className="pointer-events-none absolute left-0 top-0 bottom-0 w-3 z-35"
+              style={{
+                background: 'linear-gradient(to right, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.02) 40%, transparent 100%)',
+                boxShadow: 'inset 2px 0 4px rgba(0,0,0,0.04)',
+              }}
+            />
+            {/* Right edge curl shadow */}
+            <div 
+              className="pointer-events-none absolute right-0 top-0 bottom-0 w-4 z-35"
+              style={{
+                background: 'linear-gradient(to left, rgba(0,0,0,0.06) 0%, rgba(0,0,0,0.02) 50%, transparent 100%)',
+              }}
+            />
+            {/* Top edge subtle curl */}
+            <div 
+              className="pointer-events-none absolute top-0 left-0 right-0 h-2 z-35"
+              style={{
+                background: 'linear-gradient(to bottom, rgba(255,255,255,0.03) 0%, transparent 100%)',
+                boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.03)',
+              }}
+            />
+            {/* Bottom edge curl shadow */}
+            <div 
+              className="pointer-events-none absolute bottom-0 left-0 right-0 h-3 z-35"
+              style={{
+                background: 'linear-gradient(to top, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.02) 40%, transparent 100%)',
+              }}
+            />
           <Routes location={location}>
             <Route path="/" element={<Index />} />
             <Route path="/services" element={<Services />} />
