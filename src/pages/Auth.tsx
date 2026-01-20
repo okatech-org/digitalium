@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,22 +12,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, Zap, Mail, Lock, User } from 'lucide-react';
 import { z } from 'zod';
 
-const loginSchema = z.object({
-  email: z.string().email("Email invalide"),
-  password: z.string().min(6, "Le mot de passe doit contenir au moins 6 caractères"),
-});
-
-const signupSchema = z.object({
-  displayName: z.string().min(2, "Le nom doit contenir au moins 2 caractères").max(50, "Le nom est trop long"),
-  email: z.string().email("Email invalide"),
-  password: z.string().min(6, "Le mot de passe doit contenir au moins 6 caractères"),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Les mots de passe ne correspondent pas",
-  path: ["confirmPassword"],
-});
-
 export default function Auth() {
+  const { t } = useLanguage();
   const [isLoading, setIsLoading] = useState(false);
   const [loginData, setLoginData] = useState({ email: '', password: '' });
   const [signupData, setSignupData] = useState({ displayName: '', email: '', password: '', confirmPassword: '' });
@@ -35,6 +22,21 @@ export default function Auth() {
   const { signIn, signUp, user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const loginSchema = z.object({
+    email: z.string().email(t("auth.invalidEmail")),
+    password: z.string().min(6, t("auth.passwordMin")),
+  });
+
+  const signupSchema = z.object({
+    displayName: z.string().min(2, t("auth.nameMin")).max(50, t("auth.nameMax")),
+    email: z.string().email(t("auth.invalidEmail")),
+    password: z.string().min(6, t("auth.passwordMin")),
+    confirmPassword: z.string(),
+  }).refine((data) => data.password === data.confirmPassword, {
+    message: t("auth.passwordMismatch"),
+    path: ["confirmPassword"],
+  });
 
   useEffect(() => {
     if (user) {
@@ -66,20 +68,20 @@ export default function Auth() {
       if (error.message.includes('Invalid login credentials')) {
         toast({
           variant: "destructive",
-          title: "Erreur de connexion",
-          description: "Email ou mot de passe incorrect.",
+          title: t("auth.loginError"),
+          description: t("auth.loginErrorMsg"),
         });
       } else {
         toast({
           variant: "destructive",
-          title: "Erreur",
+          title: t("auth.error"),
           description: error.message,
         });
       }
     } else {
       toast({
-        title: "Connexion réussie",
-        description: "Bienvenue sur DIGITALIUM !",
+        title: t("auth.loginSuccess"),
+        description: t("auth.loginSuccessMsg"),
       });
       navigate('/dashboard');
     }
@@ -109,20 +111,20 @@ export default function Auth() {
       if (error.message.includes('User already registered')) {
         toast({
           variant: "destructive",
-          title: "Compte existant",
-          description: "Un compte existe déjà avec cet email. Connectez-vous plutôt.",
+          title: t("auth.accountExists"),
+          description: t("auth.accountExistsMsg"),
         });
       } else {
         toast({
           variant: "destructive",
-          title: "Erreur d'inscription",
+          title: t("auth.signupError"),
           description: error.message,
         });
       }
     } else {
       toast({
-        title: "Compte créé !",
-        description: "Bienvenue sur DIGITALIUM !",
+        title: t("auth.signupSuccess"),
+        description: t("auth.signupSuccessMsg"),
       });
       navigate('/dashboard');
     }
@@ -146,16 +148,16 @@ export default function Auth() {
             >
               <Zap className="w-8 h-8 text-primary-foreground" />
             </motion.div>
-            <CardTitle className="text-2xl gradient-text">DIGITALIUM</CardTitle>
+            <CardTitle className="text-2xl gradient-text">{t("auth.title")}</CardTitle>
             <CardDescription className="text-muted-foreground">
-              Accédez à votre espace personnel
+              {t("auth.subtitle")}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="login" className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="login">Connexion</TabsTrigger>
-                <TabsTrigger value="signup">Inscription</TabsTrigger>
+                <TabsTrigger value="login">{t("auth.login")}</TabsTrigger>
+                <TabsTrigger value="signup">{t("auth.signup")}</TabsTrigger>
               </TabsList>
               
               <TabsContent value="login">
@@ -163,12 +165,12 @@ export default function Auth() {
                   <div className="space-y-2">
                     <Label htmlFor="login-email" className="flex items-center gap-2">
                       <Mail className="w-4 h-4" />
-                      Email
+                      {t("auth.email")}
                     </Label>
                     <Input
                       id="login-email"
                       type="email"
-                      placeholder="vous@exemple.com"
+                      placeholder={t("auth.emailPlaceholder")}
                       value={loginData.email}
                       onChange={(e) => setLoginData(prev => ({ ...prev, email: e.target.value }))}
                       className="bg-muted/50"
@@ -178,12 +180,12 @@ export default function Auth() {
                   <div className="space-y-2">
                     <Label htmlFor="login-password" className="flex items-center gap-2">
                       <Lock className="w-4 h-4" />
-                      Mot de passe
+                      {t("auth.password")}
                     </Label>
                     <Input
                       id="login-password"
                       type="password"
-                      placeholder="••••••••"
+                      placeholder={t("auth.passwordPlaceholder")}
                       value={loginData.password}
                       onChange={(e) => setLoginData(prev => ({ ...prev, password: e.target.value }))}
                       className="bg-muted/50"
@@ -194,10 +196,10 @@ export default function Auth() {
                     {isLoading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Connexion...
+                        {t("auth.logging")}
                       </>
                     ) : (
-                      'Se connecter'
+                      t("auth.loginButton")
                     )}
                   </Button>
                 </form>
@@ -208,12 +210,12 @@ export default function Auth() {
                   <div className="space-y-2">
                     <Label htmlFor="signup-name" className="flex items-center gap-2">
                       <User className="w-4 h-4" />
-                      Nom complet
+                      {t("auth.fullName")}
                     </Label>
                     <Input
                       id="signup-name"
                       type="text"
-                      placeholder="Jean Dupont"
+                      placeholder={t("auth.namePlaceholder")}
                       value={signupData.displayName}
                       onChange={(e) => setSignupData(prev => ({ ...prev, displayName: e.target.value }))}
                       className="bg-muted/50"
@@ -223,12 +225,12 @@ export default function Auth() {
                   <div className="space-y-2">
                     <Label htmlFor="signup-email" className="flex items-center gap-2">
                       <Mail className="w-4 h-4" />
-                      Email
+                      {t("auth.email")}
                     </Label>
                     <Input
                       id="signup-email"
                       type="email"
-                      placeholder="vous@exemple.com"
+                      placeholder={t("auth.emailPlaceholder")}
                       value={signupData.email}
                       onChange={(e) => setSignupData(prev => ({ ...prev, email: e.target.value }))}
                       className="bg-muted/50"
@@ -238,12 +240,12 @@ export default function Auth() {
                   <div className="space-y-2">
                     <Label htmlFor="signup-password" className="flex items-center gap-2">
                       <Lock className="w-4 h-4" />
-                      Mot de passe
+                      {t("auth.password")}
                     </Label>
                     <Input
                       id="signup-password"
                       type="password"
-                      placeholder="••••••••"
+                      placeholder={t("auth.passwordPlaceholder")}
                       value={signupData.password}
                       onChange={(e) => setSignupData(prev => ({ ...prev, password: e.target.value }))}
                       className="bg-muted/50"
@@ -253,12 +255,12 @@ export default function Auth() {
                   <div className="space-y-2">
                     <Label htmlFor="signup-confirm" className="flex items-center gap-2">
                       <Lock className="w-4 h-4" />
-                      Confirmer le mot de passe
+                      {t("auth.confirmPassword")}
                     </Label>
                     <Input
                       id="signup-confirm"
                       type="password"
-                      placeholder="••••••••"
+                      placeholder={t("auth.passwordPlaceholder")}
                       value={signupData.confirmPassword}
                       onChange={(e) => setSignupData(prev => ({ ...prev, confirmPassword: e.target.value }))}
                       className="bg-muted/50"
@@ -269,10 +271,10 @@ export default function Auth() {
                     {isLoading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Création...
+                        {t("auth.creating")}
                       </>
                     ) : (
-                      'Créer un compte'
+                      t("auth.signupButton")
                     )}
                   </Button>
                 </form>

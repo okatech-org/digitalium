@@ -1,15 +1,11 @@
 import { motion } from "framer-motion";
-import { ArrowRight, Sparkles, Shield, Zap, FileText } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-const floatingIcons = [
-  { Icon: FileText, delay: 0, x: -120, y: -80 },
-  { Icon: Shield, delay: 0.5, x: 150, y: -60 },
-  { Icon: Zap, delay: 1, x: -100, y: 100 },
-  { Icon: Sparkles, delay: 1.5, x: 130, y: 80 },
-];
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export const HeroSection = () => {
+  const { t } = useLanguage();
+
   return (
     <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
       {/* Video Background */}
@@ -43,10 +39,10 @@ export const HeroSection = () => {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight mb-6"
           >
-            <span className="text-foreground">Votre </span>
-            <span className="gradient-text">Archiviste</span>
+            <span className="text-foreground">{t("hero.title1")} </span>
+            <span className="gradient-text">{t("hero.title2")}</span>
             <br />
-            <span className="text-foreground">Intelligent</span>
+            <span className="text-foreground">{t("hero.title3")}</span>
           </motion.h1>
 
           {/* Subheading */}
@@ -56,8 +52,7 @@ export const HeroSection = () => {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10"
           >
-            De votre poche à la Nation — La première plateforme d'archivage intelligent 
-            multi-échelle. Numérisez, organisez et sécurisez vos documents avec l'IA.
+            {t("hero.description")}
           </motion.p>
 
           {/* CTA Buttons */}
@@ -71,7 +66,7 @@ export const HeroSection = () => {
               size="lg" 
               className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity text-lg px-8 py-6 glow-border"
             >
-              Essayer Gratuitement
+              {t("hero.cta.primary")}
               <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
             <Button 
@@ -79,7 +74,7 @@ export const HeroSection = () => {
               variant="outline" 
               className="border-border/50 hover:bg-muted/50 text-lg px-8 py-6"
             >
-              Voir la Démo
+              {t("hero.cta.secondary")}
             </Button>
           </motion.div>
 
