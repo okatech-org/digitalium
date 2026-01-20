@@ -5,12 +5,16 @@ import {
   Mail, 
   Clock,
   Send,
-  MessageCircle
+  MessageCircle,
+  Loader2,
+  CheckCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const contactInfo = [
   {
@@ -42,11 +46,37 @@ export const ContactSection = () => {
     subject: "",
     message: "",
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission
-    console.log(formData);
+    
+    if (!formData.name || !formData.email || !formData.message) {
+      toast.error("Veuillez remplir tous les champs obligatoires");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("submit-lead", {
+        body: formData,
+      });
+
+      if (error) throw error;
+
+      setIsSubmitted(true);
+      setFormData({ name: "", email: "", subject: "", message: "" });
+      toast.success("Message envoyé avec succès !");
+      
+      setTimeout(() => setIsSubmitted(false), 5000);
+    } catch (error) {
+      console.error("Submit error:", error);
+      toast.error("Erreur lors de l'envoi. Veuillez réessayer.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -150,10 +180,25 @@ export const ContactSection = () => {
                 <Button 
                   type="submit" 
                   size="lg"
+                  disabled={isSubmitting || isSubmitted}
                   className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity"
                 >
-                  Envoyer le message
-                  <Send className="ml-2 w-5 h-5" />
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 w-5 h-5 animate-spin" />
+                      Envoi en cours...
+                    </>
+                  ) : isSubmitted ? (
+                    <>
+                      <CheckCircle className="mr-2 w-5 h-5" />
+                      Message envoyé !
+                    </>
+                  ) : (
+                    <>
+                      Envoyer le message
+                      <Send className="ml-2 w-5 h-5" />
+                    </>
+                  )}
                 </Button>
               </form>
             </div>
