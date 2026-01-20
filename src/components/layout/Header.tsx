@@ -42,22 +42,45 @@ export const Header = () => {
           </a>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-8">
+          <nav className="hidden md:flex items-center gap-2">
             {navLinks.map((link) => {
               const isActive = location.pathname === link.href;
               return (
                 <Link
                   key={link.name}
                   to={link.href}
-                  className={`text-sm font-medium transition-colors relative group px-3 py-2 rounded-lg ${
-                    isActive
-                      ? 'text-primary-foreground bg-gradient-to-r from-primary to-secondary'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                  }`}
+                  className="relative px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300"
                 >
-                  {link.name}
+                  {/* Animated background */}
+                  <motion.div
+                    className="absolute inset-0 rounded-lg bg-gradient-to-r from-primary to-secondary"
+                    initial={false}
+                    animate={{
+                      opacity: isActive ? 1 : 0,
+                      scale: isActive ? 1 : 0.9,
+                    }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
+                  />
+                  {/* Glow effect for active */}
+                  {isActive && (
+                    <motion.div
+                      className="absolute inset-0 rounded-lg bg-gradient-to-r from-primary to-secondary blur-md"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: [0.4, 0.7, 0.4] }}
+                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                    />
+                  )}
+                  {/* Text */}
+                  <span className={`relative z-10 transition-colors duration-300 ${
+                    isActive
+                      ? 'text-primary-foreground'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}>
+                    {link.name}
+                  </span>
+                  {/* Hover underline for inactive */}
                   {!isActive && (
-                    <span className="absolute -bottom-1 left-0 h-0.5 w-0 bg-gradient-to-r from-primary to-secondary transition-all duration-300 group-hover:w-full" />
+                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 w-0 bg-gradient-to-r from-primary to-secondary transition-all duration-300 group-hover:w-3/4 hover:w-3/4" />
                   )}
                 </Link>
               );
@@ -109,13 +132,31 @@ export const Header = () => {
                     key={link.name}
                     to={link.href}
                     onClick={() => setIsOpen(false)}
-                    className={`text-lg font-medium transition-colors py-2 px-4 rounded-lg ${
-                      isActive
-                        ? 'text-primary-foreground bg-gradient-to-r from-primary to-secondary'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                    }`}
+                    className="relative text-lg font-medium py-3 px-4 rounded-lg overflow-hidden"
                   >
-                    {link.name}
+                    <motion.div
+                      className="absolute inset-0 rounded-lg bg-gradient-to-r from-primary to-secondary"
+                      initial={false}
+                      animate={{
+                        opacity: isActive ? 1 : 0,
+                        scale: isActive ? 1 : 0.95,
+                      }}
+                      transition={{ duration: 0.3, ease: "easeOut" }}
+                    />
+                    {isActive && (
+                      <motion.div
+                        className="absolute inset-0 rounded-lg bg-gradient-to-r from-primary to-secondary blur-md"
+                        animate={{ opacity: [0.3, 0.6, 0.3] }}
+                        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                      />
+                    )}
+                    <span className={`relative z-10 transition-colors duration-300 ${
+                      isActive
+                        ? 'text-primary-foreground'
+                        : 'text-muted-foreground'
+                    }`}>
+                      {link.name}
+                    </span>
                   </Link>
                 );
               })}
