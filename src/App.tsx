@@ -21,16 +21,30 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 const pageVariants = {
-  initial: { opacity: 0, rotateY: -10, x: '3%', scale: 0.98 },
-  enter: { opacity: 1, rotateY: 0, x: '0%', scale: 1, transition: { duration: 0.5, ease: [0.645, 0.045, 0.355, 1] as const } },
-  exit: { opacity: 0, rotateY: 10, x: '-3%', scale: 0.98, transition: { duration: 0.4, ease: [0.645, 0.045, 0.355, 1] as const } },
+  initial: { 
+    opacity: 1,
+    rotateY: 0,
+    x: '0%',
+  },
+  enter: { 
+    opacity: 1, 
+    rotateY: 0, 
+    x: '0%',
+    transition: { duration: 0.6, ease: [0.645, 0.045, 0.355, 1] as const } 
+  },
+  exit: { 
+    opacity: 1,
+    rotateY: -180,
+    x: '-100%',
+    transition: { duration: 0.7, ease: [0.645, 0.045, 0.355, 1] as const } 
+  },
 };
 
 const AnimatedRoutes = () => {
   const location = useLocation();
   
   return (
-    <div style={{ perspective: '1500px', overflow: 'hidden' }}>
+    <div style={{ perspective: '2000px', overflow: 'hidden' }}>
       <AnimatePresence mode="wait">
         <motion.div
           key={location.pathname}
@@ -38,7 +52,11 @@ const AnimatedRoutes = () => {
           initial="initial"
           animate="enter"
           exit="exit"
-          style={{ transformStyle: 'preserve-3d' }}
+          style={{ 
+            transformStyle: 'preserve-3d',
+            transformOrigin: 'left center',
+            backfaceVisibility: 'hidden',
+          }}
         >
           <Routes location={location}>
             <Route path="/" element={<Index />} />
