@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Header } from "@/components/layout/Header";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { 
   User, 
   Building2, 
@@ -10,40 +11,42 @@ import {
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
-const solutions = [
-  {
-    icon: User,
-    title: "Citoyens",
-    subtitle: "DIGITALIUM Personnel",
-    description: "Organisez tous vos documents administratifs simplement.",
-    gradient: "from-primary to-secondary",
-    features: ["CNI, passeport, diplômes", "Rappels d'expiration", "100 docs gratuits"],
-    price: "Gratuit",
-    popular: false,
-  },
-  {
-    icon: Building2,
-    title: "Entreprises",
-    subtitle: "DIGITALIUM Business",
-    description: "Digitalisez votre gestion documentaire.",
-    gradient: "from-secondary to-accent",
-    features: ["Multi-utilisateurs", "Workflows automatisés", "API & Intégrations"],
-    price: "15 000 XAF/mois",
-    popular: true,
-  },
-  {
-    icon: Landmark,
-    title: "Institutions",
-    subtitle: "DIGITALIUM Souverain",
-    description: "Solution souveraine pour les administrations.",
-    gradient: "from-accent to-orange-500",
-    features: ["Hébergement Gabon", "Support 24/7", "Formation incluse"],
-    price: "Sur devis",
-    popular: false,
-  },
-];
-
 const Solutions = () => {
+  const { t } = useLanguage();
+
+  const solutions = [
+    {
+      icon: User,
+      title: t("solutions.citizen.title"),
+      subtitle: t("solutions.citizen.subtitle"),
+      description: t("solutions.citizen.description"),
+      gradient: "from-primary to-secondary",
+      features: [t("solutions.citizen.f1"), t("solutions.citizen.f2"), t("solutions.citizen.f3")],
+      price: t("solutions.citizen.price"),
+      popular: false,
+    },
+    {
+      icon: Building2,
+      title: t("solutions.business.title"),
+      subtitle: t("solutions.business.subtitle"),
+      description: t("solutions.business.description"),
+      gradient: "from-secondary to-accent",
+      features: [t("solutions.business.f1"), t("solutions.business.f2"), t("solutions.business.f3")],
+      price: t("solutions.business.price"),
+      popular: true,
+    },
+    {
+      icon: Landmark,
+      title: t("solutions.institution.title"),
+      subtitle: t("solutions.institution.subtitle"),
+      description: t("solutions.institution.description"),
+      gradient: "from-accent to-orange-500",
+      features: [t("solutions.institution.f1"), t("solutions.institution.f2"), t("solutions.institution.f3")],
+      price: t("solutions.institution.price"),
+      popular: false,
+    },
+  ];
+
   return (
     <div className="h-screen overflow-hidden">
       <Header />
@@ -60,11 +63,11 @@ const Solutions = () => {
               className="text-center mb-12"
             >
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
-                Une Solution{" "}
-                <span className="gradient-text">Adaptée</span>
+                {t("solutions.title1")}{" "}
+                <span className="gradient-text">{t("solutions.title2")}</span>
               </h1>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Du particulier à l'administration publique, DIGITALIUM s'adapte à votre échelle.
+                {t("solutions.description")}
               </p>
             </motion.div>
 
@@ -82,7 +85,7 @@ const Solutions = () => {
                   {solution.popular && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                       <span className="px-3 py-1 rounded-full bg-gradient-to-r from-primary to-secondary text-primary-foreground text-xs font-medium">
-                        Plus populaire
+                        {t("solutions.popular")}
                       </span>
                     </div>
                   )}
@@ -114,7 +117,7 @@ const Solutions = () => {
                       variant={solution.popular ? 'default' : 'outline'}
                       size="sm"
                     >
-                      Choisir
+                      {t("solutions.choose")}
                       <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
                   </Link>

@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Header } from "@/components/layout/Header";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { 
   Scan, 
   Brain, 
@@ -9,40 +10,42 @@ import {
   Workflow,
 } from "lucide-react";
 
-const services = [
-  {
-    icon: Scan,
-    title: "Scan Intelligent",
-    description: "Numérisez vos documents avec notre technologie OCR avancée.",
-  },
-  {
-    icon: Brain,
-    title: "Assistant IA",
-    description: "Un archiviste intelligent disponible 24/7.",
-  },
-  {
-    icon: Shield,
-    title: "Sécurité Souveraine",
-    description: "Chiffrement de niveau bancaire, hébergement local.",
-  },
-  {
-    icon: Users,
-    title: "Multi-Persona",
-    description: "Interface adaptée à chaque profil utilisateur.",
-  },
-  {
-    icon: Wifi,
-    title: "Mode Offline",
-    description: "Travaillez sans connexion, sync automatique.",
-  },
-  {
-    icon: Workflow,
-    title: "Workflows",
-    description: "Automatisez vos processus documentaires.",
-  }
-];
-
 const Services = () => {
+  const { t } = useLanguage();
+
+  const services = [
+    {
+      icon: Scan,
+      title: t("services.scan.title"),
+      description: t("services.scan.description"),
+    },
+    {
+      icon: Brain,
+      title: t("services.ai.title"),
+      description: t("services.ai.description"),
+    },
+    {
+      icon: Shield,
+      title: t("services.security.title"),
+      description: t("services.security.description"),
+    },
+    {
+      icon: Users,
+      title: t("services.persona.title"),
+      description: t("services.persona.description"),
+    },
+    {
+      icon: Wifi,
+      title: t("services.offline.title"),
+      description: t("services.offline.description"),
+    },
+    {
+      icon: Workflow,
+      title: t("services.workflow.title"),
+      description: t("services.workflow.description"),
+    }
+  ];
+
   return (
     <div className="h-screen overflow-hidden">
       <Header />
@@ -59,11 +62,11 @@ const Services = () => {
               className="text-center mb-12"
             >
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
-                Des Solutions{" "}
-                <span className="gradient-text">Complètes</span>
+                {t("services.title1")}{" "}
+                <span className="gradient-text">{t("services.title2")}</span>
               </h1>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                DIGITALIUM transforme la gestion documentaire du citoyen à l'institution.
+                {t("services.description")}
               </p>
             </motion.div>
 

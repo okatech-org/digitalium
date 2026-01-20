@@ -1,22 +1,26 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Brain } from "lucide-react";
+import { Menu, X, Brain, Sun, Moon, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-
-const navLinks = [
-  { name: "Accueil", href: "/" },
-  { name: "Services", href: "/services" },
-  { name: "Solutions", href: "/solutions" },
-  { name: "Fonctionnalités", href: "/features" },
-  { name: "Contact", href: "/contact" },
-];
+import { useTheme } from "@/contexts/ThemeContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { user } = useAuth();
+  const { theme, toggleTheme } = useTheme();
+  const { language, setLanguage, t } = useLanguage();
   const location = useLocation();
+
+  const navLinks = [
+    { name: t("nav.home"), href: "/" },
+    { name: t("nav.services"), href: "/services" },
+    { name: t("nav.solutions"), href: "/solutions" },
+    { name: t("nav.features"), href: "/features" },
+    { name: t("nav.contact"), href: "/contact" },
+  ];
 
   return (
     <motion.header
@@ -28,7 +32,7 @@ export const Header = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
-          <a href="#" className="flex items-center gap-3 group">
+          <Link to="/" className="flex items-center gap-3 group">
             <div className="relative">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
                 <Brain className="w-6 h-6 text-primary-foreground" />
@@ -39,7 +43,7 @@ export const Header = () => {
               <span className="gradient-text">DIGITALIUM</span>
               <span className="text-muted-foreground">.IO</span>
             </span>
-          </a>
+          </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-2">
@@ -47,7 +51,7 @@ export const Header = () => {
               const isActive = location.pathname === link.href;
               return (
                 <Link
-                  key={link.name}
+                  key={link.href}
                   to={link.href}
                   className="relative px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300"
                 >
@@ -87,31 +91,79 @@ export const Header = () => {
             })}
           </nav>
 
-          {/* CTA Buttons */}
-          <div className="hidden md:flex items-center gap-4">
+          {/* Controls */}
+          <div className="hidden md:flex items-center gap-2">
+            {/* Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-lg hover:bg-muted transition-colors"
+              aria-label="Toggle theme"
+            >
+              {theme === "dark" ? (
+                <Sun className="w-5 h-5 text-muted-foreground hover:text-foreground" />
+              ) : (
+                <Moon className="w-5 h-5 text-muted-foreground hover:text-foreground" />
+              )}
+            </button>
+
+            {/* Language Toggle */}
+            <button
+              onClick={() => setLanguage(language === "fr" ? "en" : "fr")}
+              className="flex items-center gap-1 px-2 py-1.5 rounded-lg hover:bg-muted transition-colors text-sm font-medium text-muted-foreground hover:text-foreground"
+              aria-label="Toggle language"
+            >
+              <Globe className="w-4 h-4" />
+              <span className="uppercase">{language}</span>
+            </button>
+
+            {/* Auth Buttons */}
             {user ? (
-              <Button asChild size="sm" className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity">
-                <Link to="/dashboard">Mon Espace</Link>
+              <Button asChild size="sm" className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity ml-2">
+                <Link to="/dashboard">{t("nav.dashboard")}</Link>
               </Button>
             ) : (
               <>
                 <Button asChild variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
-                  <Link to="/auth">Connexion</Link>
+                  <Link to="/auth">{t("nav.login")}</Link>
                 </Button>
                 <Button asChild size="sm" className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity">
-                  <Link to="/auth">Commencer</Link>
+                  <Link to="/auth">{t("nav.start")}</Link>
                 </Button>
               </>
             )}
           </div>
 
           {/* Mobile Menu Button */}
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="md:hidden p-2 rounded-lg hover:bg-muted transition-colors"
-          >
-            {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
+          <div className="md:hidden flex items-center gap-2">
+            {/* Theme Toggle Mobile */}
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-lg hover:bg-muted transition-colors"
+              aria-label="Toggle theme"
+            >
+              {theme === "dark" ? (
+                <Sun className="w-5 h-5" />
+              ) : (
+                <Moon className="w-5 h-5" />
+              )}
+            </button>
+
+            {/* Language Toggle Mobile */}
+            <button
+              onClick={() => setLanguage(language === "fr" ? "en" : "fr")}
+              className="flex items-center gap-1 px-2 py-1.5 rounded-lg hover:bg-muted transition-colors text-sm font-medium"
+              aria-label="Toggle language"
+            >
+              <span className="uppercase">{language}</span>
+            </button>
+
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="p-2 rounded-lg hover:bg-muted transition-colors"
+            >
+              {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -129,7 +181,7 @@ export const Header = () => {
                 const isActive = location.pathname === link.href;
                 return (
                   <Link
-                    key={link.name}
+                    key={link.href}
                     to={link.href}
                     onClick={() => setIsOpen(false)}
                     className="relative text-lg font-medium py-3 px-4 rounded-lg overflow-hidden"
@@ -163,15 +215,15 @@ export const Header = () => {
               <div className="flex flex-col gap-3 pt-4 border-t border-border/50">
                 {user ? (
                   <Button asChild className="w-full bg-gradient-to-r from-primary to-secondary">
-                    <Link to="/dashboard">Mon Espace</Link>
+                    <Link to="/dashboard">{t("nav.dashboard")}</Link>
                   </Button>
                 ) : (
                   <>
                     <Button asChild variant="outline" className="w-full">
-                      <Link to="/auth">Connexion</Link>
+                      <Link to="/auth">{t("nav.login")}</Link>
                     </Button>
                     <Button asChild className="w-full bg-gradient-to-r from-primary to-secondary">
-                      <Link to="/auth">Commencer</Link>
+                      <Link to="/auth">{t("nav.start")}</Link>
                     </Button>
                   </>
                 )}
