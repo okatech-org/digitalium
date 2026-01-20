@@ -25,7 +25,7 @@ export const HeroSection = () => {
           <source src="/videos/hero-background.mov" type="video/mp4" />
         </video>
         {/* Dark overlay for better text readability */}
-        <div className="absolute inset-0 bg-background/70 backdrop-blur-sm" />
+        <div className="absolute inset-0 bg-background/30" />
       </div>
       
       {/* Background Effects */}
