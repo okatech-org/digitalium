@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Header } from "@/components/layout/Header";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { 
   MessageSquareText, 
   Scan, 
@@ -9,40 +10,42 @@ import {
   Lock,
 } from "lucide-react";
 
-const features = [
-  {
-    icon: MessageSquareText,
-    title: "Assistant IA",
-    description: "Parlez naturellement à votre archiviste IA pour organiser vos documents.",
-  },
-  {
-    icon: Scan,
-    title: "Scan Intelligent",
-    description: "Numérisez avec votre smartphone, l'IA extrait automatiquement le texte.",
-  },
-  {
-    icon: FolderOpen,
-    title: "Organisation Auto",
-    description: "L'IA classe automatiquement vos documents par catégorie et date.",
-  },
-  {
-    icon: Bell,
-    title: "Alertes Intelligentes",
-    description: "Soyez prévenu avant l'expiration de vos documents importants.",
-  },
-  {
-    icon: Share2,
-    title: "Partage Sécurisé",
-    description: "Partagez des documents avec contrôle total des permissions.",
-  },
-  {
-    icon: Lock,
-    title: "Chiffrement E2E",
-    description: "Vos documents sensibles chiffrés, même nous ne pouvons les lire.",
-  },
-];
-
 const Features = () => {
+  const { t } = useLanguage();
+
+  const features = [
+    {
+      icon: MessageSquareText,
+      title: t("features.assistant.title"),
+      description: t("features.assistant.description"),
+    },
+    {
+      icon: Scan,
+      title: t("features.scan.title"),
+      description: t("features.scan.description"),
+    },
+    {
+      icon: FolderOpen,
+      title: t("features.organization.title"),
+      description: t("features.organization.description"),
+    },
+    {
+      icon: Bell,
+      title: t("features.alerts.title"),
+      description: t("features.alerts.description"),
+    },
+    {
+      icon: Share2,
+      title: t("features.share.title"),
+      description: t("features.share.description"),
+    },
+    {
+      icon: Lock,
+      title: t("features.encryption.title"),
+      description: t("features.encryption.description"),
+    },
+  ];
+
   return (
     <div className="h-screen overflow-hidden">
       <Header />
@@ -59,13 +62,13 @@ const Features = () => {
               className="text-center mb-12"
             >
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
-                L'IA qui{" "}
-                <span className="gradient-text">Travaille</span>
+                {t("features.title1")}{" "}
+                <span className="gradient-text">{t("features.title2")}</span>
                 <br className="hidden sm:block" />
-                pour Vous
+                {t("features.title3")}
               </h1>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Une expérience de gestion documentaire fluide et intuitive.
+                {t("features.description")}
               </p>
             </motion.div>
 

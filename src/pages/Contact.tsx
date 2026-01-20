@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Header } from "@/components/layout/Header";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { 
   MapPin, 
   Phone, 
@@ -14,14 +15,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
-const contactInfo = [
-  { icon: MapPin, title: "Adresse", detail: "Boulevard Triomphal, Libreville" },
-  { icon: Phone, title: "Téléphone", detail: "+241 77 00 00 00" },
-  { icon: Mail, title: "Email", detail: "contact@digitalium.ga" },
-];
-
 const Contact = () => {
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [formData, setFormData] = useState({
@@ -30,13 +26,19 @@ const Contact = () => {
     message: "",
   });
 
+  const contactInfo = [
+    { icon: MapPin, title: t("contact.address"), detail: "Boulevard Triomphal, Libreville" },
+    { icon: Phone, title: t("contact.phone"), detail: "+241 77 00 00 00" },
+    { icon: Mail, title: t("contact.email"), detail: "contact@digitalium.ga" },
+  ];
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.name || !formData.email || !formData.message) {
       toast({
-        title: "Champs requis",
-        description: "Veuillez remplir tous les champs.",
+        title: t("contact.form.required"),
+        description: t("contact.form.required.description"),
         variant: "destructive",
       });
       return;
@@ -58,14 +60,14 @@ const Contact = () => {
 
       setIsSubmitted(true);
       toast({
-        title: "Message envoyé !",
-        description: "Nous vous répondrons rapidement.",
+        title: t("contact.form.success.title"),
+        description: t("contact.form.success.description"),
       });
     } catch (error) {
       console.error('Error submitting form:', error);
       toast({
-        title: "Erreur",
-        description: "Veuillez réessayer.",
+        title: t("contact.form.error"),
+        description: t("contact.form.error.description"),
         variant: "destructive",
       });
     } finally {
@@ -89,8 +91,8 @@ const Contact = () => {
               className="text-center mb-10"
             >
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
-                Parlons de Votre{" "}
-                <span className="gradient-text">Projet</span>
+                {t("contact.title1")}{" "}
+                <span className="gradient-text">{t("contact.title2")}</span>
               </h1>
             </motion.div>
 
@@ -106,34 +108,34 @@ const Contact = () => {
                     <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-4">
                       <CheckCircle className="w-8 h-8 text-primary" />
                     </div>
-                    <h3 className="text-xl font-bold mb-2">Message Envoyé !</h3>
+                    <h3 className="text-xl font-bold mb-2">{t("contact.form.success.title")}</h3>
                     <p className="text-muted-foreground mb-4">
-                      Notre équipe vous répondra sous 24h.
+                      {t("contact.form.success.description")}
                     </p>
                     <Button onClick={() => {
                       setIsSubmitted(false);
                       setFormData({ name: "", email: "", message: "" });
                     }}>
-                      Nouveau message
+                      {t("contact.form.new")}
                     </Button>
                   </div>
                 ) : (
                   <form onSubmit={handleSubmit} className="space-y-4">
                     <Input
-                      placeholder="Votre nom *"
+                      placeholder={t("contact.form.name")}
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       className="bg-background/50"
                     />
                     <Input
                       type="email"
-                      placeholder="Votre email *"
+                      placeholder={t("contact.form.email")}
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       className="bg-background/50"
                     />
                     <Textarea
-                      placeholder="Votre message *"
+                      placeholder={t("contact.form.message")}
                       rows={4}
                       value={formData.message}
                       onChange={(e) => setFormData({ ...formData, message: e.target.value })}
@@ -145,7 +147,7 @@ const Contact = () => {
                       className="w-full bg-gradient-to-r from-primary to-secondary"
                       disabled={isSubmitting}
                     >
-                      {isSubmitting ? "Envoi..." : "Envoyer"}
+                      {isSubmitting ? t("contact.form.sending") : t("contact.form.submit")}
                       <Send className="w-5 h-5 ml-2" />
                     </Button>
                   </form>

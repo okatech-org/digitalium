@@ -68,6 +68,66 @@
     --sidebar-border: 222 30% 18%;
     --sidebar-ring: 217 91% 60%;
   }
+
+  .light {
+    /* Light theme - Warm paper aesthetic */
+    --background: 40 30% 96%;
+    --foreground: 222 47% 11%;
+
+    --card: 40 25% 92%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 40 25% 92%;
+    --popover-foreground: 222 47% 11%;
+
+    /* Primary - Deep blue */
+    --primary: 217 91% 45%;
+    --primary-foreground: 40 30% 98%;
+
+    /* Secondary - Rich indigo */
+    --secondary: 250 60% 45%;
+    --secondary-foreground: 40 30% 98%;
+
+    /* Accent - Golden amber */
+    --accent: 38 92% 45%;
+    --accent-foreground: 222 47% 11%;
+
+    --muted: 40 20% 88%;
+    --muted-foreground: 222 20% 40%;
+
+    --destructive: 0 84% 50%;
+    --destructive-foreground: 40 30% 98%;
+
+    --border: 40 20% 82%;
+    --input: 40 20% 82%;
+    --ring: 217 91% 45%;
+
+    /* Custom semantic tokens */
+    --gradient-primary: linear-gradient(135deg, hsl(217 91% 45%) 0%, hsl(250 60% 45%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(38 92% 45%) 0%, hsl(28 95% 50%) 100%);
+    --gradient-hero: linear-gradient(180deg, hsl(40 30% 96%) 0%, hsl(40 25% 92%) 50%, hsl(40 20% 88%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(40 25% 94%) 0%, hsl(40 25% 90%) 100%);
+    --gradient-glass: linear-gradient(135deg, hsla(217, 91%, 45%, 0.08) 0%, hsla(250, 60%, 45%, 0.04) 100%);
+    
+    /* Glow effects - subtle in light mode */
+    --glow-primary: 0 0 40px hsla(217, 91%, 45%, 0.15);
+    --glow-accent: 0 0 30px hsla(38, 92%, 45%, 0.12);
+    --glow-soft: 0 0 60px hsla(217, 91%, 45%, 0.08);
+    
+    /* Shadows - softer for light mode */
+    --shadow-card: 0 4px 20px hsla(222, 30%, 20%, 0.08);
+    --shadow-elevated: 0 20px 40px hsla(222, 30%, 20%, 0.12);
+
+    /* Sidebar */
+    --sidebar-background: 40 25% 94%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 217 91% 45%;
+    --sidebar-primary-foreground: 40 30% 98%;
+    --sidebar-accent: 40 20% 88%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-border: 40 20% 82%;
+    --sidebar-ring: 217 91% 45%;
+  }
 }
 
 @layer base {
