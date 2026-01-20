@@ -6,9 +6,12 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { AuthModal } from "@/components/auth/AuthModal";
 
 export const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [authModalTab, setAuthModalTab] = useState<'login' | 'signup'>('login');
   const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { language, setLanguage, t } = useLanguage();
@@ -22,216 +25,246 @@ export const Header = () => {
     { name: t("nav.contact"), href: "/contact" },
   ];
 
+  const openLoginModal = () => {
+    setAuthModalTab('login');
+    setAuthModalOpen(true);
+    setIsOpen(false);
+  };
+
+  const openSignupModal = () => {
+    setAuthModalTab('signup');
+    setAuthModalOpen(true);
+    setIsOpen(false);
+  };
+
   return (
-    <motion.header
-      initial={{ y: -100, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.6, ease: "easeOut" }}
-      className="fixed top-0 left-0 right-0 z-50 glass-card border-b border-border/50"
-    >
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-20">
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-3 group">
-            <div className="relative">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
-                <Brain className="w-6 h-6 text-primary-foreground" />
+    <>
+      <motion.header
+        initial={{ y: -100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className="fixed top-0 left-0 right-0 z-50 glass-card border-b border-border/50"
+      >
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between h-20">
+            {/* Logo */}
+            <Link to="/" className="flex items-center gap-3 group">
+              <div className="relative">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+                  <Brain className="w-6 h-6 text-primary-foreground" />
+                </div>
+                <div className="absolute inset-0 rounded-xl bg-primary/30 blur-lg group-hover:blur-xl transition-all" />
               </div>
-              <div className="absolute inset-0 rounded-xl bg-primary/30 blur-lg group-hover:blur-xl transition-all" />
-            </div>
-            <span className="text-xl font-bold">
-              <span className="gradient-text">DIGITALIUM</span>
-              <span className="text-muted-foreground">.IO</span>
-            </span>
-          </Link>
+              <span className="text-xl font-bold">
+                <span className="gradient-text">DIGITALIUM</span>
+                <span className="text-muted-foreground">.IO</span>
+              </span>
+            </Link>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-2">
-            {navLinks.map((link) => {
-              const isActive = location.pathname === link.href;
-              return (
-                <Link
-                  key={link.href}
-                  to={link.href}
-                  className="relative px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300"
-                >
-                  {/* Animated background */}
-                  <motion.div
-                    className="absolute inset-0 rounded-lg bg-gradient-to-r from-primary to-secondary"
-                    initial={false}
-                    animate={{
-                      opacity: isActive ? 1 : 0,
-                      scale: isActive ? 1 : 0.9,
-                    }}
-                    transition={{ duration: 0.3, ease: "easeOut" }}
-                  />
-                  {/* Glow effect for active */}
-                  {isActive && (
-                    <motion.div
-                      className="absolute inset-0 rounded-lg bg-gradient-to-r from-primary to-secondary blur-md"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: [0.4, 0.7, 0.4] }}
-                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                    />
-                  )}
-                  {/* Text */}
-                  <span className={`relative z-10 transition-colors duration-300 ${
-                    isActive
-                      ? 'text-primary-foreground'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}>
-                    {link.name}
-                  </span>
-                  {/* Hover underline for inactive */}
-                  {!isActive && (
-                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 w-0 bg-gradient-to-r from-primary to-secondary transition-all duration-300 group-hover:w-3/4 hover:w-3/4" />
-                  )}
-                </Link>
-              );
-            })}
-          </nav>
-
-          {/* Controls */}
-          <div className="hidden md:flex items-center gap-2">
-            {/* Theme Toggle */}
-            <button
-              onClick={toggleTheme}
-              className="p-2 rounded-lg hover:bg-muted transition-colors"
-              aria-label="Toggle theme"
-            >
-              {theme === "dark" ? (
-                <Sun className="w-5 h-5 text-muted-foreground hover:text-foreground" />
-              ) : (
-                <Moon className="w-5 h-5 text-muted-foreground hover:text-foreground" />
-              )}
-            </button>
-
-            {/* Language Toggle */}
-            <button
-              onClick={() => setLanguage(language === "fr" ? "en" : "fr")}
-              className="flex items-center gap-1 px-2 py-1.5 rounded-lg hover:bg-muted transition-colors text-sm font-medium text-muted-foreground hover:text-foreground"
-              aria-label="Toggle language"
-            >
-              <Globe className="w-4 h-4" />
-              <span className="uppercase">{language}</span>
-            </button>
-
-            {/* Auth Buttons */}
-            {user ? (
-              <Button asChild size="sm" className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity ml-2">
-                <Link to="/dashboard">{t("nav.dashboard")}</Link>
-              </Button>
-            ) : (
-              <>
-                <Button asChild variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
-                  <Link to="/auth">{t("nav.login")}</Link>
-                </Button>
-                <Button asChild size="sm" className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity">
-                  <Link to="/auth">{t("nav.start")}</Link>
-                </Button>
-              </>
-            )}
-          </div>
-
-          {/* Mobile Menu Button */}
-          <div className="md:hidden flex items-center gap-2">
-            {/* Theme Toggle Mobile */}
-            <button
-              onClick={toggleTheme}
-              className="p-2 rounded-lg hover:bg-muted transition-colors"
-              aria-label="Toggle theme"
-            >
-              {theme === "dark" ? (
-                <Sun className="w-5 h-5" />
-              ) : (
-                <Moon className="w-5 h-5" />
-              )}
-            </button>
-
-            {/* Language Toggle Mobile */}
-            <button
-              onClick={() => setLanguage(language === "fr" ? "en" : "fr")}
-              className="flex items-center gap-1 px-2 py-1.5 rounded-lg hover:bg-muted transition-colors text-sm font-medium"
-              aria-label="Toggle language"
-            >
-              <span className="uppercase">{language}</span>
-            </button>
-
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="p-2 rounded-lg hover:bg-muted transition-colors"
-            >
-              {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile Menu */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="md:hidden border-t border-border/50 bg-background/95 backdrop-blur-xl"
-          >
-            <nav className="container mx-auto px-4 py-6 flex flex-col gap-4">
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center gap-2">
               {navLinks.map((link) => {
                 const isActive = location.pathname === link.href;
                 return (
                   <Link
                     key={link.href}
                     to={link.href}
-                    onClick={() => setIsOpen(false)}
-                    className="relative text-lg font-medium py-3 px-4 rounded-lg overflow-hidden"
+                    className="relative px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300"
                   >
+                    {/* Animated background */}
                     <motion.div
                       className="absolute inset-0 rounded-lg bg-gradient-to-r from-primary to-secondary"
                       initial={false}
                       animate={{
                         opacity: isActive ? 1 : 0,
-                        scale: isActive ? 1 : 0.95,
+                        scale: isActive ? 1 : 0.9,
                       }}
                       transition={{ duration: 0.3, ease: "easeOut" }}
                     />
+                    {/* Glow effect for active */}
                     {isActive && (
                       <motion.div
                         className="absolute inset-0 rounded-lg bg-gradient-to-r from-primary to-secondary blur-md"
-                        animate={{ opacity: [0.3, 0.6, 0.3] }}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: [0.4, 0.7, 0.4] }}
                         transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                       />
                     )}
+                    {/* Text */}
                     <span className={`relative z-10 transition-colors duration-300 ${
                       isActive
                         ? 'text-primary-foreground'
-                        : 'text-muted-foreground'
+                        : 'text-muted-foreground hover:text-foreground'
                     }`}>
                       {link.name}
                     </span>
+                    {/* Hover underline for inactive */}
+                    {!isActive && (
+                      <span className="absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 w-0 bg-gradient-to-r from-primary to-secondary transition-all duration-300 group-hover:w-3/4 hover:w-3/4" />
+                    )}
                   </Link>
                 );
               })}
-              <div className="flex flex-col gap-3 pt-4 border-t border-border/50">
-                {user ? (
-                  <Button asChild className="w-full bg-gradient-to-r from-primary to-secondary">
-                    <Link to="/dashboard">{t("nav.dashboard")}</Link>
-                  </Button>
-                ) : (
-                  <>
-                    <Button asChild variant="outline" className="w-full">
-                      <Link to="/auth">{t("nav.login")}</Link>
-                    </Button>
-                    <Button asChild className="w-full bg-gradient-to-r from-primary to-secondary">
-                      <Link to="/auth">{t("nav.start")}</Link>
-                    </Button>
-                  </>
-                )}
-              </div>
             </nav>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.header>
+
+            {/* Controls */}
+            <div className="hidden md:flex items-center gap-2">
+              {/* Theme Toggle */}
+              <button
+                onClick={toggleTheme}
+                className="p-2 rounded-lg hover:bg-muted transition-colors"
+                aria-label="Toggle theme"
+              >
+                {theme === "dark" ? (
+                  <Sun className="w-5 h-5 text-muted-foreground hover:text-foreground" />
+                ) : (
+                  <Moon className="w-5 h-5 text-muted-foreground hover:text-foreground" />
+                )}
+              </button>
+
+              {/* Language Toggle */}
+              <button
+                onClick={() => setLanguage(language === "fr" ? "en" : "fr")}
+                className="flex items-center gap-1 px-2 py-1.5 rounded-lg hover:bg-muted transition-colors text-sm font-medium text-muted-foreground hover:text-foreground"
+                aria-label="Toggle language"
+              >
+                <Globe className="w-4 h-4" />
+                <span className="uppercase">{language}</span>
+              </button>
+
+              {/* Auth Buttons */}
+              {user ? (
+                <Button asChild size="sm" className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity ml-2">
+                  <Link to="/dashboard">{t("nav.dashboard")}</Link>
+                </Button>
+              ) : (
+                <>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-muted-foreground hover:text-foreground"
+                    onClick={openLoginModal}
+                  >
+                    {t("nav.login")}
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity"
+                    onClick={openSignupModal}
+                  >
+                    {t("nav.start")}
+                  </Button>
+                </>
+              )}
+            </div>
+
+            {/* Mobile Menu Button */}
+            <div className="md:hidden flex items-center gap-2">
+              {/* Theme Toggle Mobile */}
+              <button
+                onClick={toggleTheme}
+                className="p-2 rounded-lg hover:bg-muted transition-colors"
+                aria-label="Toggle theme"
+              >
+                {theme === "dark" ? (
+                  <Sun className="w-5 h-5" />
+                ) : (
+                  <Moon className="w-5 h-5" />
+                )}
+              </button>
+
+              {/* Language Toggle Mobile */}
+              <button
+                onClick={() => setLanguage(language === "fr" ? "en" : "fr")}
+                className="flex items-center gap-1 px-2 py-1.5 rounded-lg hover:bg-muted transition-colors text-sm font-medium"
+                aria-label="Toggle language"
+              >
+                <span className="uppercase">{language}</span>
+              </button>
+
+              <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="p-2 rounded-lg hover:bg-muted transition-colors"
+              >
+                {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Menu */}
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="md:hidden border-t border-border/50 bg-background/95 backdrop-blur-xl"
+            >
+              <nav className="container mx-auto px-4 py-6 flex flex-col gap-4">
+                {navLinks.map((link) => {
+                  const isActive = location.pathname === link.href;
+                  return (
+                    <Link
+                      key={link.href}
+                      to={link.href}
+                      onClick={() => setIsOpen(false)}
+                      className="relative text-lg font-medium py-3 px-4 rounded-lg overflow-hidden"
+                    >
+                      <motion.div
+                        className="absolute inset-0 rounded-lg bg-gradient-to-r from-primary to-secondary"
+                        initial={false}
+                        animate={{
+                          opacity: isActive ? 1 : 0,
+                          scale: isActive ? 1 : 0.95,
+                        }}
+                        transition={{ duration: 0.3, ease: "easeOut" }}
+                      />
+                      {isActive && (
+                        <motion.div
+                          className="absolute inset-0 rounded-lg bg-gradient-to-r from-primary to-secondary blur-md"
+                          animate={{ opacity: [0.3, 0.6, 0.3] }}
+                          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                        />
+                      )}
+                      <span className={`relative z-10 transition-colors duration-300 ${
+                        isActive
+                          ? 'text-primary-foreground'
+                          : 'text-muted-foreground'
+                      }`}>
+                        {link.name}
+                      </span>
+                    </Link>
+                  );
+                })}
+                <div className="flex flex-col gap-3 pt-4 border-t border-border/50">
+                  {user ? (
+                    <Button asChild className="w-full bg-gradient-to-r from-primary to-secondary">
+                      <Link to="/dashboard">{t("nav.dashboard")}</Link>
+                    </Button>
+                  ) : (
+                    <>
+                      <Button variant="outline" className="w-full" onClick={openLoginModal}>
+                        {t("nav.login")}
+                      </Button>
+                      <Button className="w-full bg-gradient-to-r from-primary to-secondary" onClick={openSignupModal}>
+                        {t("nav.start")}
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </nav>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.header>
+
+      {/* Auth Modal */}
+      <AuthModal 
+        isOpen={authModalOpen} 
+        onClose={() => setAuthModalOpen(false)} 
+        defaultTab={authModalTab}
+      />
+    </>
   );
 };
