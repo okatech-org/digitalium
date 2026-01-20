@@ -139,6 +139,22 @@
     scroll-behavior: smooth;
   }
 
+  /* Theme transition animation */
+  html,
+  html *,
+  html *::before,
+  html *::after {
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.2s ease, box-shadow 0.3s ease, background 0.3s ease;
+  }
+
+  /* Disable transition on specific elements for performance */
+  html video,
+  html img,
+  html svg,
+  html canvas {
+    transition: none !important;
+  }
+
   body {
     @apply bg-background text-foreground antialiased;
     font-family: 'Space Grotesk', system-ui, sans-serif;

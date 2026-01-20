@@ -1,45 +1,48 @@
 import { Brain } from "lucide-react";
-
-const footerLinks = {
-  product: {
-    title: "Produit",
-    links: [
-      { name: "Fonctionnalités", href: "#features" },
-      { name: "Solutions", href: "#solutions" },
-      { name: "Tarifs", href: "#solutions" },
-      { name: "Sécurité", href: "#" },
-    ],
-  },
-  company: {
-    title: "Entreprise",
-    links: [
-      { name: "À propos", href: "#" },
-      { name: "Carrières", href: "#" },
-      { name: "Partenaires", href: "#" },
-      { name: "Blog", href: "#" },
-    ],
-  },
-  resources: {
-    title: "Ressources",
-    links: [
-      { name: "Documentation", href: "#" },
-      { name: "API", href: "#" },
-      { name: "Support", href: "#" },
-      { name: "Statut", href: "#" },
-    ],
-  },
-  legal: {
-    title: "Légal",
-    links: [
-      { name: "Confidentialité", href: "#" },
-      { name: "CGU", href: "#" },
-      { name: "Cookies", href: "#" },
-      { name: "Licences", href: "#" },
-    ],
-  },
-};
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export const Footer = () => {
+  const { t } = useLanguage();
+
+  const footerLinks = {
+    product: {
+      title: t("footer.product"),
+      links: [
+        { name: t("footer.product.features"), href: "#features" },
+        { name: t("footer.product.solutions"), href: "#solutions" },
+        { name: t("footer.product.pricing"), href: "#solutions" },
+        { name: t("footer.product.security"), href: "#" },
+      ],
+    },
+    company: {
+      title: t("footer.company"),
+      links: [
+        { name: t("footer.company.about"), href: "#" },
+        { name: t("footer.company.careers"), href: "#" },
+        { name: t("footer.company.partners"), href: "#" },
+        { name: t("footer.company.blog"), href: "#" },
+      ],
+    },
+    resources: {
+      title: t("footer.resources"),
+      links: [
+        { name: t("footer.resources.docs"), href: "#" },
+        { name: t("footer.resources.api"), href: "#" },
+        { name: t("footer.resources.support"), href: "#" },
+        { name: t("footer.resources.status"), href: "#" },
+      ],
+    },
+    legal: {
+      title: t("footer.legal"),
+      links: [
+        { name: t("footer.legal.privacy"), href: "#" },
+        { name: t("footer.legal.terms"), href: "#" },
+        { name: t("footer.legal.cookies"), href: "#" },
+        { name: t("footer.legal.licenses"), href: "#" },
+      ],
+    },
+  };
+
   return (
     <footer className="relative pt-20 pb-8 overflow-hidden">
       {/* Background */}
@@ -60,11 +63,10 @@ export const Footer = () => {
               </span>
             </a>
             <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-              L'archiviste intelligent qui transforme votre gestion documentaire. 
-              Made in Gabon 🇬🇦
+              {t("footer.description")}
             </p>
             <p className="text-xs text-muted-foreground">
-              © {new Date().getFullYear()} DIGITALIUM. Tous droits réservés.
+              © {new Date().getFullYear()} DIGITALIUM. {t("footer.copyright")}
             </p>
           </div>
 
@@ -92,7 +94,7 @@ export const Footer = () => {
         <div className="pt-8 border-t border-border/50">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span>Propulsé par</span>
+              <span>{t("footer.poweredBy")}</span>
               <span className="gradient-text font-medium">NTSAGUI Digital</span>
             </div>
             
