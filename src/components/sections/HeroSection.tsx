@@ -126,9 +126,6 @@ export const HeroSection = () => {
                 <div className="absolute inset-0 animate-spin" style={{ animationDuration: "20s" }}>
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-accent" />
                 </div>
-                <div className="absolute inset-0 animate-spin" style={{ animationDuration: "15s", animationDirection: "reverse" }}>
-                  <div className="absolute top-1/2 -right-4 -translate-y-1/2 w-2 h-2 rounded-full bg-primary" />
-                </div>
               </div>
             </div>
 
