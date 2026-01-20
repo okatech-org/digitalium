@@ -146,6 +146,37 @@ const AnimatedRoutes = () => {
                 background: 'linear-gradient(to top, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.02) 40%, transparent 100%)',
               }}
             />
+            {/* Center book fold effect */}
+            <div 
+              className="pointer-events-none absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-12 z-40"
+              style={{
+                background: `
+                  linear-gradient(to right, 
+                    transparent 0%, 
+                    rgba(0,0,0,0.03) 20%, 
+                    rgba(0,0,0,0.06) 45%, 
+                    rgba(0,0,0,0.08) 50%, 
+                    rgba(0,0,0,0.06) 55%, 
+                    rgba(0,0,0,0.03) 80%, 
+                    transparent 100%
+                  )
+                `,
+              }}
+            />
+            {/* Center fold highlight (left side) */}
+            <div 
+              className="pointer-events-none absolute top-0 bottom-0 left-1/2 -translate-x-[calc(50%+3px)] w-[6px] z-41"
+              style={{
+                background: 'linear-gradient(to right, transparent 0%, rgba(255,255,255,0.04) 50%, rgba(255,255,255,0.06) 100%)',
+              }}
+            />
+            {/* Center fold highlight (right side) */}
+            <div 
+              className="pointer-events-none absolute top-0 bottom-0 left-1/2 -translate-x-[calc(50%-3px)] w-[6px] z-41"
+              style={{
+                background: 'linear-gradient(to left, transparent 0%, rgba(255,255,255,0.04) 50%, rgba(255,255,255,0.06) 100%)',
+              }}
+            />
           <Routes location={location}>
             <Route path="/" element={<Index />} />
             <Route path="/services" element={<Services />} />
