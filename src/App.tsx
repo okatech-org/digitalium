@@ -93,6 +93,19 @@ const AnimatedRoutes = () => {
                 backgroundRepeat: 'repeat',
               }}
             />
+            {/* Worn edges effect */}
+            <div 
+              className="pointer-events-none absolute inset-0 z-40"
+              style={{
+                boxShadow: 'inset 0 0 60px rgba(0,0,0,0.15), inset 0 0 120px rgba(0,0,0,0.08)',
+                background: `
+                  radial-gradient(ellipse at top left, rgba(139,90,43,0.04) 0%, transparent 50%),
+                  radial-gradient(ellipse at top right, rgba(139,90,43,0.03) 0%, transparent 40%),
+                  radial-gradient(ellipse at bottom left, rgba(139,90,43,0.05) 0%, transparent 45%),
+                  radial-gradient(ellipse at bottom right, rgba(139,90,43,0.04) 0%, transparent 50%)
+                `,
+              }}
+            />
           <Routes location={location}>
             <Route path="/" element={<Index />} />
             <Route path="/services" element={<Services />} />
