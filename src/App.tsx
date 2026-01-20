@@ -24,19 +24,19 @@ const pageVariants = {
   initial: { 
     opacity: 1,
     rotateY: 0,
-    x: '0%',
+    zIndex: 1,
   },
   enter: { 
     opacity: 1, 
-    rotateY: 0, 
-    x: '0%',
-    transition: { duration: 0.6, ease: [0.645, 0.045, 0.355, 1] as const } 
+    rotateY: 0,
+    zIndex: 1,
+    transition: { duration: 0.01 } 
   },
   exit: { 
     opacity: 1,
-    rotateY: -180,
-    x: '-100%',
-    transition: { duration: 0.7, ease: [0.645, 0.045, 0.355, 1] as const } 
+    rotateY: -120,
+    zIndex: 10,
+    transition: { duration: 0.8, ease: [0.4, 0, 0.2, 1] as const } 
   },
 };
 
@@ -44,18 +44,24 @@ const AnimatedRoutes = () => {
   const location = useLocation();
   
   return (
-    <div style={{ perspective: '2000px', overflow: 'hidden' }}>
-      <AnimatePresence mode="wait">
+    <div className="relative" style={{ perspective: '1500px', overflow: 'hidden', minHeight: '100vh' }}>
+      <AnimatePresence mode="popLayout">
         <motion.div
           key={location.pathname}
           variants={pageVariants}
           initial="initial"
           animate="enter"
           exit="exit"
+          className="w-full min-h-screen bg-background"
           style={{ 
             transformStyle: 'preserve-3d',
             transformOrigin: 'left center',
             backfaceVisibility: 'hidden',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            boxShadow: '10px 0 30px rgba(0,0,0,0.3)',
           }}
         >
           <Routes location={location}>
