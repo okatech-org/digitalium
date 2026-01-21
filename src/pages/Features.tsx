@@ -50,7 +50,7 @@ const Features = () => {
     <div className="h-screen overflow-hidden">
       <Header />
       <main className="h-full flex items-center">
-        <section className="relative w-full py-12">
+        <section className="relative w-full py-12 glass-section">
           <div className="absolute inset-0 cortex-grid opacity-30" />
           <div className="absolute top-1/2 right-0 w-96 h-96 bg-accent/10 rounded-full blur-3xl" />
           
