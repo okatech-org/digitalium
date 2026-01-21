@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
@@ -7,8 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Zap, Mail, Lock, User, X } from 'lucide-react';
+import { Loader2, Zap, Mail, Lock, User, X, ArrowLeft } from 'lucide-react';
 import { z } from 'zod';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -16,17 +17,28 @@ interface AuthModalProps {
   defaultTab?: 'login' | 'signup';
 }
 
+type ModalView = 'login' | 'signup' | 'forgot-password';
+
 export const AuthModal = ({ isOpen, onClose, defaultTab = 'login' }: AuthModalProps) => {
   const { t } = useLanguage();
-  const [activeTab, setActiveTab] = useState<'login' | 'signup'>(defaultTab);
+  const [activeView, setActiveView] = useState<ModalView>(defaultTab);
   const [isLoading, setIsLoading] = useState(false);
   const [loginData, setLoginData] = useState({ email: '', password: '' });
   const [signupData, setSignupData] = useState({ displayName: '', email: '', password: '', confirmPassword: '' });
+  const [resetEmail, setResetEmail] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Reset view when modal opens with different tab
+  useEffect(() => {
+    if (isOpen) {
+      setActiveView(defaultTab);
+      setErrors({});
+    }
+  }, [isOpen, defaultTab]);
 
   const loginSchema = z.object({
     email: z.string().email(t("auth.invalidEmail")),
@@ -41,6 +53,10 @@ export const AuthModal = ({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
   }).refine((data) => data.password === data.confirmPassword, {
     message: t("auth.passwordMismatch"),
     path: ["confirmPassword"],
+  });
+
+  const resetSchema = z.object({
+    email: z.string().email(t("auth.invalidEmail")),
   });
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -131,9 +147,46 @@ export const AuthModal = ({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
     }
   };
 
-  // Reset form when modal opens with different tab
-  const handleTabChange = (tab: 'login' | 'signup') => {
-    setActiveTab(tab);
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrors({});
+
+    const result = resetSchema.safeParse({ email: resetEmail });
+    if (!result.success) {
+      const fieldErrors: Record<string, string> = {};
+      result.error.errors.forEach(err => {
+        if (err.path[0]) {
+          fieldErrors[err.path[0] as string] = err.message;
+        }
+      });
+      setErrors(fieldErrors);
+      return;
+    }
+
+    setIsLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+      redirectTo: `${window.location.origin}/`,
+    });
+    setIsLoading(false);
+
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: t("auth.resetError"),
+        description: error.message,
+      });
+    } else {
+      toast({
+        title: t("auth.resetSuccess"),
+        description: t("auth.resetSuccessMsg"),
+      });
+      setResetEmail('');
+      setActiveView('login');
+    }
+  };
+
+  const handleViewChange = (view: ModalView) => {
+    setActiveView(view);
     setErrors({});
   };
 
@@ -183,40 +236,46 @@ export const AuthModal = ({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
                 >
                   <Zap className="w-8 h-8 text-primary-foreground" />
                 </motion.div>
-                <h2 className="text-2xl font-bold gradient-text">{t("auth.title")}</h2>
-                <p className="text-muted-foreground text-sm mt-1">{t("auth.subtitle")}</p>
+                <h2 className="text-2xl font-bold gradient-text">
+                  {activeView === 'forgot-password' ? t("auth.resetPassword") : t("auth.title")}
+                </h2>
+                <p className="text-muted-foreground text-sm mt-1">
+                  {activeView === 'forgot-password' ? t("auth.resetDescription") : t("auth.subtitle")}
+                </p>
               </div>
 
-              {/* Tab Switcher */}
-              <div className="px-8 pb-4">
-                <div className="flex bg-muted/30 rounded-xl p-1">
-                  <button
-                    onClick={() => handleTabChange('login')}
-                    className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                      activeTab === 'login'
-                        ? 'bg-background shadow-md text-foreground'
-                        : 'text-muted-foreground hover:text-foreground'
-                    }`}
-                  >
-                    {t("auth.login")}
-                  </button>
-                  <button
-                    onClick={() => handleTabChange('signup')}
-                    className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                      activeTab === 'signup'
-                        ? 'bg-background shadow-md text-foreground'
-                        : 'text-muted-foreground hover:text-foreground'
-                    }`}
-                  >
-                    {t("auth.signup")}
-                  </button>
+              {/* Tab Switcher - Only show for login/signup */}
+              {activeView !== 'forgot-password' && (
+                <div className="px-8 pb-4">
+                  <div className="flex bg-muted/30 rounded-xl p-1">
+                    <button
+                      onClick={() => handleViewChange('login')}
+                      className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                        activeView === 'login'
+                          ? 'bg-background shadow-md text-foreground'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      {t("auth.login")}
+                    </button>
+                    <button
+                      onClick={() => handleViewChange('signup')}
+                      className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                        activeView === 'signup'
+                          ? 'bg-background shadow-md text-foreground'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      {t("auth.signup")}
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Content */}
               <div className="px-8 pb-8">
                 <AnimatePresence mode="wait">
-                  {activeTab === 'login' ? (
+                  {activeView === 'login' && (
                     <motion.form
                       key="login"
                       initial={{ opacity: 0, x: -20 }}
@@ -256,6 +315,18 @@ export const AuthModal = ({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
                         />
                         {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
                       </div>
+                      
+                      {/* Forgot Password Link */}
+                      <div className="text-right">
+                        <button
+                          type="button"
+                          onClick={() => handleViewChange('forgot-password')}
+                          className="text-sm text-primary hover:underline"
+                        >
+                          {t("auth.forgotPassword")}
+                        </button>
+                      </div>
+
                       <Button 
                         type="submit" 
                         className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity" 
@@ -271,7 +342,9 @@ export const AuthModal = ({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
                         )}
                       </Button>
                     </motion.form>
-                  ) : (
+                  )}
+
+                  {activeView === 'signup' && (
                     <motion.form
                       key="signup"
                       initial={{ opacity: 0, x: 20 }}
@@ -355,6 +428,58 @@ export const AuthModal = ({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
                           t("auth.signupButton")
                         )}
                       </Button>
+                    </motion.form>
+                  )}
+
+                  {activeView === 'forgot-password' && (
+                    <motion.form
+                      key="forgot-password"
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      transition={{ duration: 0.2 }}
+                      onSubmit={handlePasswordReset}
+                      className="space-y-4"
+                    >
+                      <div className="space-y-2">
+                        <Label htmlFor="modal-reset-email" className="flex items-center gap-2 text-sm">
+                          <Mail className="w-4 h-4 text-primary" />
+                          {t("auth.email")}
+                        </Label>
+                        <Input
+                          id="modal-reset-email"
+                          type="email"
+                          placeholder={t("auth.emailPlaceholder")}
+                          value={resetEmail}
+                          onChange={(e) => setResetEmail(e.target.value)}
+                          className="bg-muted/30 border-border/50 focus:border-primary"
+                        />
+                        {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
+                      </div>
+
+                      <Button 
+                        type="submit" 
+                        className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity" 
+                        disabled={isLoading}
+                      >
+                        {isLoading ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            {t("auth.sending")}
+                          </>
+                        ) : (
+                          t("auth.sendResetLink")
+                        )}
+                      </Button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleViewChange('login')}
+                        className="w-full flex items-center justify-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <ArrowLeft className="w-4 h-4" />
+                        {t("auth.backToLogin")}
+                      </button>
                     </motion.form>
                   )}
                 </AnimatePresence>
