@@ -41,8 +41,14 @@ export const HeroSection = () => {
             <source src="/videos/hero-background.mov" type="video/mp4" />
           </video>
           {/* Dark overlay for better text readability */}
-          <div className="absolute inset-0 bg-background/50" />
+          <div className="absolute inset-0 bg-background/30" />
         </div>
+        
+        {/* Background Effects */}
+        <div className="absolute inset-0 cortex-grid opacity-30 z-[1]" />
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-3xl z-[1]" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-secondary/20 rounded-full blur-3xl z-[1]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-hero-pattern z-[1]" />
 
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-5xl mx-auto text-center">

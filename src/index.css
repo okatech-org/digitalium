@@ -158,6 +158,7 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-family: 'Space Grotesk', system-ui, sans-serif;
+    background: var(--gradient-hero);
     min-height: 100vh;
   }
 
@@ -169,8 +170,9 @@
 
 @layer components {
   .glass-card {
-    background: hsl(var(--card));
-    border: 1px solid hsl(var(--border));
+    background: var(--gradient-glass);
+    backdrop-filter: blur(20px);
+    border: 1px solid hsla(217, 91%, 60%, 0.15);
     @apply rounded-2xl;
   }
 
@@ -200,6 +202,7 @@
     border-radius: inherit;
     z-index: -1;
     opacity: 0.5;
+    filter: blur(10px);
     transition: opacity 0.3s;
   }
 

@@ -200,7 +200,7 @@ export const AuthModal = ({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 bg-background/80 z-[100]"
+            className="fixed inset-0 bg-background/60 backdrop-blur-sm z-[100]"
             onClick={onClose}
           />
 
@@ -214,7 +214,7 @@ export const AuthModal = ({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
             style={{ pointerEvents: 'none' }}
           >
             <div 
-              className="glass-card border border-primary/20 rounded-3xl overflow-hidden shadow-2xl w-full max-w-md"
+              className="glass-card border border-primary/20 rounded-3xl overflow-hidden shadow-2xl bg-background/80 backdrop-blur-xl w-full max-w-md"
               style={{ pointerEvents: 'auto' }}
             >
               {/* Close button */}

@@ -26,19 +26,41 @@ const queryClient = new QueryClient();
 const pageVariants = {
   initial: { 
     opacity: 0,
+    scale: 1,
+    x: '0%',
+    rotateY: 0,
+    zIndex: 1,
+    filter: 'blur(0px)',
+    boxShadow: '0 0 0 rgba(0,0,0,0)',
   },
   enter: { 
     opacity: 1, 
+    scale: 1,
+    x: '0%',
+    rotateY: 0,
+    zIndex: 1,
+    filter: 'blur(0px)',
+    boxShadow: '0 0 0 rgba(0,0,0,0)',
     transition: { 
-      duration: 0.4, 
+      duration: 0.9, 
       ease: [0.22, 1, 0.36, 1] as const,
+      opacity: { duration: 0.7, delay: 0.25 }
     } 
   },
   exit: { 
     opacity: 0,
+    rotateY: -55,
+    x: '-20%',
+    scale: 0.88,
+    zIndex: 10,
+    filter: 'blur(4px)',
+    boxShadow: '-30px 0 80px rgba(0,0,0,0.5), -10px 0 40px rgba(0,0,0,0.3)',
     transition: { 
-      duration: 0.3, 
+      duration: 1.4, 
       ease: [0.32, 0, 0.15, 1] as const,
+      opacity: { duration: 1, delay: 0.35 },
+      filter: { duration: 1.2, ease: "easeIn" },
+      boxShadow: { duration: 1.2, ease: "easeOut" }
     } 
   },
 };
@@ -47,15 +69,24 @@ const AnimatedRoutes = () => {
   const location = useLocation();
   
   return (
-    <div className="relative min-h-screen">
-      <AnimatePresence mode="wait">
+    <div className="relative" style={{ perspective: '1200px', perspectiveOrigin: '30% 50%', overflow: 'hidden', minHeight: '100vh' }}>
+      <AnimatePresence mode="popLayout">
           <motion.div
             key={location.pathname}
             variants={pageVariants}
             initial="initial"
             animate="enter"
             exit="exit"
-            className="w-full min-h-screen bg-background"
+            className="w-full min-h-screen bg-background relative"
+            style={{ 
+              transformStyle: 'preserve-3d',
+              transformOrigin: 'left center',
+              backfaceVisibility: 'hidden',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+            }}
           >
           <Routes location={location}>
             <Route path="/" element={<Index />} />
