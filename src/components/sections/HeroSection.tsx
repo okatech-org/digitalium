@@ -27,7 +27,7 @@ export const HeroSection = () => {
 
   return (
     <>
-      <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
+      <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20 glass-section">
         {/* Video Background */}
         <div className="absolute inset-0 z-0">
           <video
