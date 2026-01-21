@@ -62,7 +62,7 @@ export const HeroSection = () => {
               <span className="text-foreground">{t("hero.title1")} </span>
               <span className="gradient-text">{t("hero.title2")}</span>
               <br />
-              <span className="text-foreground">{t("hero.title3")}</span>
+              <span className="gradient-text-accent">{t("hero.title3")}</span>
             </motion.h1>
 
             {/* Subheading */}

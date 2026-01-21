@@ -65,7 +65,7 @@ const Features = () => {
                 {t("features.title1")}{" "}
                 <span className="gradient-text">{t("features.title2")}</span>
                 <br className="hidden sm:block" />
-                {t("features.title3")}
+                <span className="gradient-text-accent">{t("features.title3")}</span>
               </h1>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
                 {t("features.description")}
@@ -81,8 +81,8 @@ const Features = () => {
                   transition={{ delay: index * 0.1 }}
                   className="glass-card p-6 rounded-2xl hover:border-primary/30 transition-all group"
                 >
-                  <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                    <feature.icon className="w-6 h-6 text-primary" />
+                  <div className="w-12 h-12 rounded-xl bg-accent/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                    <feature.icon className="w-6 h-6 text-accent" />
                   </div>
                   <h3 className="text-lg font-bold mb-2">{feature.title}</h3>
                   <p className="text-sm text-muted-foreground">{feature.description}</p>
