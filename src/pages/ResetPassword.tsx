@@ -116,7 +116,7 @@ const ResetPassword = () => {
           transition={{ duration: 0.5 }}
           className="w-full max-w-md"
         >
-          <div className="glass-card border border-primary/20 rounded-3xl overflow-hidden shadow-2xl bg-background/80 backdrop-blur-xl p-8">
+          <div className="glass-card border border-primary/20 rounded-3xl overflow-hidden shadow-2xl p-8">
             {/* Header */}
             <div className="text-center mb-8">
               <motion.div

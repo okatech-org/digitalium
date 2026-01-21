@@ -43,7 +43,7 @@ export const Header = () => {
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className="fixed top-0 left-0 right-0 z-50 glass-card border-b border-border/50"
+        className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border"
       >
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-20">
@@ -199,7 +199,7 @@ export const Header = () => {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              className="md:hidden border-t border-border/50 bg-background/95 backdrop-blur-xl"
+              className="md:hidden border-t border-border bg-background"
             >
               <nav className="container mx-auto px-4 py-6 flex flex-col gap-4">
                 {navLinks.map((link) => {
