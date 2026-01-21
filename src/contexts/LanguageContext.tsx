@@ -216,6 +216,16 @@ const translations = {
     "auth.resetSuccessMsg": "Vérifiez votre boîte de réception pour le lien de réinitialisation.",
     "auth.resetError": "Erreur",
     "auth.backToLogin": "Retour à la connexion",
+    "auth.newPassword": "Nouveau mot de passe",
+    "auth.newPasswordLabel": "Nouveau mot de passe",
+    "auth.newPasswordDescription": "Choisissez un nouveau mot de passe sécurisé.",
+    "auth.updatePassword": "Mettre à jour le mot de passe",
+    "auth.updating": "Mise à jour...",
+    "auth.passwordUpdated": "Mot de passe mis à jour !",
+    "auth.passwordUpdatedMsg": "Votre mot de passe a été changé avec succès.",
+    "auth.redirecting": "Redirection en cours...",
+    "auth.invalidResetLink": "Ce lien de réinitialisation est invalide ou a expiré.",
+    "auth.backToHome": "Retour à l'accueil",
   },
   en: {
     // Navigation
@@ -424,6 +434,16 @@ const translations = {
     "auth.resetSuccessMsg": "Check your inbox for the reset link.",
     "auth.resetError": "Error",
     "auth.backToLogin": "Back to login",
+    "auth.newPassword": "New password",
+    "auth.newPasswordLabel": "New password",
+    "auth.newPasswordDescription": "Choose a new secure password.",
+    "auth.updatePassword": "Update password",
+    "auth.updating": "Updating...",
+    "auth.passwordUpdated": "Password updated!",
+    "auth.passwordUpdatedMsg": "Your password has been changed successfully.",
+    "auth.redirecting": "Redirecting...",
+    "auth.invalidResetLink": "This reset link is invalid or has expired.",
+    "auth.backToHome": "Back to home",
   },
 };
 
