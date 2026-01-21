@@ -6,11 +6,15 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { AuthModal } from "@/components/auth/AuthModal";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export const HeroSection = () => {
   const { t } = useLanguage();
   const { user } = useAuth();
+  const { theme } = useTheme();
   const navigate = useNavigate();
+  
+  const isLightMode = theme === 'light';
   
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalTab, setAuthModalTab] = useState<'login' | 'signup'>('login');
@@ -40,8 +44,8 @@ export const HeroSection = () => {
             <source src="/videos/hero-background.mov" type="video/quicktime" />
             <source src="/videos/hero-background.mov" type="video/mp4" />
           </video>
-          {/* Dark overlay for better text readability */}
-          <div className="absolute inset-0 bg-background/30" />
+          {/* Overlay for better text readability - only in dark mode */}
+          {!isLightMode && <div className="absolute inset-0 bg-background/30" />}
         </div>
         
         {/* Background Effects */}
