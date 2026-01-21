@@ -64,7 +64,7 @@ const Solutions = () => {
             >
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
                 {t("solutions.title1")}{" "}
-                <span className="gradient-text">{t("solutions.title2")}</span>
+                <span className="gradient-text-accent">{t("solutions.title2")}</span>
               </h1>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
                 {t("solutions.description")}
@@ -99,7 +99,7 @@ const Solutions = () => {
                   <p className="text-sm text-muted-foreground mb-4">{solution.description}</p>
                   
                   <div className="mb-4">
-                    <span className="text-2xl font-bold gradient-text">{solution.price}</span>
+                    <span className="text-2xl font-bold gradient-text-accent">{solution.price}</span>
                   </div>
                   
                   <ul className="space-y-2 mb-6">

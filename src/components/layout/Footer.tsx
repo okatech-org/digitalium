@@ -59,7 +59,7 @@ export const Footer = () => {
                 <Brain className="w-6 h-6 text-primary-foreground" />
               </div>
               <span className="text-xl font-bold">
-                <span className="gradient-text">DIGITALIUM</span>
+                <span className="gradient-text-accent">DIGITALIUM</span>
               </span>
             </a>
             <p className="text-sm text-muted-foreground leading-relaxed mb-4">
@@ -73,7 +73,7 @@ export const Footer = () => {
           {/* Links */}
           {Object.entries(footerLinks).map(([key, section]) => (
             <div key={key}>
-              <h4 className="font-semibold mb-4">{section.title}</h4>
+              <h4 className="font-semibold mb-4 text-accent">{section.title}</h4>
               <ul className="space-y-3">
                 {section.links.map((link) => (
                   <li key={link.name}>

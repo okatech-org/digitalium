@@ -92,7 +92,8 @@ export const Header = () => {
                 <div className="absolute inset-0 rounded-xl bg-primary/30 blur-lg group-hover:blur-xl transition-all" />
               </div>
               <span className="text-xl font-bold">
-                <span className="gradient-text">DIGITALIUM</span>
+                <span className="gradient-text">DIGITAL</span>
+                <span className="gradient-text-accent">IUM</span>
                 <span className="text-muted-foreground">.IO</span>
               </span>
             </Link>
