@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Brain, Sun, Moon, Globe } from "lucide-react";
@@ -12,10 +12,27 @@ export const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalTab, setAuthModalTab] = useState<'login' | 'signup'>('login');
+  const [scrolled, setScrolled] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
   const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { language, setLanguage, t } = useLanguage();
   const location = useLocation();
+
+  // Track scroll for dynamic glassmorphism
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      const maxScroll = 200;
+      const progress = Math.min(scrollY / maxScroll, 1);
+      
+      setScrolled(scrollY > 20);
+      setScrollProgress(progress);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const navLinks = [
     { name: t("nav.home"), href: "/" },
@@ -37,13 +54,32 @@ export const Header = () => {
     setIsOpen(false);
   };
 
+  // Dynamic glassmorphism styles based on scroll
+  const headerStyle = {
+    background: `linear-gradient(
+      135deg,
+      hsla(217, 91%, 60%, ${0.05 + scrollProgress * 0.08}) 0%,
+      hsla(250, 60%, 50%, ${0.02 + scrollProgress * 0.04}) 50%,
+      hsla(217, 91%, 60%, ${0.04 + scrollProgress * 0.06}) 100%
+    )`,
+    backdropFilter: `blur(${12 + scrollProgress * 16}px) saturate(${120 + scrollProgress * 60}%)`,
+    WebkitBackdropFilter: `blur(${12 + scrollProgress * 16}px) saturate(${120 + scrollProgress * 60}%)`,
+    borderBottom: scrolled 
+      ? `1px solid hsla(217, 91%, 60%, ${0.1 + scrollProgress * 0.15})` 
+      : '1px solid hsla(217, 91%, 60%, 0.08)',
+    boxShadow: scrolled 
+      ? `0 ${4 + scrollProgress * 8}px ${20 + scrollProgress * 20}px hsla(0, 0%, 0%, ${0.1 + scrollProgress * 0.15})` 
+      : 'none',
+  };
+
   return (
     <>
       <motion.header
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className="fixed top-0 left-0 right-0 z-50 glass-card border-b border-border/50"
+        className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
+        style={headerStyle}
       >
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-20">
