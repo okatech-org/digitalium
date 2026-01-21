@@ -207,6 +207,15 @@ const translations = {
     "auth.passwordMismatch": "Les mots de passe ne correspondent pas",
     "auth.noAccount": "Pas encore de compte ?",
     "auth.hasAccount": "Déjà un compte ?",
+    "auth.forgotPassword": "Mot de passe oublié ?",
+    "auth.resetPassword": "Réinitialiser le mot de passe",
+    "auth.resetDescription": "Entrez votre email pour recevoir un lien de réinitialisation.",
+    "auth.sendResetLink": "Envoyer le lien",
+    "auth.sending": "Envoi...",
+    "auth.resetSuccess": "Email envoyé !",
+    "auth.resetSuccessMsg": "Vérifiez votre boîte de réception pour le lien de réinitialisation.",
+    "auth.resetError": "Erreur",
+    "auth.backToLogin": "Retour à la connexion",
   },
   en: {
     // Navigation
@@ -406,6 +415,15 @@ const translations = {
     "auth.passwordMismatch": "Passwords do not match",
     "auth.noAccount": "Don't have an account?",
     "auth.hasAccount": "Already have an account?",
+    "auth.forgotPassword": "Forgot password?",
+    "auth.resetPassword": "Reset password",
+    "auth.resetDescription": "Enter your email to receive a reset link.",
+    "auth.sendResetLink": "Send reset link",
+    "auth.sending": "Sending...",
+    "auth.resetSuccess": "Email sent!",
+    "auth.resetSuccessMsg": "Check your inbox for the reset link.",
+    "auth.resetError": "Error",
+    "auth.backToLogin": "Back to login",
   },
 };
 

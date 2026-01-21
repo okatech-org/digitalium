@@ -77,14 +77,12 @@ export const HeroSection = () => {
 
             {/* Floating Auth Buttons - Show only when not logged in */}
             {!user ? (
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.3 }}
-                className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16"
-              >
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
                 {/* Login Button */}
                 <motion.button
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.3 }}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={openLoginModal}
@@ -97,6 +95,9 @@ export const HeroSection = () => {
 
                 {/* Signup Button */}
                 <motion.button
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.5 }}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={openSignupModal}
@@ -109,7 +110,7 @@ export const HeroSection = () => {
                   <UserPlus className="w-5 h-5 text-white" />
                   <span className="font-medium text-white">{t("nav.start")}</span>
                 </motion.button>
-              </motion.div>
+              </div>
             ) : (
               <motion.div
                 initial={{ opacity: 0, y: 30 }}
