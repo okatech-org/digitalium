@@ -182,54 +182,32 @@ export const HeroSection = () => {
               transition={{ duration: 0.6, delay: 0.3 }}
               className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-16"
             >
-              {/* Login Card */}
-              <motion.div
-                whileHover={{ scale: 1.02, y: -4 }}
-                whileTap={{ scale: 0.98 }}
+              {/* Login Button */}
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => setActiveModal('login')}
-                className="group cursor-pointer glass-card border border-primary/20 rounded-2xl p-6 w-full sm:w-64 hover:border-primary/40 transition-all duration-300"
-                style={{ boxShadow: '0 8px 32px hsla(217, 91%, 60%, 0.15)' }}
+                className="group flex items-center gap-2 px-6 py-3 glass-card border border-primary/20 rounded-xl hover:border-primary/40 transition-all duration-300"
+                style={{ boxShadow: '0 4px 16px hsla(217, 91%, 60%, 0.15)' }}
               >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center group-hover:from-primary/30 group-hover:to-secondary/30 transition-all">
-                    <LogIn className="w-6 h-6 text-primary" />
-                  </div>
-                  <div className="text-left">
-                    <h3 className="font-semibold text-foreground">{t("nav.login")}</h3>
-                    <p className="text-sm text-muted-foreground">{t("auth.subtitle")}</p>
-                  </div>
-                </div>
-                <div className="mt-4 flex items-center text-primary text-sm font-medium">
-                  <span>{t("auth.loginButton")}</span>
-                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                </div>
-              </motion.div>
+                <LogIn className="w-5 h-5 text-primary" />
+                <span className="font-medium text-foreground">{t("nav.login")}</span>
+              </motion.button>
 
-              {/* Signup Card */}
-              <motion.div
-                whileHover={{ scale: 1.02, y: -4 }}
-                whileTap={{ scale: 0.98 }}
+              {/* Signup Button */}
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => setActiveModal('signup')}
-                className="group cursor-pointer rounded-2xl p-6 w-full sm:w-64 border border-transparent transition-all duration-300"
+                className="group flex items-center gap-2 px-6 py-3 rounded-xl transition-all duration-300"
                 style={{ 
                   background: 'linear-gradient(135deg, hsl(217 91% 60%) 0%, hsl(250 60% 50%) 100%)',
-                  boxShadow: '0 8px 32px hsla(217, 91%, 60%, 0.35)' 
+                  boxShadow: '0 4px 16px hsla(217, 91%, 60%, 0.35)' 
                 }}
               >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center group-hover:bg-white/30 transition-all">
-                    <UserPlus className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="text-left">
-                    <h3 className="font-semibold text-white">{t("nav.start")}</h3>
-                    <p className="text-sm text-white/80">{t("auth.signup")}</p>
-                  </div>
-                </div>
-                <div className="mt-4 flex items-center text-white text-sm font-medium">
-                  <span>{t("auth.signupButton")}</span>
-                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                </div>
-              </motion.div>
+                <UserPlus className="w-5 h-5 text-white" />
+                <span className="font-medium text-white">{t("nav.start")}</span>
+              </motion.button>
             </motion.div>
           ) : (
             <motion.div
