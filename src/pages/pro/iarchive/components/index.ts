@@ -18,3 +18,6 @@ export {
     RetentionTimeline,
     GABON_RETENTION_RULES,
 } from './RetentionPolicy';
+
+// AI Assistant
+export { IAstedChat } from './IAstedChat';

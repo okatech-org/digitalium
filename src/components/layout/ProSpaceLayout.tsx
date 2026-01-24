@@ -43,6 +43,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { QuickActionBar } from '@/components/pro/QuickActionBar';
 import { useAuth } from '@/contexts/FirebaseAuthContext';
+import { IAstedChat } from '@/pages/pro/iarchive/components/IAstedChat';
 
 // Module color tokens
 export const MODULE_COLORS = {
@@ -143,6 +144,7 @@ export default function ProSpaceLayout() {
     const { user, signOut } = useAuth();
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [expandedItems, setExpandedItems] = useState<string[]>(['iDocument', 'iArchive', 'iSignature']);
+    const [isIAstedOpen, setIsIAstedOpen] = useState(false);
 
     const toggleExpand = (label: string) => {
         setExpandedItems(prev =>
@@ -309,6 +311,7 @@ export default function ProSpaceLayout() {
                             <Button
                                 variant="outline"
                                 className="w-full justify-start border-purple-500/30 text-purple-500 hover:bg-purple-500/10"
+                                onClick={() => setIsIAstedOpen(true)}
                             >
                                 <Sparkles className="h-4 w-4 mr-2" />
                                 Assistant iAsted
@@ -431,6 +434,12 @@ export default function ProSpaceLayout() {
                 {/* Quick Action Bar */}
                 <QuickActionBar />
             </main>
+
+            {/* iAsted AI Chat */}
+            <IAstedChat
+                isOpen={isIAstedOpen}
+                onClose={() => setIsIAstedOpen(false)}
+            />
         </div>
     );
 }
