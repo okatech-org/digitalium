@@ -23,7 +23,7 @@ export const EnterpriseSpace = () => {
             title: 'Documents Pro',
             description: 'Archives et dossiers partagés',
             icon: Briefcase,
-            href: '/documents',
+            href: '/enterprise-archive',
             color: 'from-cyan-500 to-sky-500',
         },
         {

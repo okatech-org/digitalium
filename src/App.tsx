@@ -32,6 +32,7 @@ import ApiAccess from "./pages/enterprise/ApiAccess";
 import Security from "./pages/enterprise/Security";
 import PublicProfile from "./pages/enterprise/PublicProfile";
 import BillingPro from "./pages/enterprise/BillingPro";
+import EnterpriseArchive from "./pages/enterprise/EnterpriseArchive";
 // SysAdmin Pages
 import Infrastructure from "./pages/sysadmin/Infrastructure";
 import Monitoring from "./pages/sysadmin/Monitoring";
@@ -144,6 +145,7 @@ const AnimatedRoutes = () => {
               <Route path="/security" element={<ProtectedRoute><Security /></ProtectedRoute>} />
               <Route path="/public-profile" element={<ProtectedRoute><PublicProfile /></ProtectedRoute>} />
               <Route path="/billing-pro" element={<ProtectedRoute><BillingPro /></ProtectedRoute>} />
+              <Route path="/enterprise-archive" element={<ProtectedRoute><EnterpriseArchive /></ProtectedRoute>} />
 
               {/* SysAdmin Routes */}
               <Route path="/sysadmin/infrastructure" element={<ProtectedRoute><Infrastructure /></ProtectedRoute>} />
