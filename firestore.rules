@@ -1,0 +1,54 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Profiles collection
+    match /profiles/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId);
+      allow delete: if false; // Profiles should not be deleted directly
+    }
+
+    // Documents collection
+    match /documents/{documentId} {
+      allow read: if isAuthenticated() && resource.data.user_id == request.auth.uid;
+      allow create: if isAuthenticated() && request.resource.data.user_id == request.auth.uid;
+      allow update: if isAuthenticated() && resource.data.user_id == request.auth.uid;
+      allow delete: if isAuthenticated() && resource.data.user_id == request.auth.uid;
+    }
+
+    // Subscriptions (read-only from client, managed by Cloud Functions)
+    match /subscriptions/{subscriptionId} {
+      allow read: if isAuthenticated() && resource.data.user_id == request.auth.uid;
+      allow write: if false; // Only Cloud Functions can write
+    }
+
+    // Usage tracking (read-only from client)
+    match /usage/{usageId} {
+      allow read: if isAuthenticated() && resource.data.user_id == request.auth.uid;
+      allow write: if false; // Only Cloud Functions can write
+    }
+
+    // Plans (public read)
+    match /plans/{planId} {
+      allow read: if true;
+      allow write: if false; // Admin only via console
+    }
+
+    // Invoices (read-only from client)
+    match /invoices/{invoiceId} {
+      allow read: if isAuthenticated() && resource.data.user_id == request.auth.uid;
+      allow write: if false; // Only Cloud Functions can write
+    }
+  }
+}

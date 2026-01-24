@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { ArrowRight, LogIn, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/FirebaseAuthContext";
 import { useNavigate } from "react-router-dom";
 import { AuthModal } from "@/components/auth/AuthModal";
 import { useTheme } from "@/contexts/ThemeContext";

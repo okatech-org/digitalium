@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/FirebaseAuthContext';
+import { storage, db } from '@/config/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -44,23 +46,40 @@ const Profile = () => {
 
   const fetchProfile = async () => {
     if (!user) return;
-    
+
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
+      const profileRef = doc(db, 'profiles', user.uid);
+      const profileSnap = await getDoc(profileRef);
 
-      if (error) throw error;
-
-      if (data) {
-        setProfile(data);
+      if (profileSnap.exists()) {
+        const data = profileSnap.data();
+        const profileData: Profile = {
+          id: profileSnap.id,
+          user_id: data.user_id,
+          display_name: data.display_name || null,
+          phone: data.phone || null,
+          company: data.company || null,
+          avatar_url: data.avatar_url || null,
+          created_at: data.created_at?.toDate?.()?.toISOString() || new Date().toISOString(),
+        };
+        setProfile(profileData);
         setFormData({
-          display_name: data.display_name || '',
-          phone: data.phone || '',
-          company: data.company || '',
+          display_name: profileData.display_name || '',
+          phone: profileData.phone || '',
+          company: profileData.company || '',
         });
+      } else {
+        // Create a new profile if it doesn't exist
+        await setDoc(profileRef, {
+          user_id: user.uid,
+          email: user.email,
+          display_name: user.displayName || null,
+          created_at: serverTimestamp(),
+          updated_at: serverTimestamp(),
+        });
+        // Fetch it again
+        await fetchProfile();
+        return;
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -77,19 +96,16 @@ const Profile = () => {
 
   const handleSaveProfile = async () => {
     if (!user || !profile) return;
-    
+
     setIsSaving(true);
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          display_name: formData.display_name || null,
-          phone: formData.phone || null,
-          company: formData.company || null,
-        })
-        .eq('user_id', user.id);
-
-      if (error) throw error;
+      const profileRef = doc(db, 'profiles', user.uid);
+      await updateDoc(profileRef, {
+        display_name: formData.display_name || null,
+        phone: formData.phone || null,
+        company: formData.company || null,
+        updated_at: serverTimestamp(),
+      });
 
       toast.success('Profil mis à jour avec succès');
       fetchProfile();
@@ -120,27 +136,21 @@ const Profile = () => {
     setIsUploading(true);
     try {
       const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/avatar.${fileExt}`;
+      const filePath = `avatars/${user.uid}/avatar.${fileExt}`;
 
-      // Upload to storage
-      const { error: uploadError } = await supabase.storage
-        .from('documents')
-        .upload(fileName, file, { upsert: true });
+      // Upload to Firebase Storage
+      const storageRef = ref(storage, filePath);
+      await uploadBytes(storageRef, file);
 
-      if (uploadError) throw uploadError;
-
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('documents')
-        .getPublicUrl(fileName);
+      // Get download URL
+      const downloadURL = await getDownloadURL(storageRef);
 
       // Update profile with avatar URL
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ avatar_url: publicUrl })
-        .eq('user_id', user.id);
-
-      if (updateError) throw updateError;
+      const profileRef = doc(db, 'profiles', user.uid);
+      await updateDoc(profileRef, {
+        avatar_url: downloadURL,
+        updated_at: serverTimestamp(),
+      });
 
       toast.success('Avatar mis à jour avec succès');
       fetchProfile();

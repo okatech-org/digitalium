@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/FirebaseAuthContext';
+import { storage, db } from '@/config/firebase';
+import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import { collection, query, where, orderBy, getDocs, addDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -85,22 +87,41 @@ export default function Documents() {
 
   const fetchDocuments = useCallback(async () => {
     if (!user) return;
-    
-    setIsLoading(true);
-    const { data, error } = await supabase
-      .from('documents')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
 
-    if (error) {
+    setIsLoading(true);
+    try {
+      const documentsRef = collection(db, 'documents');
+      const q = query(
+        documentsRef,
+        where('user_id', '==', user.uid),
+        orderBy('created_at', 'desc')
+      );
+      const querySnapshot = await getDocs(q);
+      const docs: Document[] = [];
+      querySnapshot.forEach((docSnapshot) => {
+        const data = docSnapshot.data();
+        docs.push({
+          id: docSnapshot.id,
+          user_id: data.user_id,
+          title: data.title,
+          description: data.description || null,
+          category: data.category || 'autre',
+          file_url: data.file_url,
+          file_name: data.file_name,
+          file_size: data.file_size || null,
+          mime_type: data.mime_type || null,
+          status: data.status || 'active',
+          created_at: data.created_at?.toDate?.()?.toISOString() || new Date().toISOString(),
+        });
+      });
+      setDocuments(docs);
+    } catch (error) {
+      console.error('Error fetching documents:', error);
       toast({
         variant: "destructive",
         title: "Erreur",
         description: "Impossible de charger vos documents.",
       });
-    } else {
-      setDocuments(data || []);
     }
     setIsLoading(false);
   }, [user, toast]);
@@ -131,37 +152,32 @@ export default function Documents() {
     setIsUploading(true);
 
     try {
-      // Upload file to storage
+      // Upload file to Firebase Storage
       const fileExt = uploadForm.file.name.split('.').pop();
       const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
-      const filePath = `${user.id}/${fileName}`;
+      const filePath = `documents/${user.uid}/${fileName}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from('documents')
-        .upload(filePath, uploadForm.file);
+      const storageRef = ref(storage, filePath);
+      await uploadBytes(storageRef, uploadForm.file);
 
-      if (uploadError) throw uploadError;
+      // Get download URL
+      const downloadURL = await getDownloadURL(storageRef);
 
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from('documents')
-        .getPublicUrl(filePath);
-
-      // Create document record
-      const { error: insertError } = await supabase
-        .from('documents')
-        .insert({
-          user_id: user.id,
-          title: uploadForm.title,
-          description: uploadForm.description || null,
-          category: uploadForm.category,
-          file_url: urlData.publicUrl,
-          file_name: uploadForm.file.name,
-          file_size: uploadForm.file.size,
-          mime_type: uploadForm.file.type,
-        });
-
-      if (insertError) throw insertError;
+      // Create document record in Firestore
+      await addDoc(collection(db, 'documents'), {
+        user_id: user.uid,
+        title: uploadForm.title,
+        description: uploadForm.description || null,
+        category: uploadForm.category,
+        file_url: downloadURL,
+        file_name: uploadForm.file.name,
+        file_size: uploadForm.file.size,
+        mime_type: uploadForm.file.type,
+        file_path: filePath,
+        status: 'active',
+        created_at: serverTimestamp(),
+        updated_at: serverTimestamp(),
+      });
 
       toast({
         title: "Document ajouté",
@@ -172,6 +188,7 @@ export default function Documents() {
       setUploadForm({ title: '', description: '', category: 'autre', file: null });
       fetchDocuments();
     } catch (error: any) {
+      console.error('Upload error:', error);
       toast({
         variant: "destructive",
         title: "Erreur",
@@ -182,31 +199,37 @@ export default function Documents() {
     }
   };
 
-  const deleteDocument = async (doc: Document) => {
+  const deleteDocument = async (documentToDelete: Document) => {
     if (!user) return;
 
     try {
-      // Extract file path from URL
-      const urlParts = doc.file_url.split('/');
-      const filePath = `${user.id}/${urlParts[urlParts.length - 1]}`;
+      // Get the document from Firestore to find the file path
+      const docRef = doc(db, 'documents', documentToDelete.id);
 
-      // Delete from storage
-      await supabase.storage.from('documents').remove([filePath]);
+      // Try to delete from storage if we have a file path in the URL
+      try {
+        // Extract file path from the storage URL
+        const url = new URL(documentToDelete.file_url);
+        const pathMatch = url.pathname.match(/documents%2F[^?]+/);
+        if (pathMatch) {
+          const filePath = decodeURIComponent(pathMatch[0]);
+          const storageRef = ref(storage, filePath);
+          await deleteObject(storageRef);
+        }
+      } catch (storageError) {
+        console.warn('Could not delete file from storage:', storageError);
+      }
 
-      // Delete record
-      const { error } = await supabase
-        .from('documents')
-        .delete()
-        .eq('id', doc.id);
+      // Delete Firestore record
+      await deleteDoc(docRef);
 
-      if (error) throw error;
-
-      setDocuments(documents.filter(d => d.id !== doc.id));
+      setDocuments(documents.filter(d => d.id !== documentToDelete.id));
       toast({
         title: "Document supprimé",
         description: "Le document a été supprimé avec succès.",
       });
     } catch (error: any) {
+      console.error('Delete error:', error);
       toast({
         variant: "destructive",
         title: "Erreur",

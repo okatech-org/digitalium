@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Brain, Sun, Moon, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/FirebaseAuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { AuthModal } from "@/components/auth/AuthModal";
@@ -25,7 +25,7 @@ export const Header = () => {
       const scrollY = window.scrollY;
       const maxScroll = 200;
       const progress = Math.min(scrollY / maxScroll, 1);
-      
+
       setScrolled(scrollY > 20);
       setScrollProgress(progress);
     };
@@ -36,7 +36,6 @@ export const Header = () => {
 
   const navLinks = [
     { name: t("nav.home"), href: "/" },
-    { name: t("nav.services"), href: "/services" },
     { name: t("nav.solutions"), href: "/solutions" },
     { name: t("nav.features"), href: "/features" },
     { name: t("nav.contact"), href: "/contact" },
@@ -64,11 +63,11 @@ export const Header = () => {
     )`,
     backdropFilter: `blur(${12 + scrollProgress * 16}px) saturate(${120 + scrollProgress * 60}%)`,
     WebkitBackdropFilter: `blur(${12 + scrollProgress * 16}px) saturate(${120 + scrollProgress * 60}%)`,
-    borderBottom: scrolled 
-      ? `1px solid hsla(217, 91%, 60%, ${0.1 + scrollProgress * 0.15})` 
+    borderBottom: scrolled
+      ? `1px solid hsla(217, 91%, 60%, ${0.1 + scrollProgress * 0.15})`
       : '1px solid hsla(217, 91%, 60%, 0.08)',
-    boxShadow: scrolled 
-      ? `0 ${4 + scrollProgress * 8}px ${20 + scrollProgress * 20}px hsla(0, 0%, 0%, ${0.1 + scrollProgress * 0.15})` 
+    boxShadow: scrolled
+      ? `0 ${4 + scrollProgress * 8}px ${20 + scrollProgress * 20}px hsla(0, 0%, 0%, ${0.1 + scrollProgress * 0.15})`
       : 'none',
   };
 
@@ -128,11 +127,10 @@ export const Header = () => {
                       />
                     )}
                     {/* Text */}
-                    <span className={`relative z-10 transition-colors duration-300 ${
-                      isActive
+                    <span className={`relative z-10 transition-colors duration-300 ${isActive
                         ? 'text-primary-foreground'
                         : 'text-muted-foreground hover:text-foreground'
-                    }`}>
+                      }`}>
                       {link.name}
                     </span>
                     {/* Hover underline for inactive */}
@@ -176,16 +174,16 @@ export const Header = () => {
                 </Button>
               ) : (
                 <>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     className="text-muted-foreground hover:text-foreground"
                     onClick={openLoginModal}
                   >
                     {t("nav.login")}
                   </Button>
-                  <Button 
-                    size="sm" 
+                  <Button
+                    size="sm"
                     className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity"
                     onClick={openSignupModal}
                   >
@@ -264,11 +262,10 @@ export const Header = () => {
                           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                         />
                       )}
-                      <span className={`relative z-10 transition-colors duration-300 ${
-                        isActive
+                      <span className={`relative z-10 transition-colors duration-300 ${isActive
                           ? 'text-primary-foreground'
                           : 'text-muted-foreground'
-                      }`}>
+                        }`}>
                         {link.name}
                       </span>
                     </Link>
@@ -297,9 +294,9 @@ export const Header = () => {
       </motion.header>
 
       {/* Auth Modal */}
-      <AuthModal 
-        isOpen={authModalOpen} 
-        onClose={() => setAuthModalOpen(false)} 
+      <AuthModal
+        isOpen={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
         defaultTab={authModalTab}
       />
     </>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/FirebaseAuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,11 +10,11 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { 
-  ArrowLeft, 
-  Search, 
-  Mail, 
-  Phone, 
+import {
+  ArrowLeft,
+  Search,
+  Mail,
+  Phone,
   Building2,
   Calendar,
   Trash2,
@@ -25,7 +25,8 @@ import {
   Users,
   MessageSquare,
   TrendingUp,
-  Loader2
+  Loader2,
+  CreditCard
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -162,6 +163,10 @@ export default function Admin() {
               <p className="text-sm text-muted-foreground">Gestion des leads</p>
             </div>
           </div>
+          <Button onClick={() => navigate('/admin/billing')} variant="outline">
+            <CreditCard className="w-4 h-4 mr-2" />
+            Gestion Billing
+          </Button>
         </div>
       </header>
 

@@ -1,0 +1,53 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidFileSize(maxSizeMB) {
+      return request.resource.size < maxSizeMB * 1024 * 1024;
+    }
+
+    function isValidImageType() {
+      return request.resource.contentType.matches('image/.*');
+    }
+
+    function isValidDocumentType() {
+      return request.resource.contentType.matches('image/.*')
+          || request.resource.contentType.matches('application/pdf')
+          || request.resource.contentType.matches('application/msword')
+          || request.resource.contentType.matches('application/vnd.openxmlformats-officedocument.*')
+          || request.resource.contentType.matches('application/vnd.ms-excel')
+          || request.resource.contentType.matches('text/.*');
+    }
+
+    // User documents
+    match /documents/{userId}/{allPaths=**} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidFileSize(10) && isValidDocumentType();
+      allow update: if isOwner(userId) && isValidFileSize(10) && isValidDocumentType();
+      allow delete: if isOwner(userId);
+    }
+
+    // User avatars
+    match /avatars/{userId}/{allPaths=**} {
+      allow read: if isAuthenticated();
+      allow create: if isOwner(userId) && isValidFileSize(2) && isValidImageType();
+      allow update: if isOwner(userId) && isValidFileSize(2) && isValidImageType();
+      allow delete: if isOwner(userId);
+    }
+
+    // Invoices (read-only for users, write from Cloud Functions)
+    match /invoices/{userId}/{allPaths=**} {
+      allow read: if isOwner(userId);
+      allow write: if false; // Only Cloud Functions can write
+    }
+  }
+}

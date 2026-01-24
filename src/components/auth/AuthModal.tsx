@@ -1,15 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/FirebaseAuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Zap, Mail, Lock, User, X, ArrowLeft } from 'lucide-react';
+import { Loader2, Zap, Mail, Lock, User, X, ArrowLeft, Building2, Landmark, UserCircle, ShieldCheck, ExternalLink } from 'lucide-react';
 import { z } from 'zod';
-import { supabase } from '@/integrations/supabase/client';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -23,14 +23,126 @@ export const AuthModal = ({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
   const { t } = useLanguage();
   const [activeView, setActiveView] = useState<ModalView>(defaultTab);
   const [isLoading, setIsLoading] = useState(false);
+  const [demoLoading, setDemoLoading] = useState<string | null>(null);
   const [loginData, setLoginData] = useState({ email: '', password: '' });
   const [signupData, setSignupData] = useState({ displayName: '', email: '', password: '', confirmPassword: '' });
   const [resetEmail, setResetEmail] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
-  
-  const { signIn, signUp } = useAuth();
+
+  const { signIn, signUp, resetPassword } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Demo accounts configuration
+  const demoAccounts = [
+    {
+      id: 'citizen',
+      label: 'Citoyen',
+      description: 'Espace personnel',
+      email: 'demo-citoyen@digitalium.ga',
+      password: 'Demo2026!',
+      icon: UserCircle,
+      gradient: 'from-cyan-500 to-blue-500',
+    },
+    {
+      id: 'enterprise',
+      label: 'Entreprise',
+      description: 'Espace professionnel',
+      email: 'demo-entreprise@digitalium.ga',
+      password: 'Demo2026!',
+      icon: Building2,
+      gradient: 'from-emerald-500 to-green-500',
+    },
+    {
+      id: 'admin',
+      label: 'Administration',
+      description: 'Espace institutionnel',
+      email: 'demo-admin@digitalium.ga',
+      password: 'Demo2026!',
+      icon: Landmark,
+      gradient: 'from-violet-500 to-purple-500',
+    },
+    {
+      id: 'sysadmin',
+      label: 'Admin Système',
+      description: 'Super-administrateur',
+      email: 'demo-sysadmin@digitalium.ga',
+      password: 'Demo2026!',
+      icon: ShieldCheck,
+      gradient: 'from-slate-700 to-gray-800',
+    },
+  ];
+
+  // Handle OAuth login with IDN.ga
+  const handleIdnOAuth = () => {
+    const idnUrl = import.meta.env.VITE_IDN_OAUTH_URL || 'https://identite.ga';
+    const clientId = import.meta.env.VITE_IDN_CLIENT_ID;
+    const redirectUri = import.meta.env.VITE_IDN_REDIRECT_URI || `${window.location.origin}/auth/idn/callback`;
+
+    const authUrl = new URL(`${idnUrl}/oauth/authorize`);
+    authUrl.searchParams.set('client_id', clientId || 'digitalium');
+    authUrl.searchParams.set('redirect_uri', redirectUri);
+    authUrl.searchParams.set('response_type', 'code');
+    authUrl.searchParams.set('scope', 'openid profile email');
+    authUrl.searchParams.set('state', JSON.stringify({ action: activeView }));
+
+    window.location.href = authUrl.toString();
+  };
+
+  const handleDemoLogin = async (account: typeof demoAccounts[0]) => {
+    // Special case: Citoyen redirects to IDN.ga (identite.ga)
+    if (account.id === 'citizen') {
+      const idnUrl = import.meta.env.VITE_IDN_OAUTH_URL || 'https://identite.ga';
+      window.location.href = `${idnUrl}/profil`;
+      return;
+    }
+
+    setDemoLoading(account.id);
+
+    // 1. Try to sign in with existing demo account
+    const { error: signInError } = await signIn(account.email, account.password);
+
+    if (!signInError) {
+      setDemoLoading(null);
+      toast({
+        title: `Bienvenue, ${account.label}`,
+        description: "Connexion réussie en mode démonstration",
+      });
+      onClose();
+      navigate('/dashboard');
+      return;
+    }
+
+    // 2. If sign in failed, try to create the account
+    // (This handles 'user-not-found' or other issues by ensuring account exists)
+    const { error: signUpError } = await signUp(account.email, account.password, account.label);
+
+    setDemoLoading(null);
+
+    if (!signUpError) {
+      toast({
+        title: `Bienvenue, ${account.label}`,
+        description: "Compte démo créé avec succès",
+      });
+      onClose();
+      navigate('/dashboard');
+    } else {
+      // If both failed, it's likely a password mismatch on an existing account
+      // or a network error.
+      console.error('Demo login failed:', { signInError, signUpError });
+
+      let errorMessage = signInError.message;
+      if (signUpError.message.includes('email-already-in-use')) {
+        errorMessage = "Le compte démo existe déjà mais le mot de passe est incorrect. Veuillez contacter l'administrateur.";
+      }
+
+      toast({
+        variant: "destructive",
+        title: "Erreur de connexion démo",
+        description: errorMessage,
+      });
+    }
+  };
 
   // Reset view when modal opens with different tab
   useEffect(() => {
@@ -164,9 +276,7 @@ export const AuthModal = ({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
     }
 
     setIsLoading(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-      redirectTo: `${window.location.origin}/reset-password`,
-    });
+    const { error } = await resetPassword(resetEmail);
     setIsLoading(false);
 
     if (error) {
@@ -213,7 +323,7 @@ export const AuthModal = ({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
             className="fixed inset-0 z-[101] flex items-center justify-center p-4"
             style={{ pointerEvents: 'none' }}
           >
-            <div 
+            <div
               className="glass-card border border-primary/20 rounded-3xl overflow-hidden shadow-2xl bg-background/80 backdrop-blur-xl w-full max-w-md"
               style={{ pointerEvents: 'auto' }}
             >
@@ -250,21 +360,19 @@ export const AuthModal = ({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
                   <div className="flex bg-muted/30 rounded-xl p-1">
                     <button
                       onClick={() => handleViewChange('login')}
-                      className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                        activeView === 'login'
-                          ? 'bg-background shadow-md text-foreground'
-                          : 'text-muted-foreground hover:text-foreground'
-                      }`}
+                      className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${activeView === 'login'
+                        ? 'bg-background shadow-md text-foreground'
+                        : 'text-muted-foreground hover:text-foreground'
+                        }`}
                     >
                       {t("auth.login")}
                     </button>
                     <button
                       onClick={() => handleViewChange('signup')}
-                      className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                        activeView === 'signup'
-                          ? 'bg-background shadow-md text-foreground'
-                          : 'text-muted-foreground hover:text-foreground'
-                      }`}
+                      className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${activeView === 'signup'
+                        ? 'bg-background shadow-md text-foreground'
+                        : 'text-muted-foreground hover:text-foreground'
+                        }`}
                     >
                       {t("auth.signup")}
                     </button>
@@ -315,7 +423,7 @@ export const AuthModal = ({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
                         />
                         {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
                       </div>
-                      
+
                       {/* Forgot Password Link */}
                       <div className="text-right">
                         <button
@@ -327,10 +435,10 @@ export const AuthModal = ({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
                         </button>
                       </div>
 
-                      <Button 
-                        type="submit" 
-                        className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity" 
-                        disabled={isLoading}
+                      <Button
+                        type="submit"
+                        className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity"
+                        disabled={isLoading || demoLoading !== null}
                       >
                         {isLoading ? (
                           <>
@@ -341,6 +449,68 @@ export const AuthModal = ({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
                           t("auth.loginButton")
                         )}
                       </Button>
+
+                      {/* OAuth IDN.ga Option */}
+                      <div className="relative">
+                        <Separator className="my-4" />
+                        <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-background px-2 text-xs text-muted-foreground">
+                          ou
+                        </span>
+                      </div>
+
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleIdnOAuth}
+                        className="w-full border-cyan-500/50 hover:border-cyan-500 hover:bg-cyan-500/10 transition-all group"
+                      >
+                        <div className="w-5 h-5 rounded bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center mr-2">
+                          <span className="text-white text-xs font-bold">ID</span>
+                        </div>
+                        Continuer avec IDN.ga
+                        <ExternalLink className="w-4 h-4 ml-2 opacity-50 group-hover:opacity-100" />
+                      </Button>
+
+                      {/* Demo Accounts Section */}
+                      <div className="pt-2">
+                        <div className="relative">
+                          <Separator className="my-4" />
+                          <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-background px-2 text-xs text-muted-foreground">
+                            Accès Démo
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-2">
+                          {demoAccounts.map((account) => (
+                            <motion.button
+                              key={account.id}
+                              type="button"
+                              whileHover={{ scale: 1.02 }}
+                              whileTap={{ scale: 0.98 }}
+                              onClick={() => handleDemoLogin(account)}
+                              disabled={demoLoading !== null}
+                              className={`relative p-3 rounded-xl border border-border/50 hover:border-primary/50 transition-all group overflow-hidden ${demoLoading === account.id ? 'opacity-80' : ''
+                                }`}
+                            >
+                              {/* Background gradient on hover */}
+                              <div className={`absolute inset-0 bg-gradient-to-br ${account.gradient} opacity-0 group-hover:opacity-10 transition-opacity`} />
+
+                              {/* Icon */}
+                              <div className={`mx-auto w-10 h-10 rounded-lg bg-gradient-to-br ${account.gradient} flex items-center justify-center mb-2 shadow-lg`}>
+                                {demoLoading === account.id ? (
+                                  <Loader2 className="w-5 h-5 text-white animate-spin" />
+                                ) : (
+                                  <account.icon className="w-5 h-5 text-white" />
+                                )}
+                              </div>
+
+                              {/* Label */}
+                              <p className="text-xs font-medium text-foreground">{account.label}</p>
+                              <p className="text-[10px] text-muted-foreground truncate">{account.description}</p>
+                            </motion.button>
+                          ))}
+                        </div>
+                      </div>
                     </motion.form>
                   )}
 
@@ -414,9 +584,9 @@ export const AuthModal = ({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
                         />
                         {errors.confirmPassword && <p className="text-xs text-destructive">{errors.confirmPassword}</p>}
                       </div>
-                      <Button 
-                        type="submit" 
-                        className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity" 
+                      <Button
+                        type="submit"
+                        className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity"
                         disabled={isLoading}
                       >
                         {isLoading ? (
@@ -427,6 +597,27 @@ export const AuthModal = ({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
                         ) : (
                           t("auth.signupButton")
                         )}
+                      </Button>
+
+                      {/* OAuth IDN.ga Option */}
+                      <div className="relative">
+                        <Separator className="my-4" />
+                        <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-background px-2 text-xs text-muted-foreground">
+                          ou
+                        </span>
+                      </div>
+
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleIdnOAuth}
+                        className="w-full border-cyan-500/50 hover:border-cyan-500 hover:bg-cyan-500/10 transition-all group"
+                      >
+                        <div className="w-5 h-5 rounded bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center mr-2">
+                          <span className="text-white text-xs font-bold">ID</span>
+                        </div>
+                        S'inscrire avec IDN.ga
+                        <ExternalLink className="w-4 h-4 ml-2 opacity-50 group-hover:opacity-100" />
                       </Button>
                     </motion.form>
                   )}
@@ -457,9 +648,9 @@ export const AuthModal = ({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
                         {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
                       </div>
 
-                      <Button 
-                        type="submit" 
-                        className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity" 
+                      <Button
+                        type="submit"
+                        className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity"
                         disabled={isLoading}
                       >
                         {isLoading ? (
