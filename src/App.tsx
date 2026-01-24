@@ -48,6 +48,7 @@ import IDocumentLayout from "./pages/pro/idocument/IDocumentLayout";
 import MyDocuments from "./pages/pro/idocument/MyDocuments";
 import IArchiveLayout from "./pages/pro/iarchive/IArchiveLayout";
 import FiscalArchive from "./pages/pro/iarchive/FiscalArchive";
+import ArchiveCategoryPage from "./pages/pro/iarchive/ArchiveCategoryPage";
 import ArchiveUploadPage from "./pages/pro/iarchive/UploadPage";
 import ISignatureLayout from "./pages/pro/isignature/ISignatureLayout";
 import ToSign from "./pages/pro/isignature/ToSign";
@@ -111,13 +112,13 @@ const AnimatedRoutes = () => {
 
           {/* iArchive Module */}
           <Route path="/pro/iarchive" element={<IArchiveLayout />}>
-            <Route index element={<FiscalArchive />} />
-            <Route path="fiscal" element={<FiscalArchive />} />
-            <Route path="social" element={<FiscalArchive />} />
-            <Route path="legal" element={<FiscalArchive />} />
-            <Route path="clients" element={<FiscalArchive />} />
-            <Route path="vault" element={<FiscalArchive />} />
-            <Route path="certificates" element={<FiscalArchive />} />
+            <Route index element={<ArchiveCategoryPage />} />
+            <Route path="fiscal" element={<ArchiveCategoryPage />} />
+            <Route path="social" element={<ArchiveCategoryPage />} />
+            <Route path="legal" element={<ArchiveCategoryPage />} />
+            <Route path="clients" element={<ArchiveCategoryPage />} />
+            <Route path="vault" element={<ArchiveCategoryPage />} />
+            <Route path="certificates" element={<ArchiveCategoryPage />} />
           </Route>
           <Route path="/pro/iarchive/upload" element={<ArchiveUploadPage />} />
 
