@@ -372,19 +372,19 @@ export default function ProSpaceLayout() {
                                     </button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end" className="w-56">
-                                    <DropdownMenuItem onClick={() => navigate('/profile')}>
+                                    <DropdownMenuItem onClick={() => navigate('/pro/security')}>
                                         <User className="h-4 w-4 mr-2" />
                                         Mon Profil
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => navigate('/pro')}>
                                         <Bell className="h-4 w-4 mr-2" />
                                         Notifications
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => navigate('/pro/security')}>
                                         <Settings className="h-4 w-4 mr-2" />
                                         Paramètres
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => window.open('https://docs.digitalium.ga', '_blank')}>
                                         <HelpCircle className="h-4 w-4 mr-2" />
                                         Aide
                                     </DropdownMenuItem>
