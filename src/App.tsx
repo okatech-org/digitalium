@@ -58,6 +58,16 @@ import ArchiveUploadPage from "./pages/pro/iarchive/UploadPage";
 import ISignatureLayout from "./pages/pro/isignature/ISignatureLayout";
 import ToSign from "./pages/pro/isignature/ToSign";
 
+// Pro Admin Pages
+import {
+  TeamManagementPage,
+  AnalyticsPage as ProAnalyticsPage,
+  BillingPage as ProBillingPage,
+  ApiAccessPage,
+  SecurityPage as ProSecurityPage,
+  PublicProfilePage,
+} from "./pages/pro/admin";
+
 import MainLayout from "@/components/layout/MainLayout";
 
 const queryClient = new QueryClient();
@@ -130,6 +140,14 @@ const AnimatedRoutes = () => {
             <Route path="signed" element={<ToSign />} />
             <Route path="workflows" element={<ToSign />} />
           </Route>
+
+          {/* Pro Admin Routes */}
+          <Route path="/pro/team" element={<TeamManagementPage />} />
+          <Route path="/pro/analytics" element={<ProAnalyticsPage />} />
+          <Route path="/pro/billing" element={<ProBillingPage />} />
+          <Route path="/pro/api" element={<ApiAccessPage />} />
+          <Route path="/pro/security" element={<ProSecurityPage />} />
+          <Route path="/pro/public" element={<PublicProfilePage />} />
         </Route>
 
         {/* SysAdmin Routes */}
