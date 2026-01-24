@@ -35,3 +35,20 @@ export {
     type AuditAction,
 } from './AuditLog';
 
+// Collaboration - Phase 5
+export {
+    ShareDialog,
+    ShareBadge,
+    type ShareLink,
+    type ShareRecipient,
+    type SharePermission,
+} from './DocumentSharing';
+export {
+    AnnotationPanel,
+    HighlightColorPicker,
+    type Annotation,
+    type AnnotationType,
+    type AnnotationPriority,
+} from './DocumentAnnotations';
+
+
