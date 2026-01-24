@@ -130,12 +130,12 @@ const CORE_MODULES: NavItem[] = [
 ];
 
 const ADMIN_ITEMS: NavItem[] = [
-    { label: 'Gestion Équipe', href: '/team', icon: Users },
-    { label: 'Analytics', href: '/analytics', icon: BarChart3 },
-    { label: 'Facturation Pro', href: '/billing-pro', icon: CreditCard },
-    { label: 'Accès API', href: '/api', icon: Key },
-    { label: 'Sécurité', href: '/security', icon: Shield },
-    { label: 'Espace Public', href: '/public-profile', icon: Globe },
+    { label: 'Gestion Équipe', href: '/pro/team', icon: Users },
+    { label: 'Analytics', href: '/pro/analytics', icon: BarChart3 },
+    { label: 'Facturation Pro', href: '/pro/billing', icon: CreditCard },
+    { label: 'Accès API', href: '/pro/api', icon: Key },
+    { label: 'Sécurité', href: '/pro/security', icon: Shield },
+    { label: 'Espace Public', href: '/pro/public', icon: Globe },
 ];
 
 export default function ProSpaceLayout() {

@@ -24,14 +24,6 @@ import Billing from "./pages/Billing";
 import AdminBilling from "./pages/AdminBilling";
 import NotFound from "./pages/NotFound";
 import IdnCallback from "./pages/auth/IdnCallback";
-// Enterprise Pages
-import Team from "./pages/enterprise/Team";
-import Analytics from "./pages/enterprise/Analytics";
-import ApiAccess from "./pages/enterprise/ApiAccess";
-import Security from "./pages/enterprise/Security";
-import PublicProfile from "./pages/enterprise/PublicProfile";
-import BillingPro from "./pages/enterprise/BillingPro";
-import EnterpriseArchive from "./pages/enterprise/EnterpriseArchive";
 // SysAdmin Pages
 import Infrastructure from "./pages/sysadmin/Infrastructure";
 import Monitoring from "./pages/sysadmin/Monitoring";
@@ -97,15 +89,6 @@ const AnimatedRoutes = () => {
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/pricing" element={<Navigate to="/solutions" replace />} />
           <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
-
-          {/* Enterprise Routes */}
-          <Route path="/team" element={<ProtectedRoute><Team /></ProtectedRoute>} />
-          <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
-          <Route path="/api" element={<ProtectedRoute><ApiAccess /></ProtectedRoute>} />
-          <Route path="/security" element={<ProtectedRoute><Security /></ProtectedRoute>} />
-          <Route path="/public-profile" element={<ProtectedRoute><PublicProfile /></ProtectedRoute>} />
-          <Route path="/billing-pro" element={<ProtectedRoute><BillingPro /></ProtectedRoute>} />
-          <Route path="/enterprise-archive" element={<ProtectedRoute><EnterpriseArchive /></ProtectedRoute>} />
         </Route>
 
         {/* Pro Space with dedicated layout */}
