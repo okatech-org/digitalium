@@ -1,36 +1,57 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Users, BarChart3, Globe, ShieldCheck, FileKey, Briefcase, ChevronRight, CreditCard } from 'lucide-react';
+import { Users, BarChart3, Globe, ShieldCheck, FileKey, Briefcase, ChevronRight, CreditCard, FileText, Archive, PenTool, LayoutDashboard } from 'lucide-react';
 
 export const EnterpriseSpace = () => {
     const menuItems = [
+        {
+            title: 'Espace Pro',
+            description: 'Hub iDocument, iArchive, iSignature',
+            icon: LayoutDashboard,
+            href: '/pro',
+            color: 'from-primary to-purple-500',
+        },
+        {
+            title: 'iDocument',
+            description: 'Documents collaboratifs',
+            icon: FileText,
+            href: '/pro/idocument',
+            color: 'from-blue-500 to-cyan-500',
+        },
+        {
+            title: 'iArchive',
+            description: 'Archivage légal',
+            icon: Archive,
+            href: '/pro/iarchive',
+            color: 'from-emerald-500 to-teal-500',
+        },
+        {
+            title: 'iSignature',
+            description: 'Signature électronique',
+            icon: PenTool,
+            href: '/pro/isignature',
+            color: 'from-purple-500 to-pink-500',
+        },
         {
             title: 'Gestion Équipe',
             description: 'Collaborateurs et rôles',
             icon: Users,
             href: '/team',
-            color: 'from-emerald-500 to-teal-500',
+            color: 'from-teal-500 to-cyan-500',
         },
         {
             title: 'Analytics',
             description: 'Statistiques d\'utilisation',
             icon: BarChart3,
             href: '/analytics',
-            color: 'from-teal-500 to-cyan-500',
-        },
-        {
-            title: 'Documents Pro',
-            description: 'Archives et dossiers partagés',
-            icon: Briefcase,
-            href: '/enterprise-archive',
             color: 'from-cyan-500 to-sky-500',
         },
         {
             title: 'Facturation Pro',
             description: 'Factures et méthodes de paiement',
             icon: CreditCard,
-            href: '/billing',
+            href: '/billing-pro',
             color: 'from-sky-500 to-blue-500',
         },
         {
