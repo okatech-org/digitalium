@@ -21,3 +21,17 @@ export {
 
 // AI Assistant
 export { IAstedChat } from './IAstedChat';
+
+// Compliance - Phase 3
+export {
+    DepositCertificate,
+    generateCertificate,
+    type CertificateData,
+} from './DepositCertificate';
+export {
+    AuditLog,
+    AuditSummaryCard,
+    type AuditEntry,
+    type AuditAction,
+} from './AuditLog';
+
