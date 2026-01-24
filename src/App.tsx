@@ -48,6 +48,16 @@ import PublicInfrastructure from "./pages/institution/PublicInfrastructure";
 import Alerts from "./pages/institution/Alerts";
 import Partners from "./pages/institution/Partners";
 
+// Pro Space Pages
+import ProSpaceLayout from "@/components/layout/ProSpaceLayout";
+import ProDashboard from "./pages/pro/ProDashboard";
+import IDocumentLayout from "./pages/pro/idocument/IDocumentLayout";
+import MyDocuments from "./pages/pro/idocument/MyDocuments";
+import IArchiveLayout from "./pages/pro/iarchive/IArchiveLayout";
+import FiscalArchive from "./pages/pro/iarchive/FiscalArchive";
+import ISignatureLayout from "./pages/pro/isignature/ISignatureLayout";
+import ToSign from "./pages/pro/isignature/ToSign";
+
 import MainLayout from "@/components/layout/MainLayout";
 
 const queryClient = new QueryClient();
@@ -146,23 +156,56 @@ const AnimatedRoutes = () => {
               <Route path="/public-profile" element={<ProtectedRoute><PublicProfile /></ProtectedRoute>} />
               <Route path="/billing-pro" element={<ProtectedRoute><BillingPro /></ProtectedRoute>} />
               <Route path="/enterprise-archive" element={<ProtectedRoute><EnterpriseArchive /></ProtectedRoute>} />
-
-              {/* SysAdmin Routes */}
-              <Route path="/sysadmin/infrastructure" element={<ProtectedRoute><Infrastructure /></ProtectedRoute>} />
-              <Route path="/sysadmin/monitoring" element={<ProtectedRoute><Monitoring /></ProtectedRoute>} />
-              <Route path="/sysadmin/databases" element={<ProtectedRoute><Databases /></ProtectedRoute>} />
-              <Route path="/sysadmin/logs" element={<ProtectedRoute><Logs /></ProtectedRoute>} />
-              <Route path="/sysadmin/security" element={<ProtectedRoute><SecuritySysAdmin /></ProtectedRoute>} />
-              <Route path="/sysadmin/iam" element={<ProtectedRoute><Iam /></ProtectedRoute>} />
-
-              {/* Institution Routes */}
-              <Route path="/civil-registry" element={<ProtectedRoute><CivilRegistry /></ProtectedRoute>} />
-              <Route path="/services-config" element={<ProtectedRoute><ServicesConfig /></ProtectedRoute>} />
-              <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
-              <Route path="/infrastructure" element={<ProtectedRoute><PublicInfrastructure /></ProtectedRoute>} />
-              <Route path="/alerts" element={<ProtectedRoute><Alerts /></ProtectedRoute>} />
-              <Route path="/partners" element={<ProtectedRoute><Partners /></ProtectedRoute>} />
             </Route>
+
+            {/* Pro Space with dedicated layout */}
+            <Route element={<ProtectedRoute><ProSpaceLayout /></ProtectedRoute>}>
+              <Route path="/pro" element={<ProDashboard />} />
+
+              {/* iDocument Module */}
+              <Route path="/pro/idocument" element={<IDocumentLayout />}>
+                <Route index element={<MyDocuments />} />
+                <Route path="shared" element={<MyDocuments />} />
+                <Route path="team" element={<MyDocuments />} />
+                <Route path="templates" element={<MyDocuments />} />
+                <Route path="trash" element={<MyDocuments />} />
+              </Route>
+
+              {/* iArchive Module */}
+              <Route path="/pro/iarchive" element={<IArchiveLayout />}>
+                <Route index element={<FiscalArchive />} />
+                <Route path="fiscal" element={<FiscalArchive />} />
+                <Route path="social" element={<FiscalArchive />} />
+                <Route path="legal" element={<FiscalArchive />} />
+                <Route path="clients" element={<FiscalArchive />} />
+                <Route path="vault" element={<FiscalArchive />} />
+                <Route path="certificates" element={<FiscalArchive />} />
+              </Route>
+
+              {/* iSignature Module */}
+              <Route path="/pro/isignature" element={<ISignatureLayout />}>
+                <Route index element={<ToSign />} />
+                <Route path="pending" element={<ToSign />} />
+                <Route path="signed" element={<ToSign />} />
+                <Route path="workflows" element={<ToSign />} />
+              </Route>
+            </Route>
+
+            {/* SysAdmin Routes */}
+            <Route path="/sysadmin/infrastructure" element={<ProtectedRoute><Infrastructure /></ProtectedRoute>} />
+            <Route path="/sysadmin/monitoring" element={<ProtectedRoute><Monitoring /></ProtectedRoute>} />
+            <Route path="/sysadmin/databases" element={<ProtectedRoute><Databases /></ProtectedRoute>} />
+            <Route path="/sysadmin/logs" element={<ProtectedRoute><Logs /></ProtectedRoute>} />
+            <Route path="/sysadmin/security" element={<ProtectedRoute><SecuritySysAdmin /></ProtectedRoute>} />
+            <Route path="/sysadmin/iam" element={<ProtectedRoute><Iam /></ProtectedRoute>} />
+
+            {/* Institution Routes */}
+            <Route path="/civil-registry" element={<ProtectedRoute><CivilRegistry /></ProtectedRoute>} />
+            <Route path="/services-config" element={<ProtectedRoute><ServicesConfig /></ProtectedRoute>} />
+            <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
+            <Route path="/infrastructure" element={<ProtectedRoute><PublicInfrastructure /></ProtectedRoute>} />
+            <Route path="/alerts" element={<ProtectedRoute><Alerts /></ProtectedRoute>} />
+            <Route path="/partners" element={<ProtectedRoute><Partners /></ProtectedRoute>} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>
