@@ -43,6 +43,7 @@ export const AuthModal = ({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
       password: 'Demo2026!',
       icon: UserCircle,
       gradient: 'from-cyan-500 to-blue-500',
+      redirect: '/dashboard',
     },
     {
       id: 'enterprise',
@@ -52,6 +53,7 @@ export const AuthModal = ({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
       password: 'Demo2026!',
       icon: Building2,
       gradient: 'from-emerald-500 to-green-500',
+      redirect: '/pro',
     },
     {
       id: 'admin',
@@ -61,6 +63,7 @@ export const AuthModal = ({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
       password: 'Demo2026!',
       icon: Landmark,
       gradient: 'from-violet-500 to-purple-500',
+      redirect: '/dashboard',
     },
     {
       id: 'sysadmin',
@@ -70,6 +73,7 @@ export const AuthModal = ({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
       password: 'Demo2026!',
       icon: ShieldCheck,
       gradient: 'from-slate-700 to-gray-800',
+      redirect: '/sysadmin/infrastructure',
     },
   ];
 
@@ -109,7 +113,7 @@ export const AuthModal = ({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
         description: "Connexion réussie en mode démonstration",
       });
       onClose();
-      navigate('/dashboard');
+      navigate(account.redirect);
       return;
     }
 
@@ -125,7 +129,7 @@ export const AuthModal = ({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
         description: "Compte démo créé avec succès",
       });
       onClose();
-      navigate('/dashboard');
+      navigate(account.redirect);
     } else {
       // If both failed, it's likely a password mismatch on an existing account
       // or a network error.
