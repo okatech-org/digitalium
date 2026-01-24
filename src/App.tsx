@@ -54,6 +54,7 @@ import IDocumentLayout from "./pages/pro/idocument/IDocumentLayout";
 import MyDocuments from "./pages/pro/idocument/MyDocuments";
 import IArchiveLayout from "./pages/pro/iarchive/IArchiveLayout";
 import FiscalArchive from "./pages/pro/iarchive/FiscalArchive";
+import ArchiveUploadPage from "./pages/pro/iarchive/UploadPage";
 import ISignatureLayout from "./pages/pro/isignature/ISignatureLayout";
 import ToSign from "./pages/pro/isignature/ToSign";
 
@@ -120,6 +121,7 @@ const AnimatedRoutes = () => {
             <Route path="vault" element={<FiscalArchive />} />
             <Route path="certificates" element={<FiscalArchive />} />
           </Route>
+          <Route path="/pro/iarchive/upload" element={<ArchiveUploadPage />} />
 
           {/* iSignature Module */}
           <Route path="/pro/isignature" element={<ISignatureLayout />}>
