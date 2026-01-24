@@ -24,6 +24,8 @@ import Billing from "./pages/Billing";
 import AdminBilling from "./pages/AdminBilling";
 import NotFound from "./pages/NotFound";
 import IdnCallback from "./pages/auth/IdnCallback";
+// Public Pages
+import CompanyPublicPage from "./pages/public/CompanyPublicPage";
 // SysAdmin Pages
 import Infrastructure from "./pages/sysadmin/Infrastructure";
 import Monitoring from "./pages/sysadmin/Monitoring";
@@ -78,6 +80,9 @@ const AnimatedRoutes = () => {
         <Route path="/auth" element={<Auth />} />
         <Route path="/auth/idn/callback" element={<IdnCallback />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+
+        {/* Public Company Profiles */}
+        <Route path="/p/:slug" element={<CompanyPublicPage />} />
 
         {/* Protected App Routes with Persistent Sidebar */}
         <Route element={<MainLayout />}>
