@@ -23,8 +23,9 @@ import {
     FileBarChart,
     Server
 } from 'lucide-react';
+import ProDashboard from '@/pages/pro/ProDashboard';
 import { CitizenSpace } from '@/components/dashboard/CitizenSpace';
-import { EnterpriseSpace } from '@/components/dashboard/EnterpriseSpace';
+// EnterpriseSpace removed as obsolete
 import { InstitutionSpace } from '@/components/dashboard/InstitutionSpace';
 import { SystemAdminSpace } from '@/components/dashboard/SystemAdminSpace';
 
@@ -74,7 +75,7 @@ export function useUserSpace() {
             type: 'enterprise',
             title: 'Espace Professionnel',
             badge: { label: 'Entreprise', className: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' },
-            component: <EnterpriseSpace />,
+            component: <ProDashboard />,
             menuItems: [
                 { title: 'Vue d\'ensemble', icon: BarChart3, href: '/dashboard' },
                 { title: 'Gestion Équipe', icon: Users, href: '/team' },
