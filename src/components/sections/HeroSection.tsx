@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { ArrowRight, LogIn, UserPlus, Volume2, VolumeX, Users, FileText, Shield, Clock } from "lucide-react";
+import { ArrowRight, LogIn, UserPlus, Volume2, VolumeX, Users, FileText, Shield, Clock, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/FirebaseAuthContext";
@@ -275,6 +275,23 @@ export const HeroSection = () => {
               </div>
             </motion.div>
           </div>
+        </motion.div>
+
+        {/* Scroll Indicator - Hidden on mobile */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.5, duration: 0.5 }}
+          className="absolute bottom-6 left-1/2 -translate-x-1/2 hidden lg:flex flex-col items-center gap-2 z-20"
+        >
+          <span className="text-xs text-muted-foreground uppercase tracking-widest">Scroll</span>
+          <motion.div
+            animate={{ y: [0, 8, 0] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+            className="p-2 rounded-full glass-card border border-primary/20"
+          >
+            <ChevronDown className="w-4 h-4 text-primary" />
+          </motion.div>
         </motion.div>
       </section>
 
