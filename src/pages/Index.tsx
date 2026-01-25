@@ -1,12 +1,12 @@
+import { useState } from "react";
 import { Header } from "@/components/layout/Header";
 import { HeroSection } from "@/components/sections/HeroSection";
 import { IAstedButtonFull, IAstedChatModal } from "@/components/iasted";
 import { useAuth } from "@/contexts/FirebaseAuthContext";
-import { useIAsted } from "@/hooks/useIAsted";
 
 const Index = () => {
+  const [isChatOpen, setIsChatOpen] = useState(false);
   const { user } = useAuth();
-  const iasted = useIAsted({ autoAwaken: true });
 
   return (
     <div className="min-h-screen overflow-y-auto lg:h-screen lg:overflow-hidden">
@@ -15,24 +15,18 @@ const Index = () => {
         <HeroSection />
       </main>
       
-      {/* iAsted Agent Button - Same as Pro Space */}
+      {/* iAsted Agent Button */}
       <IAstedButtonFull
-        onClick={() => iasted.toggleChat()}
-        onDoubleClick={() => iasted.toggleChat()}
-        voiceListening={iasted.isListening}
-        voiceSpeaking={iasted.isSpeaking}
-        voiceProcessing={iasted.isProcessing}
-        isInterfaceOpen={iasted.isChatOpen}
+        onClick={() => setIsChatOpen(true)}
         size="md"
         pulsing
       />
       
       {/* iAsted Chat Modal */}
       <IAstedChatModal
-        isOpen={iasted.isChatOpen}
-        onClose={() => iasted.closeChat()}
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
         userName={user?.displayName || undefined}
-        userRole={iasted.persona.role}
       />
     </div>
   );
