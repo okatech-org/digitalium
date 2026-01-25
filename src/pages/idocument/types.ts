@@ -76,6 +76,7 @@ export interface SmartAnalysisResult {
     type: string;
     classeurId: string;
     dossierId: string;
+    folderId: string; // Alias for target folder
     confidence: number;
 }
 

@@ -82,6 +82,7 @@ export function useSmartImport() {
                 type: classification.type,
                 classeurId: location.classeurId,
                 dossierId: location.dossierId,
+                folderId: location.dossierId, // Alias for target folder
                 confidence: classification.confidence,
             });
 
