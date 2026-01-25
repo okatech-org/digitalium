@@ -24,6 +24,10 @@ import {
     EyeOff,
     Mail,
     History,
+    Palette,
+    Sparkles,
+    Layers,
+    Box,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -46,6 +50,8 @@ import {
     AlertTitle,
 } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
+import { useDesignTheme, DesignTheme } from '@/contexts/DesignThemeContext';
+import { toast } from 'sonner';
 
 interface Session {
     id: string;
@@ -108,6 +114,36 @@ export default function SecurityPage() {
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const { designTheme, setDesignTheme } = useDesignTheme();
+
+    const DESIGN_THEMES = [
+        {
+            id: 'modern' as DesignTheme,
+            name: 'Modern',
+            description: 'Design épuré et professionnel',
+            icon: Sparkles,
+            preview: 'bg-slate-900',
+        },
+        {
+            id: 'classic' as DesignTheme,
+            name: 'Classic',
+            description: 'Glassmorphisme et cartes haute-contraste',
+            icon: Layers,
+            preview: 'bg-white/90 backdrop-blur',
+        },
+        {
+            id: 'vintage3d' as DesignTheme,
+            name: 'Vintage 3D',
+            description: 'Effets 3D avec ombres profondes',
+            icon: Box,
+            preview: 'bg-gradient-to-br from-slate-700 to-slate-900',
+        },
+    ];
+
+    const handleThemeChange = (theme: DesignTheme) => {
+        setDesignTheme(theme);
+        toast.success(`Thème ${DESIGN_THEMES.find(t => t.id === theme)?.name} activé`);
+    };
 
     const revokeSession = (sessionId: string) => {
         setSessions(sessions.filter(s => s.id !== sessionId));
@@ -129,11 +165,66 @@ export default function SecurityPage() {
         <div className="p-6 space-y-6">
             {/* Header */}
             <div>
-                <h1 className="text-2xl font-bold">Sécurité</h1>
+                <h1 className="text-2xl font-bold">Paramètres</h1>
                 <p className="text-muted-foreground">
-                    Protégez votre compte et vos données
+                    Personnalisez votre espace de travail et protégez votre compte
                 </p>
             </div>
+
+            {/* Design Theme Section */}
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <Palette className="h-5 w-5" />
+                        Thème de Design
+                    </CardTitle>
+                    <CardDescription>
+                        Personnalisez l'apparence de votre espace de travail
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {DESIGN_THEMES.map((theme) => {
+                            const Icon = theme.icon;
+                            const isActive = designTheme === theme.id;
+                            return (
+                                <motion.div
+                                    key={theme.id}
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                >
+                                    <Card
+                                        className={cn(
+                                            'cursor-pointer transition-all hover:border-primary/50',
+                                            isActive && 'border-primary ring-2 ring-primary/20'
+                                        )}
+                                        onClick={() => handleThemeChange(theme.id)}
+                                    >
+                                        <CardContent className="pt-4 pb-4">
+                                            <div className="flex items-start justify-between mb-3">
+                                                <div className={cn(
+                                                    'w-10 h-10 rounded-lg flex items-center justify-center',
+                                                    theme.preview
+                                                )}>
+                                                    <Icon className="h-5 w-5 text-primary" />
+                                                </div>
+                                                {isActive && (
+                                                    <Badge className="bg-primary/20 text-primary">
+                                                        <Check className="h-3 w-3 mr-1" />
+                                                        Actif
+                                                    </Badge>
+                                                )}
+                                            </div>
+                                            <h3 className="font-semibold">{theme.name}</h3>
+                                            <p className="text-sm text-muted-foreground">{theme.description}</p>
+                                        </CardContent>
+                                    </Card>
+                                </motion.div>
+                            );
+                        })}
+                    </div>
+                </CardContent>
+            </Card>
 
             {/* Security Score */}
             <Card className="border-green-500/30 bg-gradient-to-r from-green-500/5 to-transparent">

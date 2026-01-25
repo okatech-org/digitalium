@@ -96,11 +96,6 @@ const NAV_ITEMS: NavItem[] = [
         href: '/admin/organization',
         icon: Building2,
     },
-    {
-        label: 'Thème Design',
-        href: '/admin/design-theme',
-        icon: Palette,
-    },
 ];
 
 export default function SysAdminSpaceLayout() {
