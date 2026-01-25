@@ -46,10 +46,7 @@ import ProSpaceLayout from "@/components/layout/ProSpaceLayout";
 import ProDashboard from "./pages/pro/ProDashboard";
 import IDocumentLayout from "./pages/pro/idocument/IDocumentLayout";
 import MyDocuments from "./pages/pro/idocument/MyDocuments";
-import SharedDocuments from "./pages/pro/idocument/SharedDocuments";
-import TeamDocuments from "./pages/pro/idocument/TeamDocuments";
-import Templates from "./pages/pro/idocument/Templates";
-import Trash from "./pages/pro/idocument/Trash";
+import DocumentCategoryPage from "./pages/pro/idocument/DocumentCategoryPage";
 import IArchiveLayout from "./pages/pro/iarchive/IArchiveLayout";
 import FiscalArchive from "./pages/pro/iarchive/FiscalArchive";
 import ArchiveCategoryPage from "./pages/pro/iarchive/ArchiveCategoryPage";
@@ -107,11 +104,11 @@ const AnimatedRoutes = () => {
 
           {/* iDocument Module */}
           <Route path="/pro/idocument" element={<IDocumentLayout />}>
-            <Route index element={<MyDocuments />} />
-            <Route path="shared" element={<SharedDocuments />} />
-            <Route path="team" element={<TeamDocuments />} />
-            <Route path="templates" element={<Templates />} />
-            <Route path="trash" element={<Trash />} />
+            <Route index element={<DocumentCategoryPage />} />
+            <Route path="shared" element={<DocumentCategoryPage />} />
+            <Route path="team" element={<DocumentCategoryPage />} />
+            <Route path="templates" element={<DocumentCategoryPage />} />
+            <Route path="trash" element={<DocumentCategoryPage />} />
           </Route>
 
           {/* iArchive Module */}

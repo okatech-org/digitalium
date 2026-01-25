@@ -1,12 +1,11 @@
 /**
  * ArchiveCategoryPage - Dynamic archive category page
  * Adapts content based on route parameter (fiscal, social, legal, clients, vault, certificates)
- * Now with 3D immersive view toggle!
  */
 
 import React, { useState, useMemo } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
     FileText,
     CheckCircle2,
@@ -26,9 +25,6 @@ import {
     AlertTriangle,
     Calendar,
     Building2,
-    Layers3,
-    Table2,
-    Box,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -55,8 +51,6 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { IArchive3DView } from './IArchive3DView';
-import type { Document3D, DocumentFileType } from '@/types/document3d';
 
 // Category configuration
 interface CategoryConfig {
@@ -166,7 +160,6 @@ export default function ArchiveCategoryPage() {
     const location = useLocation();
     const [searchQuery, setSearchQuery] = useState('');
     const [typeFilter, setTypeFilter] = useState<string>('all');
-    const [viewMode, setViewMode] = useState<'2d' | '3d'>('2d');
 
     // Determine category from URL path
     const pathParts = location.pathname.split('/');
@@ -219,27 +212,6 @@ export default function ArchiveCategoryPage() {
     const verifiedCount = documents.filter(d => d.verified).length;
     const complianceRate = Math.round((verifiedCount / documents.length) * 100);
 
-    // Convert documents to 3D format
-    const documents3D: Document3D[] = useMemo(() =>
-        documents.map(doc => ({
-            id: doc.id,
-            name: doc.title,
-            type: 'pdf' as DocumentFileType, // Map document types
-            status: doc.verified ? 'archived' : 'pending',
-            category: resolvedCategory,
-            hash: doc.hash,
-        })),
-        [documents, resolvedCategory]
-    );
-
-    const handleViewDocument = (doc: Document3D) => {
-        console.log('View document:', doc);
-    };
-
-    const handleDownloadDocument = (doc: Document3D) => {
-        console.log('Download document:', doc);
-    };
-
     return (
         <div className="space-y-4">
             {/* Header */}
@@ -259,29 +231,6 @@ export default function ArchiveCategoryPage() {
                     </div>
                 </div>
                 <div className="flex gap-2 items-center">
-                    {/* View Toggle */}
-                    <div className="flex items-center gap-1 border rounded-lg p-1">
-                        <button
-                            onClick={() => setViewMode('2d')}
-                            className={cn(
-                                'flex items-center gap-1 px-3 py-1.5 rounded text-sm font-medium transition-colors',
-                                viewMode === '2d' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'
-                            )}
-                        >
-                            <Table2 className="h-4 w-4" />
-                            Tableau
-                        </button>
-                        <button
-                            onClick={() => setViewMode('3d')}
-                            className={cn(
-                                'flex items-center gap-1 px-3 py-1.5 rounded text-sm font-medium transition-colors',
-                                viewMode === '3d' ? 'bg-emerald-600 text-white' : 'hover:bg-muted'
-                            )}
-                        >
-                            <Layers3 className="h-4 w-4" />
-                            3D
-                        </button>
-                    </div>
                     <Badge variant="secondary" className={cn(
                         complianceRate === 100
                             ? 'bg-green-500/10 text-green-500'
@@ -299,185 +248,157 @@ export default function ArchiveCategoryPage() {
                 Base légale: {config.legalBasis}
             </div>
 
-            {/* 3D View Mode */}
-            <AnimatePresence mode="wait">
-                {viewMode === '3d' ? (
-                    <motion.div
-                        key="3d-view"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        transition={{ duration: 0.3 }}
-                    >
-                        <IArchive3DView
-                            documents={documents3D}
-                            category={config.title}
-                            onViewDocument={handleViewDocument}
-                            onDownloadDocument={handleDownloadDocument}
-                        />
-                    </motion.div>
-                ) : (
-                    <motion.div
-                        key="2d-view"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        transition={{ duration: 0.3 }}
-                    >
-                        {/* Filters */}
-                        <div className="flex gap-3 mb-4">
-                            <div className="relative flex-1">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                    placeholder="Rechercher par titre ou référence..."
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="pl-9"
-                                />
-                            </div>
-                            <Select value={typeFilter} onValueChange={setTypeFilter}>
-                                <SelectTrigger className="w-48">
-                                    <Filter className="h-4 w-4 mr-2" />
-                                    <SelectValue placeholder="Type" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">Tous les types</SelectItem>
-                                    {config.documentTypes.map(type => (
-                                        <SelectItem key={type} value={type}>{type}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
+            {/* Filters */}
+            <div className="flex gap-3">
+                <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                        placeholder="Rechercher par titre ou référence..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="pl-9"
+                    />
+                </div>
+                <Select value={typeFilter} onValueChange={setTypeFilter}>
+                    <SelectTrigger className="w-48">
+                        <Filter className="h-4 w-4 mr-2" />
+                        <SelectValue placeholder="Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">Tous les types</SelectItem>
+                        {config.documentTypes.map(type => (
+                            <SelectItem key={type} value={type}>{type}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
 
-                        {/* Table */}
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="border rounded-lg"
-                        >
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead className="w-[140px]">Référence</TableHead>
-                                        <TableHead>Document</TableHead>
-                                        <TableHead>Type</TableHead>
-                                        <TableHead>Archivé le</TableHead>
-                                        <TableHead>Expiration</TableHead>
-                                        <TableHead>Intégrité</TableHead>
-                                        <TableHead className="text-right">Actions</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {filteredDocuments.map((doc, i) => (
-                                        <motion.tr
-                                            key={doc.id}
-                                            initial={{ opacity: 0, y: 10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ delay: i * 0.03 }}
-                                            className="group"
-                                        >
-                                            <TableCell className="font-mono text-xs">
-                                                {doc.reference}
-                                            </TableCell>
-                                            <TableCell>
-                                                <div className="flex items-center gap-2">
-                                                    <FileText className="h-4 w-4 text-muted-foreground" />
-                                                    <span className="font-medium truncate max-w-[250px]">
-                                                        {doc.title}
-                                                    </span>
-                                                </div>
-                                            </TableCell>
-                                            <TableCell>
-                                                <Badge variant="outline">{doc.type}</Badge>
-                                            </TableCell>
-                                            <TableCell className="text-muted-foreground">
-                                                {doc.archivedAt}
-                                            </TableCell>
-                                            <TableCell>
-                                                <span className={cn(
-                                                    'flex items-center gap-1 text-sm',
-                                                    doc.retentionEnd === 'Permanent' && 'text-amber-500'
-                                                )}>
-                                                    {doc.retentionEnd === 'Permanent' ? (
-                                                        <Lock className="h-3 w-3" />
-                                                    ) : (
-                                                        <Clock className="h-3 w-3" />
-                                                    )}
-                                                    {doc.retentionEnd}
-                                                </span>
-                                            </TableCell>
-                                            <TableCell>
-                                                <div className="flex items-center gap-2">
-                                                    {doc.verified ? (
-                                                        <Badge variant="secondary" className="bg-green-500/10 text-green-500">
-                                                            <Shield className="h-3 w-3 mr-1" />
-                                                            Vérifiée
-                                                        </Badge>
-                                                    ) : (
-                                                        <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-500">
-                                                            <AlertTriangle className="h-3 w-3 mr-1" />
-                                                            En attente
-                                                        </Badge>
-                                                    )}
-                                                    <span className="text-xs text-muted-foreground font-mono flex items-center gap-1">
-                                                        <Hash className="h-3 w-3" />
-                                                        {doc.hash}
-                                                    </span>
-                                                </div>
-                                            </TableCell>
-                                            <TableCell className="text-right">
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild>
-                                                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                            <MoreVertical className="h-4 w-4" />
-                                                        </Button>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end">
-                                                        <DropdownMenuItem>
-                                                            <Eye className="h-4 w-4 mr-2" />
-                                                            Voir le document
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuItem>
-                                                            <Download className="h-4 w-4 mr-2" />
-                                                            Télécharger
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuItem>
-                                                            <Shield className="h-4 w-4 mr-2" />
-                                                            Vérifier intégrité
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuItem>
-                                                            <Award className="h-4 w-4 mr-2" />
-                                                            Certificat de dépôt
-                                                        </DropdownMenuItem>
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
-                                            </TableCell>
-                                        </motion.tr>
-                                    ))}
-                                    {filteredDocuments.length === 0 && (
-                                        <TableRow>
-                                            <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                                                <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                                                Aucun document trouvé
-                                            </TableCell>
-                                        </TableRow>
-                                    )}
-                                </TableBody>
-                            </Table>
-                        </motion.div>
+            {/* Table */}
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="border rounded-lg"
+            >
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead className="w-[140px]">Référence</TableHead>
+                            <TableHead>Document</TableHead>
+                            <TableHead>Type</TableHead>
+                            <TableHead>Archivé le</TableHead>
+                            <TableHead>Expiration</TableHead>
+                            <TableHead>Intégrité</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {filteredDocuments.map((doc, i) => (
+                            <motion.tr
+                                key={doc.id}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: i * 0.03 }}
+                                className="group"
+                            >
+                                <TableCell className="font-mono text-xs">
+                                    {doc.reference}
+                                </TableCell>
+                                <TableCell>
+                                    <div className="flex items-center gap-2">
+                                        <FileText className="h-4 w-4 text-muted-foreground" />
+                                        <span className="font-medium truncate max-w-[250px]">
+                                            {doc.title}
+                                        </span>
+                                    </div>
+                                </TableCell>
+                                <TableCell>
+                                    <Badge variant="outline">{doc.type}</Badge>
+                                </TableCell>
+                                <TableCell className="text-muted-foreground">
+                                    {doc.archivedAt}
+                                </TableCell>
+                                <TableCell>
+                                    <span className={cn(
+                                        'flex items-center gap-1 text-sm',
+                                        doc.retentionEnd === 'Permanent' && 'text-amber-500'
+                                    )}>
+                                        {doc.retentionEnd === 'Permanent' ? (
+                                            <Lock className="h-3 w-3" />
+                                        ) : (
+                                            <Clock className="h-3 w-3" />
+                                        )}
+                                        {doc.retentionEnd}
+                                    </span>
+                                </TableCell>
+                                <TableCell>
+                                    <div className="flex items-center gap-2">
+                                        {doc.verified ? (
+                                            <Badge variant="secondary" className="bg-green-500/10 text-green-500">
+                                                <Shield className="h-3 w-3 mr-1" />
+                                                Vérifiée
+                                            </Badge>
+                                        ) : (
+                                            <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-500">
+                                                <AlertTriangle className="h-3 w-3 mr-1" />
+                                                En attente
+                                            </Badge>
+                                        )}
+                                        <span className="text-xs text-muted-foreground font-mono flex items-center gap-1">
+                                            <Hash className="h-3 w-3" />
+                                            {doc.hash}
+                                        </span>
+                                    </div>
+                                </TableCell>
+                                <TableCell className="text-right">
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                <MoreVertical className="h-4 w-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                            <DropdownMenuItem>
+                                                <Eye className="h-4 w-4 mr-2" />
+                                                Voir le document
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem>
+                                                <Download className="h-4 w-4 mr-2" />
+                                                Télécharger
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem>
+                                                <Shield className="h-4 w-4 mr-2" />
+                                                Vérifier intégrité
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem>
+                                                <Award className="h-4 w-4 mr-2" />
+                                                Certificat de dépôt
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </TableCell>
+                            </motion.tr>
+                        ))}
+                        {filteredDocuments.length === 0 && (
+                            <TableRow>
+                                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                                    <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                                    Aucun document trouvé
+                                </TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+            </motion.div>
 
-                        {/* Pagination info */}
-                        <div className="flex justify-between items-center text-sm text-muted-foreground px-1 mt-4">
-                            <span>
-                                Affichage de {filteredDocuments.length} sur {documentCounts[resolvedCategory]?.toLocaleString() || 0} documents
-                            </span>
-                            <Button variant="outline" size="sm">
-                                Voir plus
-                            </Button>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+            {/* Pagination info */}
+            <div className="flex justify-between items-center text-sm text-muted-foreground px-1">
+                <span>
+                    Affichage de {filteredDocuments.length} sur {documentCounts[resolvedCategory]?.toLocaleString() || 0} documents
+                </span>
+                <Button variant="outline" size="sm">
+                    Voir plus
+                </Button>
+            </div>
         </div>
     );
 }
