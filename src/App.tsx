@@ -33,6 +33,7 @@ import Databases from "./pages/sysadmin/Databases";
 import Logs from "./pages/sysadmin/Logs";
 import SecuritySysAdmin from "./pages/sysadmin/SecuritySysAdmin";
 import Iam from "./pages/sysadmin/Iam";
+import OrganizationConfig from "./pages/sysadmin/OrganizationConfig";
 // Institution Pages
 import CivilRegistry from "./pages/institution/CivilRegistry";
 import ServicesConfig from "./pages/institution/ServicesConfig";
@@ -66,6 +67,8 @@ import {
   SecurityPage as ProSecurityPage,
   PublicProfilePage,
 } from "./pages/pro/admin";
+import ArchiveSettings from "./pages/pro/admin/ArchiveSettings";
+import { OrganizationProvider } from "./contexts/OrganizationContext";
 
 import MainLayout from "@/components/layout/MainLayout";
 
@@ -134,13 +137,13 @@ const AnimatedRoutes = () => {
             <Route path="workflows" element={<Workflows />} />
           </Route>
 
-          {/* Pro Admin Routes */}
           <Route path="/pro/team" element={<TeamManagementPage />} />
           <Route path="/pro/analytics" element={<ProAnalyticsPage />} />
           <Route path="/pro/billing" element={<ProBillingPage />} />
           <Route path="/pro/api" element={<ApiAccessPage />} />
           <Route path="/pro/security" element={<ProSecurityPage />} />
           <Route path="/pro/public" element={<PublicProfilePage />} />
+          <Route path="/pro/archive-settings" element={<ArchiveSettings />} />
         </Route>
 
         {/* SysAdmin Routes */}
@@ -150,6 +153,7 @@ const AnimatedRoutes = () => {
         <Route path="/sysadmin/logs" element={<ProtectedRoute><Logs /></ProtectedRoute>} />
         <Route path="/sysadmin/security" element={<ProtectedRoute><SecuritySysAdmin /></ProtectedRoute>} />
         <Route path="/sysadmin/iam" element={<ProtectedRoute><Iam /></ProtectedRoute>} />
+        <Route path="/sysadmin/organization" element={<ProtectedRoute><OrganizationConfig /></ProtectedRoute>} />
 
         {/* Institution Routes */}
         <Route path="/civil-registry" element={<ProtectedRoute><CivilRegistry /></ProtectedRoute>} />
