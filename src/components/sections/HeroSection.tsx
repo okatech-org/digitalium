@@ -1,12 +1,68 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, LogIn, UserPlus, Volume2, VolumeX } from "lucide-react";
+import { ArrowRight, LogIn, UserPlus, Volume2, VolumeX, Users, FileText, Shield, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/FirebaseAuthContext";
 import { useNavigate } from "react-router-dom";
 import { AuthModal } from "@/components/auth/AuthModal";
 import { useTheme } from "@/contexts/ThemeContext";
+
+// Animated counter hook
+function useAnimatedCounter(end: number, duration: number = 2000, startDelay: number = 0) {
+  const [count, setCount] = useState(0);
+  
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      let startTime: number;
+      const step = (timestamp: number) => {
+        if (!startTime) startTime = timestamp;
+        const progress = Math.min((timestamp - startTime) / duration, 1);
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        setCount(Math.floor(easeOut * end));
+        if (progress < 1) {
+          requestAnimationFrame(step);
+        }
+      };
+      requestAnimationFrame(step);
+    }, startDelay);
+    
+    return () => clearTimeout(timeout);
+  }, [end, duration, startDelay]);
+  
+  return count;
+}
+
+interface StatItemProps {
+  icon: React.ReactNode;
+  value: number;
+  suffix?: string;
+  label: string;
+  delay: number;
+}
+
+function StatItem({ icon, value, suffix = "", label, delay }: StatItemProps) {
+  const count = useAnimatedCounter(value, 2000, delay);
+  
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: delay / 1000 + 0.3 }}
+      className="flex items-center gap-3 glass-card px-4 py-3 rounded-xl"
+    >
+      <div className="p-2 rounded-lg bg-accent/10 text-accent">
+        {icon}
+      </div>
+      <div>
+        <div className="text-xl font-bold text-foreground">
+          {count.toLocaleString()}{suffix}
+        </div>
+        <div className="text-xs text-muted-foreground">{label}</div>
+      </div>
+    </motion.div>
+  );
+}
 
 export const HeroSection = () => {
   const { t } = useLanguage();
@@ -123,12 +179,12 @@ export const HeroSection = () => {
               )}
             </div>
 
-            {/* Right Column - Video */}
+            {/* Right Column - Video & Stats */}
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="relative"
+              className="relative space-y-4"
             >
               <div className="relative rounded-2xl overflow-hidden glass-card p-1">
                 <video
@@ -161,6 +217,38 @@ export const HeroSection = () => {
                 {!isLightMode && (
                   <div className="absolute inset-0 bg-gradient-to-t from-background/40 via-transparent to-transparent pointer-events-none rounded-xl" />
                 )}
+              </div>
+
+              {/* Animated Stats Grid */}
+              <div className="grid grid-cols-2 gap-3">
+                <StatItem 
+                  icon={<Users className="w-4 h-4" />}
+                  value={12500}
+                  suffix="+"
+                  label={t("hero.stats.users")}
+                  delay={0}
+                />
+                <StatItem 
+                  icon={<FileText className="w-4 h-4" />}
+                  value={850000}
+                  suffix="+"
+                  label={t("hero.stats.documents")}
+                  delay={200}
+                />
+                <StatItem 
+                  icon={<Shield className="w-4 h-4" />}
+                  value={99}
+                  suffix=".9%"
+                  label={t("hero.stats.uptime")}
+                  delay={400}
+                />
+                <StatItem 
+                  icon={<Clock className="w-4 h-4" />}
+                  value={24}
+                  suffix="/7"
+                  label={t("hero.stats.support")}
+                  delay={600}
+                />
               </div>
             </motion.div>
           </div>
