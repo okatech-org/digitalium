@@ -4,7 +4,7 @@ import { AIChatbot } from "@/components/chat/AIChatbot";
 
 const Index = () => {
   return (
-    <div className="h-screen overflow-hidden">
+    <div className="min-h-screen overflow-y-auto lg:h-screen lg:overflow-hidden">
       <Header />
       <main className="h-full">
         <HeroSection />
