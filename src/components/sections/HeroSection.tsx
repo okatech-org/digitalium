@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { useState, useEffect, useRef } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowRight, LogIn, UserPlus, Volume2, VolumeX, Users, FileText, Shield, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -75,6 +75,21 @@ export const HeroSection = () => {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalTab, setAuthModalTab] = useState<'login' | 'signup'>('login');
 
+  // Parallax scroll setup
+  const sectionRef = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start start", "end start"]
+  });
+
+  // Parallax transforms - different speeds for depth effect
+  const bgY = useTransform(scrollYProgress, [0, 1], [0, 150]);
+  const contentY = useTransform(scrollYProgress, [0, 1], [0, 50]);
+  const videoY = useTransform(scrollYProgress, [0, 1], [0, 80]);
+  const orb1Y = useTransform(scrollYProgress, [0, 1], [0, 200]);
+  const orb2Y = useTransform(scrollYProgress, [0, 1], [0, -100]);
+  const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
+
   const openLoginModal = () => {
     setAuthModalTab('login');
     setAuthModalOpen(true);
@@ -93,13 +108,19 @@ export const HeroSection = () => {
 
   return (
     <>
-      <section id="hero" className="relative min-h-screen flex items-center overflow-hidden pt-16 glass-section">
-        {/* Background Effects */}
-        <div className="absolute inset-0 cortex-grid opacity-20 z-[1]" />
-        <div className="absolute top-1/3 left-0 w-64 h-64 bg-primary/15 rounded-full blur-3xl z-[1]" />
-        <div className="absolute bottom-1/3 right-0 w-64 h-64 bg-accent/15 rounded-full blur-3xl z-[1]" />
+      <section ref={sectionRef} id="hero" className="relative min-h-screen flex items-center overflow-hidden pt-16 glass-section">
+        {/* Background Effects with Parallax */}
+        <motion.div style={{ y: bgY }} className="absolute inset-0 cortex-grid opacity-20 z-[1]" />
+        <motion.div 
+          style={{ y: orb1Y }} 
+          className="absolute top-1/3 left-0 w-64 h-64 bg-primary/15 rounded-full blur-3xl z-[1]" 
+        />
+        <motion.div 
+          style={{ y: orb2Y }} 
+          className="absolute bottom-1/3 right-0 w-64 h-64 bg-accent/15 rounded-full blur-3xl z-[1]" 
+        />
 
-        <div className="container mx-auto px-4 relative z-10">
+        <motion.div style={{ y: contentY, opacity }} className="container mx-auto px-4 relative z-10">
           <div className="grid lg:grid-cols-2 gap-8 items-center">
             {/* Left Column - Content */}
             <div className="text-left space-y-6">
@@ -179,10 +200,11 @@ export const HeroSection = () => {
               )}
             </div>
 
-            {/* Right Column - Video & Stats */}
+            {/* Right Column - Video & Stats with Parallax */}
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
+              style={{ y: videoY }}
               transition={{ duration: 0.8, delay: 0.2 }}
               className="relative space-y-4"
             >
@@ -252,7 +274,7 @@ export const HeroSection = () => {
               </div>
             </motion.div>
           </div>
-        </div>
+        </motion.div>
       </section>
 
       {/* Shared Auth Modal */}
