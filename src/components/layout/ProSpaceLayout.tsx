@@ -28,6 +28,7 @@ import {
     User,
     Bell,
     HelpCircle,
+    Palette,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -136,6 +137,7 @@ const ADMIN_ITEMS: NavItem[] = [
     { label: 'Accès API', href: '/pro/api', icon: Key },
     { label: 'Sécurité', href: '/pro/security', icon: Shield },
     { label: 'Espace Public', href: '/pro/public', icon: Globe },
+    { label: 'Thème Design', href: '/pro/design-theme', icon: Palette },
 ];
 
 export default function ProSpaceLayout() {

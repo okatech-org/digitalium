@@ -111,7 +111,7 @@ export default function SubscriptionsManagement() {
                         Exporter
                     </Button>
                     <Button variant="outline" asChild>
-                        <Link to="/admin/billing">
+                        <Link to="/adminis/billing">
                             <CreditCard className="h-4 w-4 mr-2" />
                             Admin Billing
                         </Link>

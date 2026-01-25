@@ -32,6 +32,10 @@ import Logs from "./pages/sysadmin/Logs";
 import SecuritySysAdmin from "./pages/sysadmin/SecuritySysAdmin";
 import Iam from "./pages/sysadmin/Iam";
 import OrganizationConfig from "./pages/sysadmin/OrganizationConfig";
+import SysAdminDashboard from "./pages/sysadmin/SysAdminDashboard";
+import DatabaseReplicas from "./pages/sysadmin/DatabaseReplicas";
+import DatabaseBackups from "./pages/sysadmin/DatabaseBackups";
+import SysAdminSpaceLayout from "@/components/layout/SysAdminSpaceLayout";
 // Institution Pages
 import CivilRegistry from "./pages/institution/CivilRegistry";
 import ServicesConfig from "./pages/institution/ServicesConfig";
@@ -65,7 +69,10 @@ import {
   PublicProfilePage,
 } from "./pages/pro/admin";
 import ArchiveSettings from "./pages/pro/admin/ArchiveSettings";
+import DesignThemePage from "./pages/pro/admin/DesignThemePage";
 import { OrganizationProvider } from "./contexts/OrganizationContext";
+import { DesignThemeProvider } from "./contexts/DesignThemeContext";
+import DesignThemeSettings from "./pages/sysadmin/DesignThemeSettings";
 
 // Admin Space Pages
 import AdminSpaceLayout from "@/components/layout/AdminSpaceLayout";
@@ -98,7 +105,7 @@ const AnimatedRoutes = () => {
 
         {/* Protected App Routes with Persistent Sidebar */}
         <Route element={<MainLayout />}>
-          <Route path="/dashboard" element={<Navigate to="/admin" replace />} />
+          <Route path="/dashboard" element={<Navigate to="/pro" replace />} />
           <Route path="/documents" element={<ProtectedRoute><Documents /></ProtectedRoute>} />
           <Route path="/idocument" element={<ProtectedRoute><IDocumentPage /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
@@ -146,10 +153,11 @@ const AnimatedRoutes = () => {
           <Route path="/pro/security" element={<ProSecurityPage />} />
           <Route path="/pro/public" element={<PublicProfilePage />} />
           <Route path="/pro/archive-settings" element={<ArchiveSettings />} />
+          <Route path="/pro/design-theme" element={<DesignThemePage />} />
         </Route>
 
-        {/* Admin Space Routes */}
-        <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminSpaceLayout /></ProtectedRoute>}>
+        {/* Admin Space Routes - Administration institutionnelle */}
+        <Route path="/adminis" element={<ProtectedRoute requireAdmin><AdminSpaceLayout /></ProtectedRoute>}>
           <Route index element={<AdminDashboard />} />
           <Route path="leads" element={<LeadsManagement />} />
           <Route path="users" element={<UsersManagement />} />
@@ -163,14 +171,20 @@ const AnimatedRoutes = () => {
           <Route path="billing" element={<AdminBilling />} />
         </Route>
 
-        {/* SysAdmin Routes */}
-        <Route path="/sysadmin/infrastructure" element={<ProtectedRoute><Infrastructure /></ProtectedRoute>} />
-        <Route path="/sysadmin/monitoring" element={<ProtectedRoute><Monitoring /></ProtectedRoute>} />
-        <Route path="/sysadmin/databases" element={<ProtectedRoute><Databases /></ProtectedRoute>} />
-        <Route path="/sysadmin/logs" element={<ProtectedRoute><Logs /></ProtectedRoute>} />
-        <Route path="/sysadmin/security" element={<ProtectedRoute><SecuritySysAdmin /></ProtectedRoute>} />
-        <Route path="/sysadmin/iam" element={<ProtectedRoute><Iam /></ProtectedRoute>} />
-        <Route path="/sysadmin/organization" element={<ProtectedRoute><OrganizationConfig /></ProtectedRoute>} />
+        {/* SysAdmin Routes - Super-administrateur système */}
+        <Route path="/admin" element={<ProtectedRoute requireAdmin><SysAdminSpaceLayout /></ProtectedRoute>}>
+          <Route index element={<SysAdminDashboard />} />
+          <Route path="infrastructure" element={<Infrastructure />} />
+          <Route path="monitoring" element={<Monitoring />} />
+          <Route path="databases" element={<Databases />} />
+          <Route path="databases/replicas" element={<DatabaseReplicas />} />
+          <Route path="databases/backups" element={<DatabaseBackups />} />
+          <Route path="logs" element={<Logs />} />
+          <Route path="security" element={<SecuritySysAdmin />} />
+          <Route path="iam" element={<Iam />} />
+          <Route path="organization" element={<OrganizationConfig />} />
+          <Route path="design-theme" element={<DesignThemeSettings />} />
+        </Route>
 
         {/* Institution Routes */}
         <Route path="/civil-registry" element={<ProtectedRoute><CivilRegistry /></ProtectedRoute>} />
@@ -189,19 +203,21 @@ const AnimatedRoutes = () => {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
-      <LanguageProvider>
-        <TooltipProvider>
-          <FirebaseAuthProvider>
-            <FirebaseBillingProvider>
-              <Toaster />
-              <Sonner />
-              <BrowserRouter>
-                <AnimatedRoutes />
-              </BrowserRouter>
-            </FirebaseBillingProvider>
-          </FirebaseAuthProvider>
-        </TooltipProvider>
-      </LanguageProvider>
+      <DesignThemeProvider>
+        <LanguageProvider>
+          <TooltipProvider>
+            <FirebaseAuthProvider>
+              <FirebaseBillingProvider>
+                <Toaster />
+                <Sonner />
+                <BrowserRouter>
+                  <AnimatedRoutes />
+                </BrowserRouter>
+              </FirebaseBillingProvider>
+            </FirebaseAuthProvider>
+          </TooltipProvider>
+        </LanguageProvider>
+      </DesignThemeProvider>
     </ThemeProvider>
   </QueryClientProvider>
 );

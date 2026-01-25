@@ -25,8 +25,8 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 
 const NAV_ITEMS = [
-    { id: 'sign', label: 'À signer', href: '/pro/isignature', icon: Inbox, badge: 5 },
-    { id: 'pending', label: 'En attente', href: '/pro/isignature/pending', icon: Clock, badge: 12 },
+    { id: 'sign', label: 'À signer', href: '/pro/isignature', icon: Inbox },
+    { id: 'pending', label: 'En attente', href: '/pro/isignature/pending', icon: Clock },
     { id: 'signed', label: 'Signés', href: '/pro/isignature/signed', icon: CheckCircle2 },
     { id: 'workflows', label: 'Workflows', href: '/pro/isignature/workflows', icon: Workflow },
 ];
@@ -106,11 +106,6 @@ export default function ISignatureLayout() {
                                         <Link to={item.href} className="flex items-center gap-2">
                                             <item.icon className="h-4 w-4" />
                                             {item.label}
-                                            {item.badge && (
-                                                <Badge variant="secondary" className="ml-1 bg-purple-500/20 text-purple-500">
-                                                    {item.badge}
-                                                </Badge>
-                                            )}
                                         </Link>
                                     </TabsTrigger>
                                 ))}

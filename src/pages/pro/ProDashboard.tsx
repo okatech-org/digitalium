@@ -27,6 +27,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
+import { useDesignTheme } from '@/contexts/DesignThemeContext';
 
 // Mock data - will be replaced with real hooks
 const MOCK_STATS = {
@@ -60,6 +61,21 @@ const MODULE_CONFIG = {
 
 export default function ProDashboard() {
     const storagePercent = (MOCK_STATS.storage.used / MOCK_STATS.storage.total) * 100;
+    const { designTheme } = useDesignTheme();
+
+    // Theme-specific card styling
+    const getThemeCardClass = () => {
+        switch (designTheme) {
+            case 'classic':
+                return 'bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl border-slate-200/80 dark:border-slate-600/60 shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-300';
+            case 'vintage3d':
+                return 'bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 border-slate-300 dark:border-slate-600 shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300';
+            default:
+                return '';
+        }
+    };
+
+    const themeCardClass = getThemeCardClass();
 
     return (
         <div className="p-6 max-w-7xl mx-auto space-y-6">
@@ -83,7 +99,7 @@ export default function ProDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Storage */}
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-                    <Card>
+                    <Card className={themeCardClass}>
                         <CardContent className="pt-6">
                             <div className="flex items-center gap-3 mb-3">
                                 <div className="p-2 rounded-lg bg-orange-500/10">
@@ -102,7 +118,7 @@ export default function ProDashboard() {
                 {/* iDocument */}
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
                     <Link to="/pro/idocument">
-                        <Card className="hover:border-blue-500/50 transition-colors cursor-pointer group">
+                        <Card className={cn(themeCardClass, "hover:border-blue-500/50 transition-colors cursor-pointer group")}>
                             <CardContent className="pt-6">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
@@ -124,7 +140,7 @@ export default function ProDashboard() {
                 {/* iArchive */}
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
                     <Link to="/pro/iarchive">
-                        <Card className="hover:border-emerald-500/50 transition-colors cursor-pointer group">
+                        <Card className={cn(themeCardClass, "hover:border-emerald-500/50 transition-colors cursor-pointer group")}>
                             <CardContent className="pt-6">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
@@ -146,7 +162,7 @@ export default function ProDashboard() {
                 {/* iSignature */}
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
                     <Link to="/pro/isignature">
-                        <Card className="hover:border-purple-500/50 transition-colors cursor-pointer group">
+                        <Card className={cn(themeCardClass, "hover:border-purple-500/50 transition-colors cursor-pointer group")}>
                             <CardContent className="pt-6">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
@@ -173,7 +189,7 @@ export default function ProDashboard() {
             {/* Quick Actions & Activity */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Quick Actions */}
-                <Card className="lg:col-span-1">
+                <Card className={cn(themeCardClass, "lg:col-span-1")}>
                     <CardHeader>
                         <CardTitle className="text-lg">Actions rapides</CardTitle>
                     </CardHeader>
@@ -206,7 +222,7 @@ export default function ProDashboard() {
                 </Card>
 
                 {/* Activity Timeline */}
-                <Card className="lg:col-span-2">
+                <Card className={cn(themeCardClass, "lg:col-span-2")}>
                     <CardHeader className="flex flex-row items-center justify-between">
                         <CardTitle className="text-lg">Activité récente</CardTitle>
                         <Button variant="ghost" size="sm">
@@ -253,7 +269,7 @@ export default function ProDashboard() {
 
             {/* Alerts */}
             {MOCK_ALERTS.length > 0 && (
-                <Card className="border-orange-500/30">
+                <Card className={cn(themeCardClass, "border-orange-500/30")}>
                     <CardHeader className="pb-2">
                         <CardTitle className="text-lg flex items-center gap-2">
                             <AlertTriangle className="h-5 w-5 text-orange-500" />
@@ -289,7 +305,7 @@ export default function ProDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* iDocument Card */}
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-                    <Card className="h-full border-blue-500/20 hover:border-blue-500/40 transition-colors">
+                    <Card className={cn(themeCardClass, "h-full border-blue-500/20 hover:border-blue-500/40 transition-colors")}>
                         <CardHeader>
                             <div className="flex items-center gap-3">
                                 <div className="p-3 rounded-xl bg-blue-500/10">
@@ -321,7 +337,7 @@ export default function ProDashboard() {
 
                 {/* iArchive Card */}
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
-                    <Card className="h-full border-emerald-500/20 hover:border-emerald-500/40 transition-colors">
+                    <Card className={cn(themeCardClass, "h-full border-emerald-500/20 hover:border-emerald-500/40 transition-colors")}>
                         <CardHeader>
                             <div className="flex items-center gap-3">
                                 <div className="p-3 rounded-xl bg-emerald-500/10">
@@ -353,7 +369,7 @@ export default function ProDashboard() {
 
                 {/* iSignature Card */}
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
-                    <Card className="h-full border-purple-500/20 hover:border-purple-500/40 transition-colors">
+                    <Card className={cn(themeCardClass, "h-full border-purple-500/20 hover:border-purple-500/40 transition-colors")}>
                         <CardHeader>
                             <div className="flex items-center gap-3">
                                 <div className="p-3 rounded-xl bg-purple-500/10">

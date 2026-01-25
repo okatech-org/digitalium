@@ -1,6 +1,6 @@
 /**
- * AdminSpaceLayout - Main layout for platform administration
- * Provides unified sidebar navigation for admin modules
+ * SysAdminSpaceLayout - Main layout for system administration
+ * Provides unified sidebar navigation for sysadmin modules
  */
 
 import React, { useState } from 'react';
@@ -8,24 +8,20 @@ import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     LayoutDashboard,
+    Server,
+    Activity,
+    Database,
+    Terminal,
+    ShieldAlert,
     Users,
-    UserPlus,
-    CreditCard,
-    MessageSquare,
-    Settings,
+    Building2,
     ChevronDown,
     ChevronRight,
-    Shield,
-    Building2,
-    TrendingUp,
-    Bell,
-    FileText,
     LogOut,
     Menu,
     X,
-    Gauge,
-    Database,
-    Globe,
+    Cpu,
+    Palette,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -46,79 +42,68 @@ interface NavItem {
     href: string;
     icon: React.ComponentType<{ className?: string }>;
     badge?: number | string;
-    badgeType?: 'default' | 'warning' | 'error';
+    badgeType?: 'default' | 'warning' | 'error' | 'success';
     children?: { label: string; href: string; badge?: number }[];
 }
 
 const NAV_ITEMS: NavItem[] = [
     {
-        label: 'Tableau de bord',
-        href: '/adminis',
+        label: 'Console Système',
+        href: '/admin',
         icon: LayoutDashboard,
     },
     {
-        label: 'Leads & Contacts',
-        href: '/adminis/leads',
-        icon: UserPlus,
-        badge: 12,
-        badgeType: 'warning',
-    },
-    {
-        label: 'Utilisateurs',
-        href: '/adminis/users',
-        icon: Users,
-        children: [
-            { label: 'Tous les utilisateurs', href: '/adminis/users' },
-            { label: 'Par organisation', href: '/adminis/users/organizations' },
-            { label: 'Rôles & Permissions', href: '/adminis/users/roles' },
-        ],
-    },
-    {
-        label: 'Abonnements',
-        href: '/adminis/subscriptions',
-        icon: CreditCard,
-        children: [
-            { label: 'Tous les abonnements', href: '/adminis/subscriptions' },
-            { label: 'Factures', href: '/adminis/subscriptions/invoices' },
-            { label: 'Transactions', href: '/adminis/subscriptions/transactions' },
-        ],
-    },
-    {
-        label: 'Organisations',
-        href: '/adminis/organizations',
-        icon: Building2,
-    },
-    {
-        label: 'Analytiques',
-        href: '/adminis/analytics',
-        icon: TrendingUp,
-    },
-];
-
-const SYSTEM_ITEMS: NavItem[] = [
-    {
         label: 'Infrastructure',
         href: '/admin/infrastructure',
-        icon: Database,
+        icon: Server,
+        badge: '4',
+        badgeType: 'success',
     },
     {
         label: 'Monitoring',
         href: '/admin/monitoring',
-        icon: Gauge,
+        icon: Activity,
+    },
+    {
+        label: 'Bases de Données',
+        href: '/admin/databases',
+        icon: Database,
+        children: [
+            { label: 'Vue d\'ensemble', href: '/admin/databases' },
+            { label: 'Réplicas', href: '/admin/databases/replicas' },
+            { label: 'Backups', href: '/admin/databases/backups' },
+        ],
+    },
+    {
+        label: 'Logs Système',
+        href: '/admin/logs',
+        icon: Terminal,
     },
     {
         label: 'Sécurité',
         href: '/admin/security',
-        icon: Shield,
+        icon: ShieldAlert,
+        badge: 'A+',
+        badgeType: 'success',
+    },
+    {
+        label: 'Utilisateurs IAM',
+        href: '/admin/iam',
+        icon: Users,
     },
     {
         label: 'Configuration Orga',
         href: '/admin/organization',
         icon: Building2,
     },
+    {
+        label: 'Thème Design',
+        href: '/admin/design-theme',
+        icon: Palette,
+    },
 ];
 
-export default function AdminSpaceLayout() {
+export default function SysAdminSpaceLayout() {
     const location = useLocation();
     const navigate = useNavigate();
     const { user, signOut } = useAuth();
@@ -134,8 +119,8 @@ export default function AdminSpaceLayout() {
     };
 
     const isActive = (href: string) => {
-        if (href === '/adminis') {
-            return location.pathname === '/adminis';
+        if (href === '/admin') {
+            return location.pathname === '/admin';
         }
         return location.pathname.startsWith(href);
     };
@@ -159,8 +144,8 @@ export default function AdminSpaceLayout() {
                         className={cn(
                             'w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-left',
                             active
-                                ? 'bg-primary/10 text-primary'
-                                : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                                ? 'bg-slate-700/50 text-slate-100'
+                                : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
                         )}
                     >
                         <Icon className="h-5 w-5" />
@@ -190,13 +175,13 @@ export default function AdminSpaceLayout() {
                                         className={cn(
                                             'flex items-center gap-2 px-3 py-1.5 rounded-md text-sm',
                                             location.pathname === child.href
-                                                ? 'bg-primary/10 text-primary'
-                                                : 'text-muted-foreground hover:text-foreground'
+                                                ? 'bg-slate-700/50 text-slate-100'
+                                                : 'text-slate-500 hover:text-slate-300'
                                         )}
                                     >
                                         <span>{child.label}</span>
                                         {child.badge && (
-                                            <Badge variant="secondary" className="text-xs">
+                                            <Badge variant="secondary" className="text-xs bg-slate-700">
                                                 {child.badge}
                                             </Badge>
                                         )}
@@ -215,8 +200,8 @@ export default function AdminSpaceLayout() {
                 className={cn(
                     'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors',
                     active
-                        ? 'bg-primary/10 text-primary'
-                        : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                        ? 'bg-slate-700/50 text-slate-100'
+                        : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
                 )}
             >
                 <Icon className="h-5 w-5" />
@@ -228,8 +213,9 @@ export default function AdminSpaceLayout() {
                                 variant="secondary"
                                 className={cn(
                                     'text-xs',
-                                    item.badgeType === 'warning' && 'bg-orange-500/20 text-orange-500',
-                                    item.badgeType === 'error' && 'bg-red-500/20 text-red-500'
+                                    item.badgeType === 'success' && 'bg-green-500/20 text-green-400',
+                                    item.badgeType === 'warning' && 'bg-orange-500/20 text-orange-400',
+                                    item.badgeType === 'error' && 'bg-red-500/20 text-red-400'
                                 )}
                             >
                                 {item.badge}
@@ -257,23 +243,23 @@ export default function AdminSpaceLayout() {
     };
 
     return (
-        <div className="h-screen flex bg-background">
+        <div className="h-screen flex bg-slate-950">
             {/* Sidebar */}
             <motion.aside
                 initial={false}
                 animate={{ width: isSidebarOpen ? 280 : 72 }}
-                className="h-full border-r bg-card flex flex-col"
+                className="h-full border-r border-slate-800 bg-slate-900 flex flex-col"
             >
                 {/* Sidebar Header */}
-                <div className="p-4 border-b flex items-center justify-between">
+                <div className="p-4 border-b border-slate-800 flex items-center justify-between">
                     <div className={cn('flex items-center gap-3', !isSidebarOpen && 'justify-center')}>
-                        <div className="p-2 rounded-lg bg-red-500/10">
-                            <Shield className="h-6 w-6 text-red-500" />
+                        <div className="p-2 rounded-lg bg-slate-800 border border-slate-700">
+                            <Cpu className="h-6 w-6 text-blue-400" />
                         </div>
                         {isSidebarOpen && (
                             <div>
-                                <h1 className="font-bold">Administration</h1>
-                                <p className="text-xs text-muted-foreground">Gestion plateforme</p>
+                                <h1 className="font-bold text-slate-100">Console Système</h1>
+                                <p className="text-xs text-slate-500">Admin Infrastructure</p>
                             </div>
                         )}
                     </div>
@@ -281,49 +267,48 @@ export default function AdminSpaceLayout() {
                         variant="ghost"
                         size="icon"
                         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                        className="text-slate-400 hover:text-slate-200 hover:bg-slate-800"
                     >
                         {isSidebarOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
                     </Button>
                 </div>
+
+                {/* System Status Banner */}
+                {isSidebarOpen && (
+                    <div className="mx-3 mt-3 p-3 rounded-lg bg-slate-800/50 border border-slate-700/50">
+                        <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                            <span className="text-xs font-mono text-green-400">LIVE MONITORING</span>
+                        </div>
+                        <p className="text-xs text-slate-500 mt-1">Tous les systèmes opérationnels</p>
+                    </div>
+                )}
 
                 {/* Navigation */}
                 <ScrollArea className="flex-1 p-3">
                     <nav className="space-y-1">
                         {NAV_ITEMS.map(renderNavItem)}
                     </nav>
-
-                    {isSidebarOpen && (
-                        <>
-                            <Separator className="my-4" />
-                            <p className="px-3 text-xs text-muted-foreground mb-2 uppercase tracking-wide">
-                                Système
-                            </p>
-                        </>
-                    )}
-
-                    <nav className="space-y-1">
-                        {SYSTEM_ITEMS.map(renderNavItem)}
-                    </nav>
                 </ScrollArea>
 
                 {/* User Section */}
-                <div className="p-3 border-t">
+                <div className="p-3 border-t border-slate-800">
                     <div className={cn(
-                        'flex items-center gap-3 p-2 rounded-lg hover:bg-muted transition-colors',
+                        'flex items-center gap-3 p-2 rounded-lg hover:bg-slate-800 transition-colors',
                         !isSidebarOpen && 'justify-center'
                     )}>
-                        <Avatar className="h-9 w-9">
+                        <Avatar className="h-9 w-9 border border-slate-700">
                             <AvatarImage src={user?.photoURL || undefined} />
-                            <AvatarFallback className="bg-primary/10 text-primary">
-                                {user?.displayName?.slice(0, 2).toUpperCase() || 'AD'}
+                            <AvatarFallback className="bg-slate-800 text-slate-300">
+                                {user?.displayName?.slice(0, 2).toUpperCase() || 'SA'}
                             </AvatarFallback>
                         </Avatar>
                         {isSidebarOpen && (
                             <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium truncate">
-                                    {user?.displayName || 'Admin'}
+                                <p className="text-sm font-medium truncate text-slate-200">
+                                    {user?.displayName || 'SysAdmin'}
                                 </p>
-                                <p className="text-xs text-muted-foreground truncate">
+                                <p className="text-xs text-slate-500 truncate">
                                     {user?.email}
                                 </p>
                             </div>
@@ -334,7 +319,7 @@ export default function AdminSpaceLayout() {
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        className="h-8 w-8"
+                                        className="h-8 w-8 text-slate-400 hover:text-slate-200 hover:bg-slate-800"
                                         onClick={handleSignOut}
                                     >
                                         <LogOut className="h-4 w-4" />
@@ -350,8 +335,10 @@ export default function AdminSpaceLayout() {
             </motion.aside>
 
             {/* Main Content */}
-            <main className="flex-1 overflow-auto">
-                <Outlet />
+            <main className="flex-1 overflow-auto bg-slate-950">
+                <div className="p-6">
+                    <Outlet />
+                </div>
             </main>
         </div>
     );

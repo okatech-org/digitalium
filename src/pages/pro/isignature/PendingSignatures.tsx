@@ -260,8 +260,7 @@ export default function PendingSignatures() {
                         <AlertDialogAction
                             className="bg-red-500 hover:bg-red-600"
                             onClick={() => {
-                                // Handle cancel logic here
-                                console.log('Cancelling signature request:', docToCancel);
+                                // TODO: Implement actual cancel API call
                                 setDocToCancel(null);
                             }}
                         >

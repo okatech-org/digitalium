@@ -44,6 +44,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import { useSignatureSearch } from './ISignatureLayout';
 
 // Mock data
 const MOCK_SIGNED = [
@@ -104,8 +105,12 @@ const MOCK_SIGNED = [
 ];
 
 export default function SignedDocuments() {
-    const [searchQuery, setSearchQuery] = useState('');
+    const { searchQuery: globalSearchQuery } = useSignatureSearch();
+    const [localSearchQuery, setLocalSearchQuery] = useState('');
     const [periodFilter, setPeriodFilter] = useState('all');
+
+    // Use global search if present, otherwise use local search
+    const searchQuery = globalSearchQuery || localSearchQuery;
 
     // Parse DD/MM/YYYY date format
     const parseDate = (dateStr: string): Date => {
@@ -170,9 +175,10 @@ export default function SignedDocuments() {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                         placeholder="Rechercher..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
+                        value={globalSearchQuery || localSearchQuery}
+                        onChange={(e) => setLocalSearchQuery(e.target.value)}
                         className="pl-9"
+                        aria-label="Rechercher dans les documents signés"
                     />
                 </div>
                 <Select value={periodFilter} onValueChange={setPeriodFilter}>

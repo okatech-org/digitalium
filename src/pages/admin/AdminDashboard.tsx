@@ -29,6 +29,7 @@ import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
+import { useDesignTheme } from '@/contexts/DesignThemeContext';
 
 // Mock stats
 const MOCK_STATS = {
@@ -55,9 +56,9 @@ const MOCK_RECENT_ACTIVITY = [
 ];
 
 const MOCK_ALERTS = [
-    { id: 1, type: 'warning', message: '23 nouveaux leads non traités', href: '/admin/leads' },
-    { id: 2, type: 'error', message: '5 paiements en échec', href: '/admin/subscriptions/transactions' },
-    { id: 3, type: 'info', message: '12 abonnements expirent cette semaine', href: '/admin/subscriptions' },
+    { id: 1, type: 'warning', message: '23 nouveaux leads non traités', href: '/adminis/leads' },
+    { id: 2, type: 'error', message: '5 paiements en échec', href: '/adminis/subscriptions/transactions' },
+    { id: 3, type: 'info', message: '12 abonnements expirent cette semaine', href: '/adminis/subscriptions' },
 ];
 
 function formatCurrency(amount: number): string {
@@ -66,6 +67,21 @@ function formatCurrency(amount: number): string {
 
 export default function AdminDashboard() {
     const storagePercent = (MOCK_STATS.storageUsed / MOCK_STATS.storageTotal) * 100;
+    const { designTheme } = useDesignTheme();
+
+    // Theme-specific card styling
+    const getThemeCardClass = () => {
+        switch (designTheme) {
+            case 'classic':
+                return 'bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl border-slate-200/80 dark:border-slate-600/60 shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-300';
+            case 'vintage3d':
+                return 'bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 border-slate-300 dark:border-slate-600 shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300';
+            default:
+                return '';
+        }
+    };
+
+    const themeCardClass = getThemeCardClass();
 
     return (
         <div className="p-6 max-w-7xl mx-auto space-y-6">
@@ -76,7 +92,7 @@ export default function AdminDashboard() {
                     <p className="text-muted-foreground">Vue d'ensemble de la plateforme</p>
                 </div>
                 <Button variant="outline" asChild>
-                    <Link to="/admin/analytics">
+                    <Link to="/adminis/analytics">
                         <Activity className="h-4 w-4 mr-2" />
                         Analytiques détaillées
                     </Link>
@@ -120,7 +136,7 @@ export default function AdminDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Users */}
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-                    <Card>
+                    <Card className={themeCardClass}>
                         <CardContent className="pt-6">
                             <div className="flex items-center justify-between mb-3">
                                 <div className="p-2 rounded-lg bg-blue-500/10">
@@ -139,7 +155,7 @@ export default function AdminDashboard() {
 
                 {/* Subscriptions */}
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-                    <Card>
+                    <Card className={themeCardClass}>
                         <CardContent className="pt-6">
                             <div className="flex items-center justify-between mb-3">
                                 <div className="p-2 rounded-lg bg-emerald-500/10">
@@ -158,7 +174,7 @@ export default function AdminDashboard() {
 
                 {/* Revenue */}
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-                    <Card>
+                    <Card className={themeCardClass}>
                         <CardContent className="pt-6">
                             <div className="flex items-center justify-between mb-3">
                                 <div className="p-2 rounded-lg bg-purple-500/10">
@@ -177,7 +193,7 @@ export default function AdminDashboard() {
 
                 {/* Organizations */}
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-                    <Card>
+                    <Card className={themeCardClass}>
                         <CardContent className="pt-6">
                             <div className="flex items-center justify-between mb-3">
                                 <div className="p-2 rounded-lg bg-orange-500/10">
@@ -198,7 +214,7 @@ export default function AdminDashboard() {
             {/* Second Row */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Storage Overview */}
-                <Card>
+                <Card className={themeCardClass}>
                     <CardHeader>
                         <CardTitle className="text-lg flex items-center gap-2">
                             <HardDrive className="h-5 w-5" />
@@ -229,7 +245,7 @@ export default function AdminDashboard() {
                 </Card>
 
                 {/* Recent Activity */}
-                <Card className="lg:col-span-2">
+                <Card className={cn(themeCardClass, "lg:col-span-2")}>
                     <CardHeader>
                         <CardTitle className="text-lg flex items-center gap-2">
                             <Activity className="h-5 w-5" />
@@ -269,13 +285,13 @@ export default function AdminDashboard() {
             </div>
 
             {/* Quick Actions */}
-            <Card>
+            <Card className={themeCardClass}>
                 <CardHeader>
                     <CardTitle className="text-lg">Accès rapides</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <Link to="/admin/leads">
+                        <Link to="/adminis/leads">
                             <Card className="hover:border-primary/50 transition-colors cursor-pointer">
                                 <CardContent className="pt-6 text-center">
                                     <div className="p-3 rounded-xl bg-orange-500/10 w-fit mx-auto mb-3">
@@ -286,7 +302,7 @@ export default function AdminDashboard() {
                                 </CardContent>
                             </Card>
                         </Link>
-                        <Link to="/admin/users">
+                        <Link to="/adminis/users">
                             <Card className="hover:border-primary/50 transition-colors cursor-pointer">
                                 <CardContent className="pt-6 text-center">
                                     <div className="p-3 rounded-xl bg-blue-500/10 w-fit mx-auto mb-3">
@@ -297,7 +313,7 @@ export default function AdminDashboard() {
                                 </CardContent>
                             </Card>
                         </Link>
-                        <Link to="/admin/subscriptions">
+                        <Link to="/adminis/subscriptions">
                             <Card className="hover:border-primary/50 transition-colors cursor-pointer">
                                 <CardContent className="pt-6 text-center">
                                     <div className="p-3 rounded-xl bg-emerald-500/10 w-fit mx-auto mb-3">
@@ -308,7 +324,7 @@ export default function AdminDashboard() {
                                 </CardContent>
                             </Card>
                         </Link>
-                        <Link to="/admin/organizations">
+                        <Link to="/adminis/organizations">
                             <Card className="hover:border-primary/50 transition-colors cursor-pointer">
                                 <CardContent className="pt-6 text-center">
                                     <div className="p-3 rounded-xl bg-purple-500/10 w-fit mx-auto mb-3">

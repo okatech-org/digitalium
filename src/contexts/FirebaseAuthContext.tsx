@@ -37,15 +37,21 @@ export function FirebaseAuthProvider({ children }: { children: ReactNode }) {
       setUser(firebaseUser);
 
       if (firebaseUser) {
-        // Check admin role
-        try {
-          const functions = getFunctions(undefined, 'europe-west1');
-          const checkAdminRole = httpsCallable<unknown, { isAdmin: boolean }>(functions, 'checkAdminRole');
-          const result = await checkAdminRole({});
-          setIsAdmin(result.data.isAdmin);
-        } catch (error) {
-          console.error('Error checking admin role:', error);
-          setIsAdmin(false);
+        // Special case: Demo admin accounts are always admin
+        const demoAdminEmails = ['demo-admin@digitalium.ga', 'demo-sysadmin@digitalium.ga'];
+        if (firebaseUser.email && demoAdminEmails.includes(firebaseUser.email)) {
+          setIsAdmin(true);
+        } else {
+          // Check admin role via Cloud Function for real accounts
+          try {
+            const functions = getFunctions(undefined, 'europe-west1');
+            const checkAdminRole = httpsCallable<unknown, { isAdmin: boolean }>(functions, 'checkAdminRole');
+            const result = await checkAdminRole({});
+            setIsAdmin(result.data.isAdmin);
+          } catch (error) {
+            console.error('Error checking admin role:', error);
+            setIsAdmin(false);
+          }
         }
       } else {
         setIsAdmin(false);

@@ -63,7 +63,7 @@ export const AuthModal = ({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
       password: 'Demo2026!',
       icon: Landmark,
       gradient: 'from-violet-500 to-purple-500',
-      redirect: '/pro',
+      redirect: '/adminis',
     },
     {
       id: 'sysadmin',
@@ -73,7 +73,7 @@ export const AuthModal = ({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
       password: 'Demo2026!',
       icon: ShieldCheck,
       gradient: 'from-slate-700 to-gray-800',
-      redirect: '/sysadmin/infrastructure',
+      redirect: '/admin',
     },
   ];
 

@@ -1,8 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
 
 /* DIGITALIUM Design System - Futuristic African Tech */
 
@@ -48,12 +48,12 @@
     --gradient-hero: linear-gradient(180deg, hsl(222 47% 4%) 0%, hsl(222 47% 8%) 50%, hsl(250 40% 12%) 100%);
     --gradient-card: linear-gradient(145deg, hsl(222 47% 10%) 0%, hsl(222 47% 6%) 100%);
     --gradient-glass: linear-gradient(135deg, hsla(217, 91%, 60%, 0.1) 0%, hsla(250, 60%, 50%, 0.05) 100%);
-    
+
     /* Glow effects */
     --glow-primary: 0 0 60px hsla(217, 91%, 60%, 0.3);
     --glow-accent: 0 0 40px hsla(38, 92%, 50%, 0.25);
     --glow-soft: 0 0 100px hsla(217, 91%, 60%, 0.15);
-    
+
     /* Shadows */
     --shadow-card: 0 4px 30px hsla(0, 0%, 0%, 0.4);
     --shadow-elevated: 0 20px 60px hsla(0, 0%, 0%, 0.5);
@@ -108,12 +108,12 @@
     --gradient-hero: linear-gradient(180deg, hsl(40 30% 96%) 0%, hsl(40 25% 92%) 50%, hsl(40 20% 88%) 100%);
     --gradient-card: linear-gradient(145deg, hsl(40 25% 94%) 0%, hsl(40 25% 90%) 100%);
     --gradient-glass: linear-gradient(135deg, hsla(217, 91%, 45%, 0.08) 0%, hsla(250, 60%, 45%, 0.04) 100%);
-    
+
     /* Glow effects - subtle in light mode */
     --glow-primary: 0 0 40px hsla(217, 91%, 45%, 0.15);
     --glow-accent: 0 0 30px hsla(38, 92%, 45%, 0.12);
     --glow-soft: 0 0 60px hsla(217, 91%, 45%, 0.08);
-    
+
     /* Shadows - softer for light mode */
     --shadow-card: 0 4px 20px hsla(222, 30%, 20%, 0.08);
     --shadow-elevated: 0 20px 40px hsla(222, 30%, 20%, 0.12);
@@ -162,7 +162,12 @@
     min-height: 100vh;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: 'Space Grotesk', system-ui, sans-serif;
     @apply font-bold tracking-tight;
   }
@@ -170,30 +175,26 @@
 
 @layer components {
   .glass-card {
-    background: linear-gradient(
-      135deg,
-      hsla(217, 91%, 60%, 0.08) 0%,
-      hsla(250, 60%, 50%, 0.04) 50%,
-      hsla(217, 91%, 60%, 0.06) 100%
-    );
+    background: linear-gradient(135deg,
+        hsla(217, 91%, 60%, 0.08) 0%,
+        hsla(250, 60%, 50%, 0.04) 50%,
+        hsla(217, 91%, 60%, 0.06) 100%);
     backdrop-filter: blur(24px) saturate(180%);
     -webkit-backdrop-filter: blur(24px) saturate(180%);
     border: 1px solid hsla(217, 91%, 60%, 0.12);
-    box-shadow: 
+    box-shadow:
       0 8px 32px hsla(0, 0%, 0%, 0.2),
       inset 0 1px 0 hsla(255, 255%, 255%, 0.05);
     @apply rounded-2xl transition-all duration-300;
   }
 
   .glass-card:hover {
-    background: linear-gradient(
-      135deg,
-      hsla(217, 91%, 60%, 0.12) 0%,
-      hsla(250, 60%, 50%, 0.06) 50%,
-      hsla(217, 91%, 60%, 0.08) 100%
-    );
+    background: linear-gradient(135deg,
+        hsla(217, 91%, 60%, 0.12) 0%,
+        hsla(250, 60%, 50%, 0.06) 50%,
+        hsla(217, 91%, 60%, 0.08) 100%);
     border-color: hsla(217, 91%, 60%, 0.2);
-    box-shadow: 
+    box-shadow:
       0 12px 40px hsla(0, 0%, 0%, 0.25),
       inset 0 1px 0 hsla(255, 255%, 255%, 0.08);
     transform: translateY(-2px);
@@ -217,11 +218,9 @@
   }
 
   .glass-section {
-    background: linear-gradient(
-      180deg,
-      hsla(217, 91%, 60%, 0.03) 0%,
-      hsla(250, 60%, 50%, 0.02) 100%
-    );
+    background: linear-gradient(180deg,
+        hsla(217, 91%, 60%, 0.03) 0%,
+        hsla(250, 60%, 50%, 0.02) 100%);
     backdrop-filter: blur(16px) saturate(150%);
     -webkit-backdrop-filter: blur(16px) saturate(150%);
     border: 1px solid hsla(217, 91%, 60%, 0.08);
@@ -293,7 +292,7 @@
   }
 
   .cortex-grid {
-    background-image: 
+    background-image:
       radial-gradient(circle at 1px 1px, hsla(217, 91%, 60%, 0.15) 1px, transparent 0);
     background-size: 40px 40px;
   }
@@ -306,19 +305,200 @@
 }
 
 @keyframes floating {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0px);
   }
+
   50% {
     transform: translateY(-20px);
   }
 }
 
 @keyframes pulseGlow {
-  0%, 100% {
+
+  0%,
+  100% {
     box-shadow: 0 0 20px hsla(217, 91%, 60%, 0.3);
   }
+
   50% {
     box-shadow: 0 0 40px hsla(217, 91%, 60%, 0.6);
   }
+}
+
+/* ==============================================
+   DESIGN THEMES (Modern, Classic, Vintage 3D)
+   ============================================== */
+
+/* Modern Theme - Default (no changes needed, uses base styles) */
+[data-design-theme="modern"] {
+  /* Uses the existing design system */
+}
+
+/* Classic Theme - Premium Dashboard with Glassmorphism */
+[data-design-theme="classic"] {
+  /* Card styling - high contrast */
+  --classic-card-bg: rgba(255, 255, 255, 0.95);
+  --classic-card-shadow: 0 4px 14px rgba(0, 0, 0, 0.14);
+  --classic-card-border: rgba(148, 163, 184, 0.8);
+  --classic-card-hover-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+
+  /* Button styling */
+  --classic-btn-bg: rgba(241, 245, 249, 0.9);
+  --classic-btn-border: rgba(203, 213, 225, 0.6);
+}
+
+[data-design-theme="classic"] .glass-card,
+[data-design-theme="classic"] [class*="bg-card"] {
+  background: var(--classic-card-bg) !important;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--classic-card-border) !important;
+  box-shadow: var(--classic-card-shadow) !important;
+}
+
+[data-design-theme="classic"] .glass-card:hover,
+[data-design-theme="classic"] [class*="bg-card"]:hover {
+  box-shadow: var(--classic-card-hover-shadow) !important;
+  transform: scale(1.02);
+}
+
+/* Classic theme button styles */
+[data-design-theme="classic"] button:not([class*="bg-primary"]):not([class*="bg-destructive"]) {
+  background: var(--classic-btn-bg);
+  border: 1px solid var(--classic-btn-border);
+}
+
+[data-design-theme="classic"] button:not([class*="bg-primary"]):not([class*="bg-destructive"]):hover {
+  transform: scale(1.02);
+}
+
+/* Classic Quick Action Grid */
+[data-design-theme="classic"] .quick-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+/* Classic Wallet Stack (Apple Wallet style) */
+[data-design-theme="classic"] .wallet-stack {
+  --wallet-card-visible: 44px;
+}
+
+[data-design-theme="classic"] .wallet-stack>* {
+  margin-top: calc(-1 * (100% - var(--wallet-card-visible)));
+}
+
+/* Vintage 3D Theme - KPI Grids with 3D Effects */
+[data-design-theme="vintage3d"] {
+  /* Deep shadows for 3D effect */
+  --v3d-card-shadow: 0 8px 24px rgba(0, 0, 0, 0.25), 0 4px 8px rgba(0, 0, 0, 0.15);
+  --v3d-card-hover-shadow: 0 12px 32px rgba(0, 0, 0, 0.3), 0 6px 12px rgba(0, 0, 0, 0.2);
+  --v3d-card-bg: linear-gradient(145deg, rgba(248, 250, 252, 1) 0%, rgba(241, 245, 249, 1) 100%);
+  --v3d-card-border: rgba(203, 213, 225, 0.8);
+
+  /* KPI accent gradients */
+  --v3d-gradient-enterprise: linear-gradient(135deg, #10b981 0%, #14b8a6 100%);
+  --v3d-gradient-institution: linear-gradient(135deg, #f97316 0%, #f43f5e 100%);
+  --v3d-gradient-sysadmin: linear-gradient(135deg, #64748b 0%, #475569 100%);
+}
+
+[data-design-theme="vintage3d"] .glass-card,
+[data-design-theme="vintage3d"] [class*="bg-card"] {
+  background: var(--v3d-card-bg) !important;
+  border: 1px solid var(--v3d-card-border) !important;
+  box-shadow: var(--v3d-card-shadow) !important;
+  transform: translateZ(0);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-design-theme="vintage3d"] .glass-card:hover,
+[data-design-theme="vintage3d"] [class*="bg-card"]:hover {
+  box-shadow: var(--v3d-card-hover-shadow) !important;
+  transform: translateY(-4px) translateZ(0);
+}
+
+/* Vintage 3D KPI Header Grid */
+[data-design-theme="vintage3d"] .kpi-header-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  padding: 1.5rem;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.03) 0%, transparent 100%);
+  border-radius: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Vintage 3D KPI Card */
+[data-design-theme="vintage3d"] .kpi-card {
+  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid rgba(203, 213, 225, 0.6);
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.08),
+    0 2px 4px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+[data-design-theme="vintage3d"] .kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 8px 20px rgba(0, 0, 0, 0.12),
+    0 4px 8px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+/* Vintage 3D Vigilance Banner */
+[data-design-theme="vintage3d"] .vigilance-banner {
+  background: linear-gradient(90deg, rgba(251, 146, 60, 0.1) 0%, rgba(244, 63, 94, 0.1) 100%);
+  border: 1px solid rgba(251, 146, 60, 0.3);
+  border-radius: 0.75rem;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Vintage 3D Metallic Accents */
+[data-design-theme="vintage3d"] .metallic-accent {
+  background: linear-gradient(180deg,
+      rgba(255, 255, 255, 0.8) 0%,
+      rgba(241, 245, 249, 0.6) 50%,
+      rgba(226, 232, 240, 0.8) 100%);
+  border: 1px solid rgba(203, 213, 225, 0.5);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* Dark mode adjustments for themes */
+.dark[data-design-theme="classic"] .glass-card,
+.dark[data-design-theme="classic"] [class*="bg-card"] {
+  --classic-card-bg: rgba(30, 41, 59, 0.95);
+  --classic-card-border: rgba(71, 85, 105, 0.6);
+  background: var(--classic-card-bg) !important;
+  border-color: var(--classic-card-border) !important;
+}
+
+.dark[data-design-theme="vintage3d"] .glass-card,
+.dark[data-design-theme="vintage3d"] [class*="bg-card"] {
+  --v3d-card-bg: linear-gradient(145deg, rgba(30, 41, 59, 1) 0%, rgba(15, 23, 42, 1) 100%);
+  --v3d-card-border: rgba(71, 85, 105, 0.6);
+  background: var(--v3d-card-bg) !important;
+  border-color: var(--v3d-card-border) !important;
+}
+
+.dark[data-design-theme="vintage3d"] .kpi-card {
+  background: linear-gradient(145deg, rgba(30, 41, 59, 1) 0%, rgba(15, 23, 42, 1) 100%);
+  border-color: rgba(71, 85, 105, 0.5);
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.3),
+    0 2px 4px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }

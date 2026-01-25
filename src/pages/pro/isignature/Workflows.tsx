@@ -333,8 +333,7 @@ export default function Workflows() {
                         <AlertDialogAction
                             className="bg-red-500 hover:bg-red-600"
                             onClick={() => {
-                                // Handle delete logic here
-                                console.log('Deleting workflow:', workflowToDelete);
+                                // TODO: Implement actual delete API call
                                 setWorkflowToDelete(null);
                             }}
                         >
