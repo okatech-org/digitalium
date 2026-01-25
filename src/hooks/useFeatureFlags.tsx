@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useBilling } from '@/contexts/FirebaseBillingContext';
 import type { FeatureKey } from '@/types/billing';
 

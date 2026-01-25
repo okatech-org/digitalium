@@ -316,7 +316,7 @@ const IDocumentPage = () => {
                     name: `${c.icon} ${c.name} / ${d.icon} ${d.name}`,
                     icon: d.icon,
                     color: d.color,
-                    documents: d.fichiers,
+                    fichiers: d.fichiers,
                     is_system: false,
                     created_at: d.created_at
                 })))}

@@ -85,7 +85,7 @@ export default function Infrastructure() {
                                     <span>CPU Load</span>
                                     <span>{server.cpu}%</span>
                                 </div>
-                                <Progress value={server.cpu} className={`h-1 ${server.cpu > 70 ? 'bg-yellow-900/20' : ''}`} indicatorClassName={server.cpu > 70 ? 'bg-yellow-500' : 'bg-primary'} />
+                                <Progress value={server.cpu} className={`h-1 ${server.cpu > 70 ? '[&>div]:bg-yellow-500' : ''}`} />
                             </div>
                             <div className="space-y-1">
                                 <div className="flex justify-between text-xs">
