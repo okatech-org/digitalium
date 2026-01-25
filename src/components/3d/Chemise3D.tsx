@@ -57,8 +57,8 @@ export function Chemise3D({
         }
     });
 
-    const handleClick = (e: THREE.Event) => {
-        e.stopPropagation();
+    const handleClick = (e: any) => {
+        e.stopPropagation?.();
         const newState = !isOpen;
         setIsOpen(newState);
         if (newState) {
@@ -107,7 +107,6 @@ export function Chemise3D({
                     anchorX="center"
                     anchorY="middle"
                     maxWidth={1.8}
-                    font="/fonts/Inter-Bold.woff"
                 >
                     {chemise.name}
                 </Text>
