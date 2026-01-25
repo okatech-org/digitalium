@@ -137,44 +137,91 @@ export function Chemise3DCard({
                     <div className="absolute inset-0 bg-gradient-to-r from-black/5 to-transparent rounded-sm" />
                 </motion.div>
 
-                {/* Documents inside (visible when open) */}
+                {/* Stacked A4 PDF documents inside (visible when open) */}
                 <AnimatePresence>
                     {isOpen && (
                         <motion.div
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                            transition={{ delay: 0.2 }}
-                            className="absolute top-2 left-2 right-8 bottom-10 flex flex-col gap-1 overflow-hidden"
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.9 }}
+                            transition={{ delay: 0.15 }}
+                            className="absolute top-4 left-3 right-12"
+                            style={{ height: '180px' }}
                         >
-                            {documents.slice(0, 4).map((doc, i) => (
-                                <motion.div
-                                    key={doc.id}
-                                    initial={{ x: -20, opacity: 0 }}
-                                    animate={{ x: 0, opacity: 1 }}
-                                    transition={{ delay: 0.1 + i * 0.05 }}
-                                    className="bg-white rounded-sm shadow-sm p-2 cursor-pointer hover:bg-gray-50 hover:shadow transition-all"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        onDocumentClick?.(doc);
-                                    }}
-                                >
-                                    <div className="flex items-center gap-2">
-                                        <FileText className="h-3 w-3 text-gray-400 flex-shrink-0" />
-                                        <span className="text-[10px] font-medium text-gray-700 truncate flex-1">
-                                            {doc.name}
+                            {/* Stack of A4 documents */}
+                            <div className="relative w-full h-full">
+                                {documents.slice(0, Math.min(documentCount, 5)).map((doc, i) => {
+                                    const totalDocs = Math.min(documentCount, 5);
+                                    const offset = (totalDocs - 1 - i) * 3; // Stack offset
+                                    const rotation = (totalDocs - 1 - i) * 0.5; // Slight rotation for realism
+
+                                    return (
+                                        <motion.div
+                                            key={doc.id}
+                                            initial={{ x: -30, opacity: 0, rotate: -5 }}
+                                            animate={{ x: 0, opacity: 1, rotate: rotation }}
+                                            transition={{ delay: 0.2 + i * 0.05 }}
+                                            className="absolute cursor-pointer group/doc"
+                                            style={{
+                                                top: offset,
+                                                left: offset,
+                                                right: -offset,
+                                                bottom: offset,
+                                                zIndex: i + 1,
+                                            }}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                onDocumentClick?.(doc);
+                                            }}
+                                        >
+                                            {/* A4 Paper sheet */}
+                                            <div
+                                                className="w-full h-full bg-white rounded-[2px] shadow-md group-hover/doc:shadow-lg transition-shadow relative overflow-hidden"
+                                                style={{
+                                                    boxShadow: `0 ${2 + i}px ${4 + i * 2}px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.08)`,
+                                                }}
+                                            >
+                                                {/* PDF header bar */}
+                                                <div className="absolute top-0 left-0 right-0 h-4 bg-red-500 flex items-center px-1.5">
+                                                    <span className="text-[6px] font-bold text-white">PDF</span>
+                                                    {doc.verified && (
+                                                        <Shield className="h-2 w-2 text-white ml-auto" />
+                                                    )}
+                                                </div>
+
+                                                {/* Document content lines */}
+                                                <div className="absolute top-6 left-2 right-2 space-y-1">
+                                                    <div className="h-1 bg-gray-200 rounded-full w-3/4" />
+                                                    <div className="h-1 bg-gray-200 rounded-full w-full" />
+                                                    <div className="h-1 bg-gray-200 rounded-full w-5/6" />
+                                                    <div className="h-1 bg-gray-200 rounded-full w-2/3" />
+                                                    <div className="h-0.5 bg-gray-100 rounded-full w-full mt-2" />
+                                                    <div className="h-0.5 bg-gray-100 rounded-full w-4/5" />
+                                                </div>
+
+                                                {/* Document name (bottom) */}
+                                                <div className="absolute bottom-1 left-1 right-1">
+                                                    <p className="text-[6px] text-gray-500 truncate text-center">
+                                                        {doc.reference || doc.id}
+                                                    </p>
+                                                </div>
+
+                                                {/* Hover overlay */}
+                                                <div className="absolute inset-0 bg-blue-500/0 group-hover/doc:bg-blue-500/10 transition-colors" />
+                                            </div>
+                                        </motion.div>
+                                    );
+                                })}
+
+                                {/* More documents indicator */}
+                                {documentCount > 5 && (
+                                    <div className="absolute -bottom-4 left-0 right-0 text-center">
+                                        <span className="text-[9px] text-white/80 bg-black/20 px-2 py-0.5 rounded-full">
+                                            +{documentCount - 5} autres
                                         </span>
-                                        {doc.verified && (
-                                            <Shield className="h-2.5 w-2.5 text-green-500 flex-shrink-0" />
-                                        )}
                                     </div>
-                                </motion.div>
-                            ))}
-                            {documentCount > 4 && (
-                                <div className="text-[10px] text-white/70 text-center mt-1">
-                                    +{documentCount - 4} autres
-                                </div>
-                            )}
+                                )}
+                            </div>
                         </motion.div>
                     )}
                 </AnimatePresence>
