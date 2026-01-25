@@ -27,6 +27,10 @@ const translations = {
     "hero.description": "De votre poche à la Nation — La première plateforme d'archivage intelligent multi-échelle. Numérisez, organisez et sécurisez vos documents avec l'IA.",
     "hero.cta.primary": "Essayer Gratuitement",
     "hero.cta.secondary": "Voir la Démo",
+    "hero.stats.users": "Utilisateurs",
+    "hero.stats.documents": "Documents traités",
+    "hero.stats.uptime": "Disponibilité",
+    "hero.stats.support": "Support",
     
     // Services
     "services.title1": "Des Solutions",
@@ -245,8 +249,10 @@ const translations = {
     "hero.description": "From your pocket to the Nation — The first multi-scale intelligent archiving platform. Digitize, organize and secure your documents with AI.",
     "hero.cta.primary": "Try for Free",
     "hero.cta.secondary": "Watch Demo",
-    
-    // Services
+    "hero.stats.users": "Users",
+    "hero.stats.documents": "Documents processed",
+    "hero.stats.uptime": "Uptime",
+    "hero.stats.support": "Support",
     "services.title1": "Complete",
     "services.title2": "Solutions",
     "services.description": "DIGITALIUM transforms document management from citizens to institutions.",
