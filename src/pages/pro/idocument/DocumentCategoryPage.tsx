@@ -26,6 +26,7 @@ import {
     Filter,
     Grid,
     List,
+    Box, // Added for 3D view
     Plus,
     FileSpreadsheet,
     FileImage,
@@ -40,6 +41,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { BookFolder3D } from '@/components/ui/BookFolder3D'; // Import new 3D component
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -224,7 +226,8 @@ interface OutletContext {
 export default function DocumentCategoryPage() {
     const location = useLocation();
     const context = useOutletContext<OutletContext>();
-    const viewMode = context?.viewMode || 'grid';
+    // Local view mode state with default from context, but can be toggled to 3D
+    const [viewMode, setViewMode] = useState<'grid' | 'list' | '3d'>(context?.viewMode || 'grid');
 
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -349,6 +352,34 @@ export default function DocumentCategoryPage() {
 
             {/* Filters */}
             <div className="flex gap-3 items-center">
+                {/* View Toggle */}
+                <div className="flex border rounded-lg overflow-hidden bg-background">
+                    <Button
+                        variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                        size="icon"
+                        className={cn('h-9 w-9 rounded-none', viewMode === 'grid' && 'bg-primary')}
+                        onClick={() => setViewMode('grid')}
+                    >
+                        <Grid className="h-4 w-4" />
+                    </Button>
+                    <Button
+                        variant={viewMode === 'list' ? 'default' : 'ghost'}
+                        size="icon"
+                        className={cn('h-9 w-9 rounded-none', viewMode === 'list' && 'bg-primary')}
+                        onClick={() => setViewMode('list')}
+                    >
+                        <List className="h-4 w-4" />
+                    </Button>
+                    <Button
+                        variant={viewMode === '3d' ? 'default' : 'ghost'}
+                        size="icon"
+                        className={cn('h-9 w-9 rounded-none', viewMode === '3d' && 'bg-primary')}
+                        onClick={() => setViewMode('3d')}
+                    >
+                        <Box className="h-4 w-4" />
+                    </Button>
+                </div>
+
                 <div className="relative flex-1 max-w-sm">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
@@ -380,9 +411,35 @@ export default function DocumentCategoryPage() {
                 </Button>
             </div>
 
-            {/* Documents Grid */}
+            {/* Documents Grid / List / 3D */}
             <AnimatePresence mode="wait">
-                {viewMode === 'grid' ? (
+                {viewMode === '3d' ? (
+                    <motion.div
+                        key="3d"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                    >
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8 px-4 py-8">
+                            {filteredDocuments.map((doc, i) => (
+                                <motion.div
+                                    key={doc.id}
+                                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                                    transition={{ delay: i * 0.05 }}
+                                >
+                                    <BookFolder3D
+                                        title={doc.title}
+                                        documentCount={Math.floor(Math.random() * 10) + 1} // Mock count
+                                        color={DOCUMENT_TYPES[doc.type as keyof typeof DOCUMENT_TYPES]?.color.replace('text-', '#').replace('-500', '') || '#3B82F6'} // Map color
+                                        hasContent={doc.status !== 'draft'} // Mock content based on status
+                                        isStarred={doc.starred}
+                                    />
+                                </motion.div>
+                            ))}
+                        </div>
+                    </motion.div>
+                ) : viewMode === 'grid' ? (
                     <motion.div
                         key="grid"
                         initial={{ opacity: 0 }}
@@ -434,10 +491,10 @@ export default function DocumentCategoryPage() {
                                         <h3 className="font-medium text-sm mb-2 line-clamp-2 flex-1">{doc.title}</h3>
 
                                         {/* Owner (for shared/team) */}
-                                        {config.showOwner && doc.owner && (
+                                        {config.showOwner && (doc as any).owner && (
                                             <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
                                                 <UserCheck className="h-3 w-3" />
-                                                {doc.owner}
+                                                {(doc as any).owner}
                                             </p>
                                         )}
 
@@ -473,7 +530,7 @@ export default function DocumentCategoryPage() {
                             </motion.div>
                         ))}
                     </motion.div>
-                ) : (
+                ) : ( // List View
                     <motion.div
                         key="list"
                         initial={{ opacity: 0 }}
@@ -499,10 +556,10 @@ export default function DocumentCategoryPage() {
                                     <p className="text-sm text-muted-foreground flex items-center gap-2">
                                         <Clock className="h-3 w-3" />
                                         {doc.lastEdit}
-                                        {config.showOwner && doc.owner && (
+                                        {config.showOwner && (doc as any).owner && (
                                             <>
                                                 <span>•</span>
-                                                <span>{doc.owner}</span>
+                                                <span>{(doc as any).owner}</span>
                                             </>
                                         )}
                                     </p>
