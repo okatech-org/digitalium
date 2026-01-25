@@ -44,8 +44,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { QuickActionBar } from '@/components/pro/QuickActionBar';
 import { useAuth } from '@/contexts/FirebaseAuthContext';
-import { IAstedButtonFull, IAstedChatModal } from '@/components/iasted';
-import { useIAsted } from '@/hooks/useIAsted';
+import { IAstedChat } from '@/pages/pro/iarchive/components/IAstedChat';
 
 // Module color tokens
 export const MODULE_COLORS = {
@@ -136,17 +135,18 @@ const ADMIN_ITEMS: NavItem[] = [
     { label: 'Analytics', href: '/pro/analytics', icon: BarChart3 },
     { label: 'Facturation Pro', href: '/pro/billing', icon: CreditCard },
     { label: 'Accès API', href: '/pro/api', icon: Key },
-    { label: 'Paramètres', href: '/pro/security', icon: Settings },
+    { label: 'Sécurité', href: '/pro/security', icon: Shield },
     { label: 'Espace Public', href: '/pro/public', icon: Globe },
+    { label: 'Thème Design', href: '/pro/design-theme', icon: Palette },
 ];
 
 export default function ProSpaceLayout() {
     const location = useLocation();
     const navigate = useNavigate();
     const { user, signOut } = useAuth();
-    const iasted = useIAsted({ autoAwaken: true });
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [expandedItems, setExpandedItems] = useState<string[]>(['iDocument', 'iArchive', 'iSignature']);
+    const [isIAstedOpen, setIsIAstedOpen] = useState(false);
 
     const toggleExpand = (label: string) => {
         setExpandedItems(prev =>
@@ -313,7 +313,7 @@ export default function ProSpaceLayout() {
                             <Button
                                 variant="outline"
                                 className="w-full justify-start border-purple-500/30 text-purple-500 hover:bg-purple-500/10"
-                                onClick={() => iasted.toggleChat()}
+                                onClick={() => setIsIAstedOpen(true)}
                             >
                                 <Sparkles className="h-4 w-4 mr-2" />
                                 Assistant iAsted
@@ -437,21 +437,10 @@ export default function ProSpaceLayout() {
                 <QuickActionBar />
             </main>
 
-            {/* iAsted AI Assistant */}
-            <IAstedButtonFull
-                onClick={() => iasted.toggleChat()}
-                onDoubleClick={() => iasted.toggleChat()}
-                voiceListening={iasted.isListening}
-                voiceSpeaking={iasted.isSpeaking}
-                voiceProcessing={iasted.isProcessing}
-                isInterfaceOpen={iasted.isChatOpen}
-                size="md"
-            />
-            <IAstedChatModal
-                isOpen={iasted.isChatOpen}
-                onClose={() => iasted.closeChat()}
-                userName={user?.displayName || undefined}
-                userRole={iasted.persona.role}
+            {/* iAsted AI Chat */}
+            <IAstedChat
+                isOpen={isIAstedOpen}
+                onClose={() => setIsIAstedOpen(false)}
             />
         </div>
     );

@@ -57,40 +57,23 @@ const DesignThemeContext = createContext<DesignThemeContextType | undefined>(und
 
 const STORAGE_KEY = "design-theme";
 
-// Helper to safely get theme from localStorage
-const getInitialDesignTheme = (): DesignTheme => {
-    if (typeof window === "undefined") return "modern";
-    try {
+export const DesignThemeProvider = ({ children }: { children: ReactNode }) => {
+    const [designTheme, setDesignThemeState] = useState<DesignTheme>(() => {
         const saved = localStorage.getItem(STORAGE_KEY);
         if (saved && ["modern", "classic", "vintage3d"].includes(saved)) {
             return saved as DesignTheme;
         }
-    } catch {
-        // Ignore localStorage errors
-    }
-    return "modern";
-};
-
-export const DesignThemeProvider = ({ children }: { children: ReactNode }) => {
-    const [designTheme, setDesignThemeState] = useState<DesignTheme>("modern");
-    const [mounted, setMounted] = useState(false);
+        return "modern";
+    });
 
     const themeConfig = DESIGN_THEMES.find((t) => t.id === designTheme) || DESIGN_THEMES[0];
 
-    // Initialize from localStorage after mount
     useEffect(() => {
-        setDesignThemeState(getInitialDesignTheme());
-        setMounted(true);
-    }, []);
-
-    useEffect(() => {
-        if (!mounted) return;
-        
         // Apply data attribute to root for CSS targeting
         const root = document.documentElement;
         root.setAttribute("data-design-theme", designTheme);
         localStorage.setItem(STORAGE_KEY, designTheme);
-    }, [designTheme, mounted]);
+    }, [designTheme]);
 
     const setDesignTheme = (theme: DesignTheme) => {
         setDesignThemeState(theme);
