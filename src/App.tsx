@@ -53,6 +53,9 @@ import ArchiveCategoryPage from "./pages/pro/iarchive/ArchiveCategoryPage";
 import ArchiveUploadPage from "./pages/pro/iarchive/UploadPage";
 import ISignatureLayout from "./pages/pro/isignature/ISignatureLayout";
 import ToSign from "./pages/pro/isignature/ToSign";
+import PendingSignatures from "./pages/pro/isignature/PendingSignatures";
+import SignedDocuments from "./pages/pro/isignature/SignedDocuments";
+import Workflows from "./pages/pro/isignature/Workflows";
 
 // Pro Admin Pages
 import {
@@ -126,9 +129,9 @@ const AnimatedRoutes = () => {
           {/* iSignature Module */}
           <Route path="/pro/isignature" element={<ISignatureLayout />}>
             <Route index element={<ToSign />} />
-            <Route path="pending" element={<ToSign />} />
-            <Route path="signed" element={<ToSign />} />
-            <Route path="workflows" element={<ToSign />} />
+            <Route path="pending" element={<PendingSignatures />} />
+            <Route path="signed" element={<SignedDocuments />} />
+            <Route path="workflows" element={<Workflows />} />
           </Route>
 
           {/* Pro Admin Routes */}
