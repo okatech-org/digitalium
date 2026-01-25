@@ -53,7 +53,6 @@ import ArchiveCategoryPage from "./pages/pro/iarchive/ArchiveCategoryPage";
 import ArchiveUploadPage from "./pages/pro/iarchive/UploadPage";
 import ISignatureLayout from "./pages/pro/isignature/ISignatureLayout";
 import ToSign from "./pages/pro/isignature/ToSign";
-import HierarchyPage from "./pages/pro/HierarchyPage";
 
 // Pro Admin Pages
 import {
@@ -102,7 +101,6 @@ const AnimatedRoutes = () => {
         {/* Pro Space with dedicated layout */}
         <Route element={<ProtectedRoute><ProSpaceLayout /></ProtectedRoute>}>
           <Route path="/pro" element={<ProDashboard />} />
-          <Route path="/pro/hierarchy" element={<HierarchyPage />} />
 
           {/* iDocument Module */}
           <Route path="/pro/idocument" element={<IDocumentLayout />}>

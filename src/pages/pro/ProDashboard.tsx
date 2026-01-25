@@ -20,7 +20,6 @@ import {
     Send,
     Folder,
     Shield,
-    Box,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -201,12 +200,6 @@ export default function ProDashboard() {
                             <Link to="/pro/idocument/templates">
                                 <Folder className="h-4 w-4" />
                                 <span>Voir les modèles</span>
-                            </Link>
-                        </Button>
-                        <Button variant="outline" className="w-full justify-start gap-3 border-cyan-500/30 hover:border-cyan-500/50 hover:bg-cyan-500/10" asChild>
-                            <Link to="/pro/hierarchy">
-                                <Box className="h-4 w-4 text-cyan-500" />
-                                <span>Démo 3D Hiérarchie</span>
                             </Link>
                         </Button>
                     </CardContent>
