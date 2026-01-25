@@ -107,10 +107,42 @@ export default function SignedDocuments() {
     const [searchQuery, setSearchQuery] = useState('');
     const [periodFilter, setPeriodFilter] = useState('all');
 
+    // Parse DD/MM/YYYY date format
+    const parseDate = (dateStr: string): Date => {
+        const [day, month, year] = dateStr.split('/');
+        return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    };
+
     const filteredDocs = MOCK_SIGNED.filter(doc => {
-        if (searchQuery) {
-            return doc.title.toLowerCase().includes(searchQuery.toLowerCase());
+        // Search filter
+        if (searchQuery && !doc.title.toLowerCase().includes(searchQuery.toLowerCase())) {
+            return false;
         }
+
+        // Period filter
+        if (periodFilter !== 'all') {
+            const signedDate = parseDate(doc.signedAt);
+            const now = new Date();
+
+            switch (periodFilter) {
+                case 'week': {
+                    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                    if (signedDate < weekAgo) return false;
+                    break;
+                }
+                case 'month': {
+                    const monthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+                    if (signedDate < monthAgo) return false;
+                    break;
+                }
+                case 'quarter': {
+                    const quarterAgo = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
+                    if (signedDate < quarterAgo) return false;
+                    break;
+                }
+            }
+        }
+
         return true;
     });
 

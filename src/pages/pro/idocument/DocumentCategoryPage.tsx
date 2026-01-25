@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useMemo } from 'react';
-import { useLocation, useOutletContext } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     FileText,
@@ -219,15 +219,12 @@ const formatRelativeTime = (timestamp: number) => {
     return `Il y a ${Math.floor(days / 7)} sem.`;
 };
 
-interface OutletContext {
-    viewMode: 'grid' | 'list';
-}
+// formatRelativeTime function removed, moved inline
 
 export default function DocumentCategoryPage() {
     const location = useLocation();
-    const context = useOutletContext<OutletContext>();
-    // Local view mode state with default from context, but can be toggled to 3D
-    const [viewMode, setViewMode] = useState<'grid' | 'list' | '3d'>(context?.viewMode || 'grid');
+    // Local view mode state - fully managed by this component
+    const [viewMode, setViewMode] = useState<'grid' | 'list' | '3d'>('grid');
 
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState<string>('all');

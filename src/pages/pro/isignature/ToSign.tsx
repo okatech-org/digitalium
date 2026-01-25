@@ -18,6 +18,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
+import { useSignatureSearch } from './ISignatureLayout';
 
 // Mock data
 const MOCK_TO_SIGN = [
@@ -89,6 +90,17 @@ const MOCK_TO_SIGN = [
 ];
 
 export default function ToSign() {
+    const { searchQuery } = useSignatureSearch();
+
+    const filteredDocs = MOCK_TO_SIGN.filter(doc => {
+        if (!searchQuery) return true;
+        const query = searchQuery.toLowerCase();
+        return (
+            doc.title.toLowerCase().includes(query) ||
+            doc.initiatedBy.name.toLowerCase().includes(query)
+        );
+    });
+
     return (
         <div className="space-y-4">
             {/* Header */}
@@ -96,14 +108,14 @@ export default function ToSign() {
                 <div>
                     <h2 className="text-lg font-semibold">À signer</h2>
                     <p className="text-sm text-muted-foreground">
-                        {MOCK_TO_SIGN.length} documents en attente de votre signature
+                        {filteredDocs.length} document{filteredDocs.length !== 1 ? 's' : ''} en attente de votre signature
                     </p>
                 </div>
             </div>
 
             {/* Signature Queue */}
             <div className="space-y-4">
-                {MOCK_TO_SIGN.map((doc, i) => {
+                {filteredDocs.map((doc, i) => {
                     const signedCount = doc.signers.filter(s => s.signed).length;
                     const totalSigners = doc.signers.length;
                     const progress = (signedCount / totalSigners) * 100;
@@ -194,6 +206,22 @@ export default function ToSign() {
                     );
                 })}
             </div>
+
+            {/* Empty state */}
+            {filteredDocs.length === 0 && (
+                <Card className="border-dashed">
+                    <CardContent className="py-16 text-center">
+                        <div className="p-4 rounded-full bg-purple-500/10 w-fit mx-auto mb-4">
+                            <PenTool className="h-10 w-10 text-purple-500/50" />
+                        </div>
+                        <h3 className="text-lg font-medium mb-2">Aucun document à signer</h3>
+                        <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+                            Vous n'avez aucun document en attente de votre signature.
+                            Les nouveaux documents apparaîtront ici.
+                        </p>
+                    </CardContent>
+                </Card>
+            )}
         </div>
     );
 }

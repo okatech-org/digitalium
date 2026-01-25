@@ -29,7 +29,18 @@ import {
     DropdownMenuTrigger,
     DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
+import { useSignatureSearch } from './ISignatureLayout';
 
 // Mock data
 const MOCK_PENDING = [
@@ -80,6 +91,16 @@ const MOCK_PENDING = [
 ];
 
 export default function PendingSignatures() {
+    const [docToCancel, setDocToCancel] = useState<string | null>(null);
+    const docInfo = MOCK_PENDING.find(d => d.id === docToCancel);
+    const { searchQuery } = useSignatureSearch();
+
+    const filteredDocs = MOCK_PENDING.filter(doc => {
+        if (!searchQuery) return true;
+        const query = searchQuery.toLowerCase();
+        return doc.title.toLowerCase().includes(query);
+    });
+
     return (
         <div className="space-y-4">
             {/* Header */}
@@ -87,7 +108,7 @@ export default function PendingSignatures() {
                 <div>
                     <h2 className="text-lg font-semibold">En attente</h2>
                     <p className="text-sm text-muted-foreground">
-                        {MOCK_PENDING.length} documents envoyés en attente de signatures
+                        {filteredDocs.length} document{filteredDocs.length !== 1 ? 's' : ''} envoyé{filteredDocs.length !== 1 ? 's' : ''} en attente de signatures
                     </p>
                 </div>
                 <Button variant="outline" size="sm">
@@ -98,7 +119,7 @@ export default function PendingSignatures() {
 
             {/* Pending Queue */}
             <div className="space-y-3">
-                {MOCK_PENDING.map((doc, i) => {
+                {filteredDocs.map((doc, i) => {
                     const signedCount = doc.signers.filter(s => s.signed).length;
                     const totalSigners = doc.signers.length;
                     const progress = (signedCount / totalSigners) * 100;
@@ -191,7 +212,10 @@ export default function PendingSignatures() {
                                                         Relancer tous
                                                     </DropdownMenuItem>
                                                     <DropdownMenuSeparator />
-                                                    <DropdownMenuItem className="text-red-500">
+                                                    <DropdownMenuItem
+                                                        className="text-red-500"
+                                                        onClick={() => setDocToCancel(doc.id)}
+                                                    >
                                                         <XCircle className="h-4 w-4 mr-2" />
                                                         Annuler la demande
                                                     </DropdownMenuItem>
@@ -207,7 +231,7 @@ export default function PendingSignatures() {
             </div>
 
             {/* Empty state */}
-            {MOCK_PENDING.length === 0 && (
+            {filteredDocs.length === 0 && (
                 <Card className="border-dashed">
                     <CardContent className="py-12 text-center">
                         <Clock className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
@@ -215,6 +239,37 @@ export default function PendingSignatures() {
                     </CardContent>
                 </Card>
             )}
+
+            {/* Cancel Confirmation Dialog */}
+            <AlertDialog open={!!docToCancel} onOpenChange={() => setDocToCancel(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Annuler cette demande ?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {docInfo && (
+                                <>
+                                    Vous êtes sur le point d'annuler la demande de signature pour
+                                    "<strong>{docInfo.title}</strong>".
+                                    Cette action notifiera tous les signataires.
+                                </>
+                            )}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Conserver</AlertDialogCancel>
+                        <AlertDialogAction
+                            className="bg-red-500 hover:bg-red-600"
+                            onClick={() => {
+                                // Handle cancel logic here
+                                console.log('Cancelling signature request:', docToCancel);
+                                setDocToCancel(null);
+                            }}
+                        >
+                            Annuler la demande
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }

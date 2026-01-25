@@ -20,6 +20,16 @@ import {
     Settings,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -105,6 +115,7 @@ const MOCK_WORKFLOWS = [
 
 export default function Workflows() {
     const [workflows] = useState(MOCK_WORKFLOWS);
+    const [workflowToDelete, setWorkflowToDelete] = useState<string | null>(null);
     const activeWorkflows = workflows.filter(w => w.active);
     const inactiveWorkflows = workflows.filter(w => !w.active);
 
@@ -216,7 +227,10 @@ export default function Workflows() {
                                                     Dupliquer
                                                 </DropdownMenuItem>
                                                 <DropdownMenuSeparator />
-                                                <DropdownMenuItem className="text-red-500">
+                                                <DropdownMenuItem
+                                                    className="text-red-500"
+                                                    onClick={() => setWorkflowToDelete(workflow.id)}
+                                                >
                                                     <Trash2 className="h-4 w-4 mr-2" />
                                                     Supprimer
                                                 </DropdownMenuItem>
@@ -284,6 +298,51 @@ export default function Workflows() {
                     </div>
                 </div>
             )}
+
+            {/* Empty state */}
+            {workflows.length === 0 && (
+                <Card className="border-dashed">
+                    <CardContent className="py-16 text-center">
+                        <div className="p-4 rounded-full bg-purple-500/10 w-fit mx-auto mb-4">
+                            <Workflow className="h-10 w-10 text-purple-500/50" />
+                        </div>
+                        <h3 className="text-lg font-medium mb-2">Aucun workflow configuré</h3>
+                        <p className="text-sm text-muted-foreground max-w-sm mx-auto mb-4">
+                            Créez des circuits de signature réutilisables pour automatiser vos processus.
+                        </p>
+                        <Button className="bg-purple-500 hover:bg-purple-600">
+                            <Plus className="h-4 w-4 mr-2" />
+                            Créer votre premier workflow
+                        </Button>
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* Delete Confirmation Dialog */}
+            <AlertDialog open={!!workflowToDelete} onOpenChange={() => setWorkflowToDelete(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Supprimer ce workflow ?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Cette action est irréversible. Le workflow sera définitivement supprimé
+                            et ne pourra plus être utilisé pour de nouvelles signatures.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Annuler</AlertDialogCancel>
+                        <AlertDialogAction
+                            className="bg-red-500 hover:bg-red-600"
+                            onClick={() => {
+                                // Handle delete logic here
+                                console.log('Deleting workflow:', workflowToDelete);
+                                setWorkflowToDelete(null);
+                            }}
+                        >
+                            Supprimer
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }

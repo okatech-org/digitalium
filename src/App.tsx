@@ -13,8 +13,6 @@ import Solutions from "./pages/Solutions";
 import Features from "./pages/Features";
 import Contact from "./pages/Contact";
 import Auth from "./pages/Auth";
-import Dashboard from "./pages/Dashboard";
-import Admin from "./pages/Admin";
 import Documents from "./pages/Documents";
 import IDocumentPage from "./pages/idocument/IDocumentPage";
 import Profile from "./pages/Profile";
@@ -46,7 +44,6 @@ import Partners from "./pages/institution/Partners";
 import ProSpaceLayout from "@/components/layout/ProSpaceLayout";
 import ProDashboard from "./pages/pro/ProDashboard";
 import IDocumentLayout from "./pages/pro/idocument/IDocumentLayout";
-import MyDocuments from "./pages/pro/idocument/MyDocuments";
 import DocumentCategoryPage from "./pages/pro/idocument/DocumentCategoryPage";
 import IArchiveLayout from "./pages/pro/iarchive/IArchiveLayout";
 import FiscalArchive from "./pages/pro/iarchive/FiscalArchive";
@@ -69,6 +66,13 @@ import {
 } from "./pages/pro/admin";
 import ArchiveSettings from "./pages/pro/admin/ArchiveSettings";
 import { OrganizationProvider } from "./contexts/OrganizationContext";
+
+// Admin Space Pages
+import AdminSpaceLayout from "@/components/layout/AdminSpaceLayout";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import LeadsManagement from "./pages/admin/LeadsManagement";
+import UsersManagement from "./pages/admin/UsersManagement";
+import SubscriptionsManagement from "./pages/admin/SubscriptionsManagement";
 
 import MainLayout from "@/components/layout/MainLayout";
 
@@ -94,9 +98,7 @@ const AnimatedRoutes = () => {
 
         {/* Protected App Routes with Persistent Sidebar */}
         <Route element={<MainLayout />}>
-          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-          <Route path="/admin" element={<ProtectedRoute requireAdmin><Admin /></ProtectedRoute>} />
-          <Route path="/admin/billing" element={<ProtectedRoute requireAdmin><AdminBilling /></ProtectedRoute>} />
+          <Route path="/dashboard" element={<Navigate to="/admin" replace />} />
           <Route path="/documents" element={<ProtectedRoute><Documents /></ProtectedRoute>} />
           <Route path="/idocument" element={<ProtectedRoute><IDocumentPage /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
@@ -144,6 +146,21 @@ const AnimatedRoutes = () => {
           <Route path="/pro/security" element={<ProSecurityPage />} />
           <Route path="/pro/public" element={<PublicProfilePage />} />
           <Route path="/pro/archive-settings" element={<ArchiveSettings />} />
+        </Route>
+
+        {/* Admin Space Routes */}
+        <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminSpaceLayout /></ProtectedRoute>}>
+          <Route index element={<AdminDashboard />} />
+          <Route path="leads" element={<LeadsManagement />} />
+          <Route path="users" element={<UsersManagement />} />
+          <Route path="users/organizations" element={<UsersManagement />} />
+          <Route path="users/roles" element={<UsersManagement />} />
+          <Route path="subscriptions" element={<SubscriptionsManagement />} />
+          <Route path="subscriptions/invoices" element={<SubscriptionsManagement />} />
+          <Route path="subscriptions/transactions" element={<SubscriptionsManagement />} />
+          <Route path="organizations" element={<UsersManagement />} />
+          <Route path="analytics" element={<ProAnalyticsPage />} />
+          <Route path="billing" element={<AdminBilling />} />
         </Route>
 
         {/* SysAdmin Routes */}

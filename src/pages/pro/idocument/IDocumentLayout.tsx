@@ -12,15 +12,10 @@ import {
     Users,
     FileStack,
     Trash2,
-    Settings,
     Plus,
     Upload,
-    Search,
-    Grid3X3,
-    List,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 
@@ -34,7 +29,6 @@ const NAV_ITEMS = [
 
 export default function IDocumentLayout() {
     const location = useLocation();
-    const [viewMode, setViewMode] = React.useState<'grid' | 'list'>('grid');
 
     return (
         <div className="h-full flex flex-col">
@@ -64,7 +58,7 @@ export default function IDocumentLayout() {
                     </div>
 
                     {/* Sub-navigation */}
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center">
                         <Tabs value={location.pathname} className="w-auto">
                             <TabsList className="bg-muted/50">
                                 {NAV_ITEMS.map((item) => (
@@ -82,39 +76,13 @@ export default function IDocumentLayout() {
                                 ))}
                             </TabsList>
                         </Tabs>
-
-                        <div className="flex items-center gap-2">
-                            <div className="relative">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                    placeholder="Rechercher..."
-                                    className="pl-9 w-64"
-                                />
-                            </div>
-                            <div className="flex border rounded-lg">
-                                <Button
-                                    variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
-                                    size="icon"
-                                    onClick={() => setViewMode('grid')}
-                                >
-                                    <Grid3X3 className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                    variant={viewMode === 'list' ? 'secondary' : 'ghost'}
-                                    size="icon"
-                                    onClick={() => setViewMode('list')}
-                                >
-                                    <List className="h-4 w-4" />
-                                </Button>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </header>
 
             {/* Content */}
             <main className="flex-1 overflow-auto p-6">
-                <Outlet context={{ viewMode }} />
+                <Outlet />
             </main>
         </div>
     );
