@@ -49,16 +49,16 @@ function StatItem({ icon, value, suffix = "", label, delay }: StatItemProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: delay / 1000 + 0.3 }}
-      className="flex items-center gap-3 glass-card px-4 py-3 rounded-xl"
+      className="flex items-center gap-2 lg:gap-3 glass-card px-2.5 py-2 lg:px-4 lg:py-3 rounded-lg lg:rounded-xl"
     >
-      <div className="p-2 rounded-lg bg-accent/10 text-accent">
+      <div className="p-1.5 lg:p-2 rounded-md lg:rounded-lg bg-accent/10 text-accent flex-shrink-0">
         {icon}
       </div>
-      <div>
-        <div className="text-xl font-bold text-foreground">
+      <div className="min-w-0">
+        <div className="text-base lg:text-xl font-bold text-foreground truncate">
           {count.toLocaleString()}{suffix}
         </div>
-        <div className="text-xs text-muted-foreground">{label}</div>
+        <div className="text-[10px] lg:text-xs text-muted-foreground truncate">{label}</div>
       </div>
     </motion.div>
   );
@@ -108,7 +108,7 @@ export const HeroSection = () => {
 
   return (
     <>
-      <section ref={sectionRef} id="hero" className="relative min-h-screen flex items-center overflow-hidden pt-16 glass-section">
+      <section ref={sectionRef} id="hero" className="relative lg:min-h-screen lg:max-h-screen flex items-center overflow-y-auto lg:overflow-hidden pt-20 pb-8 lg:pt-16 lg:pb-0 glass-section">
         {/* Background Effects with Parallax */}
         <motion.div style={{ y: bgY }} className="absolute inset-0 cortex-grid opacity-20 z-[1]" />
         <motion.div 
@@ -121,15 +121,16 @@ export const HeroSection = () => {
         />
 
         <motion.div style={{ y: contentY, opacity }} className="container mx-auto px-4 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-8 items-center">
-            {/* Left Column - Content */}
-            <div className="text-left space-y-6">
+          {/* Grid: Mobile = column (video first), Desktop = 2 columns */}
+          <div className="flex flex-col-reverse lg:grid lg:grid-cols-2 gap-6 lg:gap-8 items-center">
+            {/* Left Column - Content (appears second on mobile) */}
+            <div className="text-center lg:text-left space-y-4 lg:space-y-6">
               {/* Main Heading */}
               <motion.h1
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.1 }}
-                className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight"
+                className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight"
               >
                 <span className="text-foreground">{t("hero.title1")} </span>
                 <span className="gradient-text">{t("hero.title2")}</span>
@@ -142,7 +143,7 @@ export const HeroSection = () => {
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.2 }}
-                className="text-base sm:text-lg text-muted-foreground max-w-lg"
+                className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-lg mx-auto lg:mx-0"
               >
                 {t("hero.description")}
               </motion.p>
@@ -153,7 +154,7 @@ export const HeroSection = () => {
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.3 }}
-                  className="flex flex-col sm:flex-row items-start gap-4"
+                  className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3"
                 >
                   {/* Login Button */}
                   <motion.button
@@ -200,21 +201,21 @@ export const HeroSection = () => {
               )}
             </div>
 
-            {/* Right Column - Video & Stats with Parallax */}
+            {/* Right Column - Video & Stats with Parallax (appears first on mobile) */}
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               style={{ y: videoY }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="relative space-y-4"
+              className="relative space-y-3 lg:space-y-4 w-full"
             >
-              <div className="relative rounded-2xl overflow-hidden glass-card p-1">
+              <div className="relative rounded-xl lg:rounded-2xl overflow-hidden glass-card p-1">
                 <video
                   autoPlay
                   loop
                   muted={isMuted}
                   playsInline
-                  className="w-full aspect-video object-cover rounded-xl"
+                  className="w-full aspect-video object-cover rounded-lg lg:rounded-xl"
                 >
                   <source src="/videos/hero-background.mov" type="video/quicktime" />
                   <source src="/videos/hero-background.mov" type="video/mp4" />
@@ -225,24 +226,24 @@ export const HeroSection = () => {
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                   onClick={toggleSound}
-                  className="absolute bottom-3 right-3 p-2 rounded-full glass-card border border-white/20 hover:border-accent/40 transition-all duration-300"
+                  className="absolute bottom-2 right-2 lg:bottom-3 lg:right-3 p-1.5 lg:p-2 rounded-full glass-card border border-white/20 hover:border-accent/40 transition-all duration-300"
                   aria-label={isMuted ? "Activer le son" : "Couper le son"}
                 >
                   {isMuted ? (
-                    <VolumeX className="w-4 h-4 text-white" />
+                    <VolumeX className="w-3 h-3 lg:w-4 lg:h-4 text-white" />
                   ) : (
-                    <Volume2 className="w-4 h-4 text-accent" />
+                    <Volume2 className="w-3 h-3 lg:w-4 lg:h-4 text-accent" />
                   )}
                 </motion.button>
 
                 {/* Video Overlay Gradient */}
                 {!isLightMode && (
-                  <div className="absolute inset-0 bg-gradient-to-t from-background/40 via-transparent to-transparent pointer-events-none rounded-xl" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/40 via-transparent to-transparent pointer-events-none rounded-lg lg:rounded-xl" />
                 )}
               </div>
 
-              {/* Animated Stats Grid */}
-              <div className="grid grid-cols-2 gap-3">
+              {/* Animated Stats Grid - 2x2 on mobile, 2x2 on desktop */}
+              <div className="grid grid-cols-2 gap-2 lg:gap-3">
                 <StatItem 
                   icon={<Users className="w-4 h-4" />}
                   value={12500}
