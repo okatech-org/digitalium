@@ -80,10 +80,10 @@ export default function Archive3DGridView({ category, onDocumentSelect }: Archiv
     const chemises = useMemo(() => generateMockChemises(category), [category]);
 
     return (
-        <div className="py-4">
-            {/* Grid of 3D folder cards */}
+        <div className="py-6 px-4">
+            {/* Grid of 3D folder cards - well spaced */}
             <motion.div
-                className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6"
+                className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-12 gap-y-16"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
             >
