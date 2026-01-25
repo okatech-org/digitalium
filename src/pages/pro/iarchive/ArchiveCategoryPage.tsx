@@ -1,10 +1,10 @@
 /**
- * ArchiveCategoryPage - Dynamic archive category page
- * Adapts content based on route parameter (fiscal, social, legal, clients, vault, certificates)
+ * ArchiveCategoryPage - Optimized archive category page
+ * Compact header, simplified table with expandable rows
  */
 
 import React, { useState, useMemo, Suspense, lazy } from 'react';
-import { useParams, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     FileText,
@@ -23,11 +23,12 @@ import {
     Lock,
     Award,
     AlertTriangle,
-    Calendar,
     Building2,
-    LayoutGrid,
     List,
     Box,
+    ChevronDown,
+    ChevronRight,
+    Sparkles,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -53,6 +54,12 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
 // Lazy load 3D view for performance
@@ -147,13 +154,13 @@ const generateMockDocuments = (category: string, count: number) => {
         docs.push({
             id: `${category}-${i}`,
             reference: `ARCH-${year}-${String(i + 100).padStart(5, '0')}`,
-            title: `${config.documentTypes[typeIdx]} ${category === 'clients' ? 'Client ' + String.fromCharCode(65 + (i % 26)) : ''} - ${String(month).padStart(2, '0')}/${year}`,
+            title: `${config.documentTypes[typeIdx]} - ${String(month).padStart(2, '0')}/${year}`,
             type: config.documentTypes[typeIdx],
             archivedAt: `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${year}`,
             retentionEnd: config.retentionYears === 'permanent'
                 ? 'Permanent'
                 : `31/12/${year + config.retentionYears}`,
-            hash: Math.random().toString(16).substr(2, 8) + '...',
+            hash: Math.random().toString(16).substr(2, 8),
             verified: Math.random() > 0.05,
             size: `${Math.floor(Math.random() * 2000 + 100)} KB`,
         });
@@ -162,11 +169,20 @@ const generateMockDocuments = (category: string, count: number) => {
     return docs;
 };
 
+// Quick filter chips
+const QUICK_FILTERS = [
+    { id: 'today', label: "Aujourd'hui", icon: Sparkles },
+    { id: 'unverified', label: 'Non vérifiés', icon: AlertTriangle },
+    { id: 'expiring', label: 'Expirant bientôt', icon: Clock },
+];
+
 export default function ArchiveCategoryPage() {
     const location = useLocation();
     const [searchQuery, setSearchQuery] = useState('');
     const [typeFilter, setTypeFilter] = useState<string>('all');
     const [viewMode, setViewMode] = useState<'2d' | '3d'>('2d');
+    const [quickFilter, setQuickFilter] = useState<string | null>(null);
+    const [expandedRow, setExpandedRow] = useState<string | null>(null);
 
     // Determine category from URL path
     const pathParts = location.pathname.split('/');
@@ -207,6 +223,7 @@ export default function ArchiveCategoryPage() {
     // Filter documents
     const filteredDocuments = documents.filter(doc => {
         if (typeFilter !== 'all' && doc.type !== typeFilter) return false;
+        if (quickFilter === 'unverified' && doc.verified) return false;
         if (searchQuery) {
             const q = searchQuery.toLowerCase();
             return doc.title.toLowerCase().includes(q) ||
@@ -221,22 +238,30 @@ export default function ArchiveCategoryPage() {
 
     return (
         <div className="space-y-4">
-            {/* Header */}
-            <div className="flex items-center justify-between">
+            {/* Compact Header - Single Line */}
+            <div className="flex items-center justify-between flex-wrap gap-3">
                 <div className="flex items-center gap-3">
                     <div className={cn('p-2 rounded-lg', config.color.split(' ')[1])}>
                         <CategoryIcon className={cn('h-5 w-5', config.color.split(' ')[0])} />
                     </div>
                     <div>
-                        <h2 className="text-lg font-semibold">{config.title}</h2>
-                        <p className="text-sm text-muted-foreground">
-                            {documentCounts[resolvedCategory]?.toLocaleString() || 0} documents •
-                            Conservation {config.retentionYears === 'permanent'
-                                ? 'permanente'
-                                : `légale ${config.retentionYears} ans`}
+                        <div className="flex items-center gap-2">
+                            <h2 className="text-lg font-semibold">{config.title}</h2>
+                            <Badge variant="secondary" className="text-xs">
+                                {documentCounts[resolvedCategory]?.toLocaleString()} docs
+                            </Badge>
+                            <Badge variant="outline" className="text-xs text-muted-foreground">
+                                <Clock className="h-3 w-3 mr-1" />
+                                {config.retentionYears === 'permanent' ? '∞' : `${config.retentionYears} ans`}
+                            </Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                            <Scale className="h-3 w-3 inline mr-1" />
+                            {config.legalBasis}
                         </p>
                     </div>
                 </div>
+
                 <div className="flex gap-2 items-center">
                     {/* View mode toggle */}
                     <div className="flex border rounded-lg overflow-hidden">
@@ -244,58 +269,57 @@ export default function ArchiveCategoryPage() {
                             variant={viewMode === '2d' ? 'default' : 'ghost'}
                             size="sm"
                             onClick={() => setViewMode('2d')}
-                            className={cn(
-                                'rounded-none',
-                                viewMode === '2d' && 'bg-primary'
-                            )}
+                            className={cn('rounded-none h-8', viewMode === '2d' && 'bg-primary')}
                         >
-                            <List className="h-4 w-4 mr-1" />
-                            2D
+                            <List className="h-4 w-4" />
                         </Button>
                         <Button
                             variant={viewMode === '3d' ? 'default' : 'ghost'}
                             size="sm"
                             onClick={() => setViewMode('3d')}
-                            className={cn(
-                                'rounded-none',
-                                viewMode === '3d' && 'bg-primary'
-                            )}
+                            className={cn('rounded-none h-8', viewMode === '3d' && 'bg-primary')}
                         >
-                            <Box className="h-4 w-4 mr-1" />
-                            3D
+                            <Box className="h-4 w-4" />
                         </Button>
                     </div>
                     <Badge variant="secondary" className={cn(
+                        'h-8 px-2',
                         complianceRate === 100
                             ? 'bg-green-500/10 text-green-500'
                             : 'bg-yellow-500/10 text-yellow-500'
                     )}>
                         <CheckCircle2 className="h-3 w-3 mr-1" />
-                        {complianceRate}% conforme
+                        {complianceRate}%
                     </Badge>
                 </div>
             </div>
 
-            {/* Legal basis info */}
-            <div className="text-xs text-muted-foreground flex items-center gap-2 px-1">
-                <Scale className="h-3 w-3" />
-                Base légale: {config.legalBasis}
-            </div>
-
-            {/* Filters */}
-            <div className="flex gap-3">
-                <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                        placeholder="Rechercher par titre ou référence..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-9"
-                    />
+            {/* Filters Row */}
+            <div className="flex gap-2 flex-wrap items-center">
+                {/* Quick Filter Chips */}
+                <div className="flex gap-1">
+                    {QUICK_FILTERS.map(f => (
+                        <Button
+                            key={f.id}
+                            variant={quickFilter === f.id ? 'default' : 'outline'}
+                            size="sm"
+                            className={cn(
+                                'h-7 text-xs',
+                                quickFilter === f.id && 'bg-emerald-500 hover:bg-emerald-600'
+                            )}
+                            onClick={() => setQuickFilter(quickFilter === f.id ? null : f.id)}
+                        >
+                            <f.icon className="h-3 w-3 mr-1" />
+                            {f.label}
+                        </Button>
+                    ))}
                 </div>
+
+                <div className="h-4 w-px bg-border mx-1" />
+
+                {/* Type Filter */}
                 <Select value={typeFilter} onValueChange={setTypeFilter}>
-                    <SelectTrigger className="w-48">
-                        <Filter className="h-4 w-4 mr-2" />
+                    <SelectTrigger className="w-36 h-8 text-xs">
                         <SelectValue placeholder="Type" />
                     </SelectTrigger>
                     <SelectContent>
@@ -305,6 +329,17 @@ export default function ArchiveCategoryPage() {
                         ))}
                     </SelectContent>
                 </Select>
+
+                {/* Search */}
+                <div className="relative flex-1 min-w-[200px]">
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                    <Input
+                        placeholder="Rechercher..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="pl-8 h-8 text-sm"
+                    />
+                </div>
             </div>
 
             {/* Content - 2D or 3D view */}
@@ -321,7 +356,7 @@ export default function ArchiveCategoryPage() {
                             <div className="flex items-center justify-center h-full bg-muted rounded-lg">
                                 <div className="text-center">
                                     <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-                                    <p className="text-sm text-muted-foreground">Chargement de la vue 3D...</p>
+                                    <p className="text-sm text-muted-foreground">Chargement 3D...</p>
                                 </div>
                             </div>
                         }>
@@ -337,125 +372,166 @@ export default function ArchiveCategoryPage() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="border rounded-lg"
+                        className="border rounded-lg overflow-hidden"
                     >
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead className="w-[140px]">Référence</TableHead>
-                                    <TableHead>Document</TableHead>
-                                    <TableHead>Type</TableHead>
-                                    <TableHead>Archivé le</TableHead>
-                                    <TableHead>Expiration</TableHead>
-                                    <TableHead>Intégrité</TableHead>
-                                    <TableHead className="text-right">Actions</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {filteredDocuments.map((doc, i) => (
-                                    <motion.tr
-                                        key={doc.id}
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: i * 0.03 }}
-                                        className="group"
-                                    >
-                                        <TableCell className="font-mono text-xs">
-                                            {doc.reference}
-                                        </TableCell>
-                                        <TableCell>
-                                            <div className="flex items-center gap-2">
-                                                <FileText className="h-4 w-4 text-muted-foreground" />
-                                                <span className="font-medium truncate max-w-[250px]">
-                                                    {doc.title}
-                                                </span>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell>
-                                            <Badge variant="outline">{doc.type}</Badge>
-                                        </TableCell>
-                                        <TableCell className="text-muted-foreground">
-                                            {doc.archivedAt}
-                                        </TableCell>
-                                        <TableCell>
-                                            <span className={cn(
-                                                'flex items-center gap-1 text-sm',
-                                                doc.retentionEnd === 'Permanent' && 'text-amber-500'
-                                            )}>
-                                                {doc.retentionEnd === 'Permanent' ? (
-                                                    <Lock className="h-3 w-3" />
-                                                ) : (
-                                                    <Clock className="h-3 w-3" />
-                                                )}
-                                                {doc.retentionEnd}
-                                            </span>
-                                        </TableCell>
-                                        <TableCell>
-                                            <div className="flex items-center gap-2">
-                                                {doc.verified ? (
-                                                    <Badge variant="secondary" className="bg-green-500/10 text-green-500">
-                                                        <Shield className="h-3 w-3 mr-1" />
-                                                        Vérifiée
-                                                    </Badge>
-                                                ) : (
-                                                    <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-500">
-                                                        <AlertTriangle className="h-3 w-3 mr-1" />
-                                                        En attente
-                                                    </Badge>
-                                                )}
-                                                <span className="text-xs text-muted-foreground font-mono flex items-center gap-1">
-                                                    <Hash className="h-3 w-3" />
-                                                    {doc.hash}
-                                                </span>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                        <MoreVertical className="h-4 w-4" />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem>
-                                                        <Eye className="h-4 w-4 mr-2" />
-                                                        Voir le document
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem>
-                                                        <Download className="h-4 w-4 mr-2" />
-                                                        Télécharger
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem>
-                                                        <Shield className="h-4 w-4 mr-2" />
-                                                        Vérifier intégrité
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem>
-                                                        <Award className="h-4 w-4 mr-2" />
-                                                        Certificat de dépôt
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </TableCell>
-                                    </motion.tr>
-                                ))}
-                                {filteredDocuments.length === 0 && (
-                                    <TableRow>
-                                        <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                                            <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                                            Aucun document trouvé
-                                        </TableCell>
+                        <TooltipProvider>
+                            <Table>
+                                <TableHeader>
+                                    <TableRow className="bg-muted/30">
+                                        <TableHead className="w-8"></TableHead>
+                                        <TableHead>Document</TableHead>
+                                        <TableHead className="w-28">Date</TableHead>
+                                        <TableHead className="w-32">Statut</TableHead>
+                                        <TableHead className="w-12"></TableHead>
                                     </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
+                                </TableHeader>
+                                <TableBody>
+                                    {filteredDocuments.map((doc, i) => (
+                                        <React.Fragment key={doc.id}>
+                                            <motion.tr
+                                                initial={{ opacity: 0 }}
+                                                animate={{ opacity: 1 }}
+                                                transition={{ delay: i * 0.02 }}
+                                                className={cn(
+                                                    'group cursor-pointer hover:bg-muted/50 transition-colors',
+                                                    expandedRow === doc.id && 'bg-muted/30'
+                                                )}
+                                                onClick={() => setExpandedRow(expandedRow === doc.id ? null : doc.id)}
+                                            >
+                                                <TableCell className="w-8 px-2">
+                                                    <ChevronRight className={cn(
+                                                        'h-4 w-4 text-muted-foreground transition-transform',
+                                                        expandedRow === doc.id && 'rotate-90'
+                                                    )} />
+                                                </TableCell>
+                                                <TableCell>
+                                                    <div className="flex items-center gap-3">
+                                                        <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                                        <div className="min-w-0">
+                                                            <p className="font-medium truncate">{doc.title}</p>
+                                                            <p className="text-xs text-muted-foreground">
+                                                                <Badge variant="outline" className="mr-2 text-[10px] px-1 py-0">
+                                                                    {doc.type}
+                                                                </Badge>
+                                                                {doc.reference}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell className="text-sm text-muted-foreground">
+                                                    {doc.archivedAt}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {doc.verified ? (
+                                                        <Badge variant="secondary" className="bg-green-500/10 text-green-500 text-xs">
+                                                            <Shield className="h-3 w-3 mr-1" />
+                                                            Vérifié
+                                                        </Badge>
+                                                    ) : (
+                                                        <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-500 text-xs">
+                                                            <AlertTriangle className="h-3 w-3 mr-1" />
+                                                            Attente
+                                                        </Badge>
+                                                    )}
+                                                </TableCell>
+                                                <TableCell>
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                                                            <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100">
+                                                                <MoreVertical className="h-4 w-4" />
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end">
+                                                            <DropdownMenuItem>
+                                                                <Eye className="h-4 w-4 mr-2" />
+                                                                Voir
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem>
+                                                                <Download className="h-4 w-4 mr-2" />
+                                                                Télécharger
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem>
+                                                                <Award className="h-4 w-4 mr-2" />
+                                                                Certificat
+                                                            </DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                </TableCell>
+                                            </motion.tr>
+                                            {/* Expanded Row Details */}
+                                            <AnimatePresence>
+                                                {expandedRow === doc.id && (
+                                                    <motion.tr
+                                                        initial={{ opacity: 0, height: 0 }}
+                                                        animate={{ opacity: 1, height: 'auto' }}
+                                                        exit={{ opacity: 0, height: 0 }}
+                                                    >
+                                                        <TableCell colSpan={5} className="bg-muted/20 py-3">
+                                                            <div className="flex gap-6 text-sm pl-10">
+                                                                <div>
+                                                                    <p className="text-xs text-muted-foreground mb-1">Expiration</p>
+                                                                    <p className="font-medium flex items-center gap-1">
+                                                                        {doc.retentionEnd === 'Permanent' ? (
+                                                                            <><Lock className="h-3 w-3" /> Permanent</>
+                                                                        ) : (
+                                                                            <><Clock className="h-3 w-3" /> {doc.retentionEnd}</>
+                                                                        )}
+                                                                    </p>
+                                                                </div>
+                                                                <div>
+                                                                    <p className="text-xs text-muted-foreground mb-1">Hash SHA-256</p>
+                                                                    <Tooltip>
+                                                                        <TooltipTrigger asChild>
+                                                                            <p className="font-mono text-xs flex items-center gap-1 cursor-help">
+                                                                                <Hash className="h-3 w-3" />
+                                                                                {doc.hash}...
+                                                                            </p>
+                                                                        </TooltipTrigger>
+                                                                        <TooltipContent>
+                                                                            <p className="font-mono text-xs">{doc.hash}{doc.hash}{doc.hash}</p>
+                                                                        </TooltipContent>
+                                                                    </Tooltip>
+                                                                </div>
+                                                                <div>
+                                                                    <p className="text-xs text-muted-foreground mb-1">Taille</p>
+                                                                    <p className="font-medium">{doc.size}</p>
+                                                                </div>
+                                                                <div className="ml-auto flex gap-2">
+                                                                    <Button size="sm" variant="outline" className="h-7">
+                                                                        <Shield className="h-3 w-3 mr-1" />
+                                                                        Vérifier
+                                                                    </Button>
+                                                                    <Button size="sm" variant="outline" className="h-7">
+                                                                        <Download className="h-3 w-3 mr-1" />
+                                                                        Télécharger
+                                                                    </Button>
+                                                                </div>
+                                                            </div>
+                                                        </TableCell>
+                                                    </motion.tr>
+                                                )}
+                                            </AnimatePresence>
+                                        </React.Fragment>
+                                    ))}
+                                    {filteredDocuments.length === 0 && (
+                                        <TableRow>
+                                            <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
+                                                <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                                                Aucun document trouvé
+                                            </TableCell>
+                                        </TableRow>
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </TooltipProvider>
                     </motion.div>
                 )}
             </AnimatePresence>
 
-            {/* Pagination info */}
-            <div className="flex justify-between items-center text-sm text-muted-foreground px-1">
+            {/* Pagination */}
+            <div className="flex justify-between items-center text-sm text-muted-foreground">
                 <span>
-                    Affichage de {filteredDocuments.length} sur {documentCounts[resolvedCategory]?.toLocaleString() || 0} documents
+                    {filteredDocuments.length} sur {documentCounts[resolvedCategory]?.toLocaleString() || 0}
                 </span>
                 <Button variant="outline" size="sm">
                     Voir plus

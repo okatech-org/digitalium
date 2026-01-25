@@ -1,150 +1,100 @@
 /**
- * iArchive Module Layout
- * Wrapper for all iArchive pages with category navigation
+ * iArchive Module Layout - Optimized
+ * Full-width layout with horizontal category tabs
  */
 
 import React from 'react';
-import { Link, Outlet, useLocation } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
     Archive,
-    FileText,
-    Users,
-    Scale,
-    Briefcase,
-    Shield,
-    Award,
-    Settings,
     Upload,
     Search,
     Filter,
+    Award,
+    HardDrive,
     AlertTriangle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-
-const CATEGORIES = [
-    { id: 'fiscal', label: 'Fiscal', icon: FileText, retention: '10 ans', count: 2847, color: 'text-green-500' },
-    { id: 'social', label: 'Social', icon: Users, retention: '5 ans', count: 1523, color: 'text-blue-500' },
-    { id: 'legal', label: 'Juridique', icon: Scale, retention: '30 ans', count: 456, color: 'text-purple-500' },
-    { id: 'clients', label: 'Clients', icon: Briefcase, retention: '10 ans', count: 892, color: 'text-orange-500' },
-    { id: 'vault', label: 'Coffre-fort', icon: Shield, retention: 'Permanent', count: 34, color: 'text-red-500' },
-    { id: 'certificates', label: 'Certificats', icon: Award, retention: '-', count: 156, color: 'text-emerald-500' },
-];
+import { ArchiveCategoryTabs } from './components/ArchiveCategoryTabs';
 
 export default function IArchiveLayout() {
     const location = useLocation();
-    const activeCategory = location.pathname.split('/').pop() || 'fiscal';
+    const storageUsed = 156;
+    const storageTotal = 200;
+    const storagePercent = (storageUsed / storageTotal) * 100;
 
     return (
-        <div className="h-full flex">
-            {/* Sidebar */}
-            <aside className="w-72 border-r bg-card p-4 space-y-4 overflow-auto">
-                {/* Header */}
-                <div className="flex items-center gap-3 px-2">
-                    <div className="p-2 rounded-lg bg-emerald-500/10">
-                        <Archive className="h-6 w-6 text-emerald-500" />
-                    </div>
-                    <div>
-                        <h1 className="text-lg font-bold">iArchive</h1>
-                        <p className="text-xs text-muted-foreground">Archivage légal</p>
-                    </div>
-                </div>
-
-                {/* Actions */}
-                <div className="space-y-2">
-                    <Button className="w-full bg-emerald-500 hover:bg-emerald-600">
-                        <Upload className="h-4 w-4 mr-2" />
-                        Archiver des documents
-                    </Button>
-                </div>
-
-                {/* Categories */}
-                <div className="space-y-1">
-                    <h2 className="px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
-                        Catégories
-                    </h2>
-                    {CATEGORIES.map((cat) => {
-                        const isActive = activeCategory === cat.id;
-                        return (
-                            <Link
-                                key={cat.id}
-                                to={`/pro/iarchive/${cat.id}`}
-                                className={cn(
-                                    'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors',
-                                    isActive
-                                        ? 'bg-emerald-500/10 text-emerald-500'
-                                        : 'hover:bg-muted'
-                                )}
-                            >
-                                <cat.icon className={cn('h-4 w-4', cat.color)} />
-                                <div className="flex-1 min-w-0">
-                                    <p className="font-medium text-sm">{cat.label}</p>
-                                    <p className="text-xs text-muted-foreground">{cat.retention}</p>
-                                </div>
-                                <Badge variant="secondary" className="text-xs">
-                                    {cat.count.toLocaleString()}
-                                </Badge>
-                            </Link>
-                        );
-                    })}
-                </div>
-
-                {/* Alerts */}
-                <Card className="border-orange-500/30">
-                    <CardContent className="p-3">
-                        <div className="flex items-start gap-2">
-                            <AlertTriangle className="h-4 w-4 text-orange-500 mt-0.5" />
-                            <div>
-                                <p className="text-sm font-medium">12 expirations</p>
-                                <p className="text-xs text-muted-foreground">
-                                    Documents à traiter dans 30 jours
-                                </p>
-                            </div>
+        <div className="h-full flex flex-col">
+            {/* Compact Header Bar */}
+            <header className="border-b px-6 py-3 space-y-3">
+                {/* Top row: Branding + Search + Actions */}
+                <div className="flex items-center gap-4">
+                    {/* Module identity */}
+                    <div className="flex items-center gap-2">
+                        <div className="p-1.5 rounded-lg bg-emerald-500/10">
+                            <Archive className="h-5 w-5 text-emerald-500" />
                         </div>
-                    </CardContent>
-                </Card>
-
-                {/* Storage */}
-                <div className="px-2 pt-4 border-t">
-                    <div className="flex justify-between text-sm mb-2">
-                        <span className="text-muted-foreground">Stockage archive</span>
-                        <span className="font-medium">156 GB</span>
-                    </div>
-                    <div className="h-2 bg-muted rounded-full overflow-hidden">
-                        <div className="h-full w-3/4 bg-emerald-500 rounded-full" />
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">156 / 200 GB utilisés</p>
-                </div>
-            </aside>
-
-            {/* Main Content */}
-            <main className="flex-1 flex flex-col overflow-hidden">
-                {/* Toolbar */}
-                <header className="border-b px-6 py-4">
-                    <div className="flex items-center gap-4">
-                        <div className="relative flex-1 max-w-md">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input placeholder="Recherche légale..." className="pl-9" />
+                        <div>
+                            <h1 className="text-lg font-bold leading-tight">iArchive</h1>
+                            <p className="text-[10px] text-muted-foreground">Archivage légal</p>
                         </div>
-                        <Button variant="outline">
-                            <Filter className="h-4 w-4 mr-2" />
-                            Filtres avancés
+                    </div>
+
+                    {/* Global search */}
+                    <div className="relative flex-1 max-w-lg">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            placeholder="Recherche dans les archives... (⌘K)"
+                            className="pl-9 h-9"
+                        />
+                    </div>
+
+                    {/* Storage indicator - compact */}
+                    <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/50">
+                        <HardDrive className="h-4 w-4 text-muted-foreground" />
+                        <div className="w-20">
+                            <Progress value={storagePercent} className="h-1.5" />
+                        </div>
+                        <span className="text-xs text-muted-foreground whitespace-nowrap">
+                            {storageUsed}/{storageTotal} GB
+                        </span>
+                    </div>
+
+                    {/* Expiration alert */}
+                    <Badge variant="outline" className="border-orange-500/50 text-orange-500 hidden sm:flex">
+                        <AlertTriangle className="h-3 w-3 mr-1" />
+                        12 expirations
+                    </Badge>
+
+                    {/* Actions */}
+                    <div className="flex gap-2">
+                        <Button variant="outline" size="sm">
+                            <Filter className="h-4 w-4 mr-1" />
+                            Filtres
                         </Button>
-                        <Button variant="outline">
-                            <Award className="h-4 w-4 mr-2" />
-                            Générer certificat
+                        <Button variant="outline" size="sm">
+                            <Award className="h-4 w-4 mr-1" />
+                            Certificat
+                        </Button>
+                        <Button className="bg-emerald-500 hover:bg-emerald-600" size="sm">
+                            <Upload className="h-4 w-4 mr-1" />
+                            Archiver
                         </Button>
                     </div>
-                </header>
-
-                {/* Content */}
-                <div className="flex-1 overflow-auto p-6">
-                    <Outlet />
                 </div>
+
+                {/* Category Tabs */}
+                <ArchiveCategoryTabs />
+            </header>
+
+            {/* Main Content - Full Width */}
+            <main className="flex-1 overflow-auto p-6">
+                <Outlet />
             </main>
         </div>
     );
