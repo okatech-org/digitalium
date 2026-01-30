@@ -42,76 +42,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 
-// Mock data
-const MOCK_WORKFLOWS = [
-    {
-        id: '1',
-        name: 'Contrat Commercial Standard',
-        description: 'Workflow pour les contrats clients avec validation juridique',
-        steps: [
-            { role: 'Commercial', action: 'Initie' },
-            { role: 'Client', action: 'Signe' },
-            { role: 'Juridique', action: 'Valide' },
-            { role: 'Direction', action: 'Approuve' },
-        ],
-        usageCount: 45,
-        lastUsed: '22/01/2026',
-        active: true,
-    },
-    {
-        id: '2',
-        name: 'Contrat Employé',
-        description: 'Recrutement et onboarding avec double validation RH',
-        steps: [
-            { role: 'RH', action: 'Initie' },
-            { role: 'Candidat', action: 'Signe' },
-            { role: 'Manager', action: 'Valide' },
-            { role: 'RH', action: 'Finalise' },
-        ],
-        usageCount: 23,
-        lastUsed: '20/01/2026',
-        active: true,
-    },
-    {
-        id: '3',
-        name: 'Bon de Commande Rapide',
-        description: 'Validation express pour commandes < 5000€',
-        steps: [
-            { role: 'Demandeur', action: 'Crée' },
-            { role: 'Achats', action: 'Valide' },
-            { role: 'Fournisseur', action: 'Confirme' },
-        ],
-        usageCount: 89,
-        lastUsed: '24/01/2026',
-        active: true,
-    },
-    {
-        id: '4',
-        name: 'NDA Partenaire',
-        description: 'Accord de confidentialité bilatéral',
-        steps: [
-            { role: 'Initiateur', action: 'Propose' },
-            { role: 'Juridique', action: 'Révise' },
-            { role: 'Partenaire', action: 'Signe' },
-            { role: 'Direction', action: 'Contresigne' },
-        ],
-        usageCount: 12,
-        lastUsed: '15/01/2026',
-        active: true,
-    },
-    {
-        id: '5',
-        name: 'Avenant Contrat',
-        description: 'Modification de contrat existant',
-        steps: [
-            { role: 'Partie A', action: 'Propose' },
-            { role: 'Partie B', action: 'Accepte' },
-        ],
-        usageCount: 8,
-        lastUsed: '10/01/2026',
-        active: false,
-    },
-];
+// Mock data - REMOVED: Data now comes from database
+const MOCK_WORKFLOWS: { id: string; name: string; description: string; steps: { role: string; action: string }[]; usageCount: number; lastUsed: string; active: boolean }[] = [];
 
 export default function Workflows() {
     const [workflows] = useState(MOCK_WORKFLOWS);

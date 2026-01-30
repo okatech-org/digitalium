@@ -20,74 +20,8 @@ import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import { useSignatureSearch } from './ISignatureLayout';
 
-// Mock data
-const MOCK_TO_SIGN = [
-    {
-        id: '1',
-        title: 'Contrat Commercial - Client XYZ',
-        initiatedBy: { name: 'Marie Nguema', initials: 'MN' },
-        createdAt: '22/01/2026',
-        deadline: '31/01/2026',
-        urgent: true,
-        signers: [
-            { name: 'Marie N.', initials: 'MN', signed: true, date: '22/01/26' },
-            { name: 'Vous', initials: 'VO', signed: false, current: true },
-            { name: 'Jean O.', initials: 'JO', signed: false },
-            { name: 'Direction', initials: 'DI', signed: false },
-        ],
-    },
-    {
-        id: '2',
-        title: 'Avenant Contrat Employé - Paul Mba',
-        initiatedBy: { name: 'Service RH', initials: 'RH' },
-        createdAt: '20/01/2026',
-        deadline: '28/01/2026',
-        urgent: false,
-        signers: [
-            { name: 'RH', initials: 'RH', signed: true, date: '20/01/26' },
-            { name: 'Paul M.', initials: 'PM', signed: true, date: '21/01/26' },
-            { name: 'Vous', initials: 'VO', signed: false, current: true },
-        ],
-    },
-    {
-        id: '3',
-        title: 'Bon de Commande - Fournisseur ABC',
-        initiatedBy: { name: 'Service Achats', initials: 'AC' },
-        createdAt: '23/01/2026',
-        deadline: '25/01/2026',
-        urgent: true,
-        signers: [
-            { name: 'Achats', initials: 'AC', signed: true, date: '23/01/26' },
-            { name: 'Vous', initials: 'VO', signed: false, current: true },
-        ],
-    },
-    {
-        id: '4',
-        title: 'Procès-verbal AG Extraordinaire',
-        initiatedBy: { name: 'Secrétariat', initials: 'SE' },
-        createdAt: '19/01/2026',
-        deadline: '02/02/2026',
-        urgent: false,
-        signers: [
-            { name: 'Secrétariat', initials: 'SE', signed: true, date: '19/01/26' },
-            { name: 'Vous', initials: 'VO', signed: false, current: true },
-            { name: 'Président', initials: 'PR', signed: false },
-        ],
-    },
-    {
-        id: '5',
-        title: 'NDA - Partenaire Stratégique',
-        initiatedBy: { name: 'Juridique', initials: 'JU' },
-        createdAt: '24/01/2026',
-        deadline: '30/01/2026',
-        urgent: false,
-        signers: [
-            { name: 'Juridique', initials: 'JU', signed: true, date: '24/01/26' },
-            { name: 'Vous', initials: 'VO', signed: false, current: true },
-            { name: 'Partenaire', initials: 'PA', signed: false },
-        ],
-    },
-];
+// Mock data - REMOVED: Data now comes from database
+const MOCK_TO_SIGN: { id: string; title: string; initiatedBy: { name: string; initials: string }; createdAt: string; deadline: string; urgent: boolean; signers: { name: string; initials: string; signed: boolean; date?: string; current?: boolean }[] }[] = [];
 
 export default function ToSign() {
     const { searchQuery } = useSignatureSearch();

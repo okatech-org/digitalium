@@ -42,53 +42,8 @@ import {
 import { cn } from '@/lib/utils';
 import { useSignatureSearch } from './ISignatureLayout';
 
-// Mock data
-const MOCK_PENDING = [
-    {
-        id: '1',
-        title: 'Contrat de Prestation - Studio Design',
-        sentAt: '20/01/2026',
-        deadline: '30/01/2026',
-        signers: [
-            { name: 'Vous', initials: 'VO', signed: true, date: '20/01/26' },
-            { name: 'Client A', initials: 'CA', signed: true, date: '22/01/26' },
-            { name: 'Directeur', initials: 'DI', signed: false, lastReminder: '24/01/26' },
-        ],
-    },
-    {
-        id: '2',
-        title: 'Avenant Commercial Q1 2026',
-        sentAt: '18/01/2026',
-        deadline: '25/01/2026',
-        signers: [
-            { name: 'Vous', initials: 'VO', signed: true, date: '18/01/26' },
-            { name: 'Finance', initials: 'FI', signed: false, lastReminder: '23/01/26' },
-            { name: 'CEO', initials: 'CE', signed: false },
-        ],
-    },
-    {
-        id: '3',
-        title: 'Accord de Confidentialité',
-        sentAt: '23/01/2026',
-        deadline: '02/02/2026',
-        signers: [
-            { name: 'Vous', initials: 'VO', signed: true, date: '23/01/26' },
-            { name: 'Partenaire X', initials: 'PX', signed: false },
-        ],
-    },
-    {
-        id: '4',
-        title: 'Contrat Freelance - Dev Mobile',
-        sentAt: '15/01/2026',
-        deadline: '28/01/2026',
-        signers: [
-            { name: 'Vous', initials: 'VO', signed: true, date: '15/01/26' },
-            { name: 'Freelance', initials: 'FL', signed: true, date: '16/01/26' },
-            { name: 'RH', initials: 'RH', signed: true, date: '17/01/26' },
-            { name: 'Direction', initials: 'DI', signed: false, lastReminder: '22/01/26' },
-        ],
-    },
-];
+// Mock data - REMOVED: Data now comes from database
+const MOCK_PENDING: { id: string; title: string; sentAt: string; deadline: string; signers: { name: string; initials: string; signed: boolean; date?: string; lastReminder?: string }[] }[] = [];
 
 export default function PendingSignatures() {
     const [docToCancel, setDocToCancel] = useState<string | null>(null);

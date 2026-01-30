@@ -32,64 +32,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 
-// Mock data
-const MOCK_ARCHIVES = [
-    {
-        id: '1',
-        reference: 'ARCH-2024-00145',
-        title: 'Facture Client ABC - Janvier 2024',
-        type: 'Facture',
-        archivedAt: '15/01/2024',
-        retentionEnd: '31/12/2034',
-        hash: '8f3e9a2b...',
-        verified: true,
-        size: '245 KB',
-    },
-    {
-        id: '2',
-        reference: 'ARCH-2024-00144',
-        title: 'Déclaration TVA Q4 2023',
-        type: 'Déclaration',
-        archivedAt: '10/01/2024',
-        retentionEnd: '31/12/2033',
-        hash: '7d2c8b1a...',
-        verified: true,
-        size: '128 KB',
-    },
-    {
-        id: '3',
-        reference: 'ARCH-2024-00143',
-        title: 'Facture Fournisseur XYZ - Déc 2023',
-        type: 'Facture',
-        archivedAt: '05/01/2024',
-        retentionEnd: '31/12/2033',
-        hash: '6e1d7c0f...',
-        verified: true,
-        size: '312 KB',
-    },
-    {
-        id: '4',
-        reference: 'ARCH-2023-01234',
-        title: 'Bilan Comptable 2023',
-        type: 'Bilan',
-        archivedAt: '20/12/2023',
-        retentionEnd: '31/12/2033',
-        hash: '5f0e6b9d...',
-        verified: true,
-        size: '1.2 MB',
-    },
-    {
-        id: '5',
-        reference: 'ARCH-2023-01233',
-        title: 'Justificatifs Charges Q4 2023',
-        type: 'Justificatif',
-        archivedAt: '18/12/2023',
-        retentionEnd: '31/12/2033',
-        hash: '4a9f5c8e...',
-        verified: true,
-        size: '856 KB',
-    },
-];
+// Mock data - REMOVED: Data now comes from database
+const MOCK_ARCHIVES: { id: string; reference: string; title: string; type: string; archivedAt: string; retentionEnd: string; hash: string; verified: boolean; size: string }[] = [];
 
 export default function FiscalArchive() {
     return (

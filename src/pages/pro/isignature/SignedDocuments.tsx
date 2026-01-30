@@ -46,63 +46,8 @@ import {
 import { cn } from '@/lib/utils';
 import { useSignatureSearch } from './ISignatureLayout';
 
-// Mock data
-const MOCK_SIGNED = [
-    {
-        id: '1',
-        title: 'Contrat CDI - Sophie Martin',
-        signedAt: '22/01/2026',
-        initiator: 'RH',
-        signers: ['RH', 'Sophie M.', 'Direction'],
-        certified: true,
-        hash: 'a3f8c2d1',
-    },
-    {
-        id: '2',
-        title: 'Avenant Bail Commercial',
-        signedAt: '20/01/2026',
-        initiator: 'Juridique',
-        signers: ['Juridique', 'Bailleur', 'Vous'],
-        certified: true,
-        hash: 'b7e4f5a2',
-    },
-    {
-        id: '3',
-        title: 'Bon de Commande #2024-089',
-        signedAt: '18/01/2026',
-        initiator: 'Achats',
-        signers: ['Achats', 'Fournisseur'],
-        certified: true,
-        hash: 'c9d2e8b3',
-    },
-    {
-        id: '4',
-        title: 'NDA - Partenaire Tech',
-        signedAt: '15/01/2026',
-        initiator: 'Vous',
-        signers: ['Vous', 'Partenaire', 'Juridique'],
-        certified: true,
-        hash: 'd1a3f7c4',
-    },
-    {
-        id: '5',
-        title: 'Procès-verbal Conseil d\'Administration',
-        signedAt: '12/01/2026',
-        initiator: 'Secrétariat',
-        signers: ['Secrétariat', 'Président', 'Administrateurs'],
-        certified: true,
-        hash: 'e5b2c9d6',
-    },
-    {
-        id: '6',
-        title: 'Contrat Maintenance Annuelle',
-        signedAt: '10/01/2026',
-        initiator: 'IT',
-        signers: ['IT', 'Prestataire', 'Finance'],
-        certified: true,
-        hash: 'f8a4d3e7',
-    },
-];
+// Mock data - REMOVED: Data now comes from database
+const MOCK_SIGNED: { id: string; title: string; signedAt: string; initiator: string; signers: string[]; certified: boolean; hash: string }[] = [];
 
 export default function SignedDocuments() {
     const { searchQuery: globalSearchQuery } = useSignatureSearch();
