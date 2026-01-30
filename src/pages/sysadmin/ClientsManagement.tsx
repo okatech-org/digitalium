@@ -47,17 +47,11 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 
-// Mock Administrations data (G2G - Government clients)
-// Demo Mode: Only Ministère de la Pêche
-const MOCK_ADMINISTRATIONS = [
-    { id: 'ADM-001', name: 'Ministère de la Pêche et des Mers', email: 'dsi@peche.gouv.ga', phone: '+241 01 76 00 00', type: 'ministry', status: 'active', users: 156, plan: 'sovereign_gov', modules: ['iDocument', 'iArchive', 'iSignature'], createdAt: '2024-01-15', lastSync: '2026-01-30' },
-];
+// Mock Administrations data - REMOVED: Data now comes from database
+const MOCK_ADMINISTRATIONS: { id: string; name: string; email: string; phone: string; type: string; status: string; users: number; plan: string; modules: string[]; createdAt: string; lastSync: string }[] = [];
 
-// Mock Entreprises data (B2B - Private sector clients)
-// Demo Mode: Only ASCOMA Assurances
-const MOCK_ENTREPRISES = [
-    { id: 'ENT-001', name: 'ASCOMA Assurances', email: 'direction@ascoma.ga', phone: '+241 01 74 50 00', sector: 'insurance', status: 'active', users: 87, plan: 'sovereign_pro', modules: ['iDocument', 'iArchive', 'iSignature'], createdAt: '2024-01-20', subscription: '150000' },
-];
+// Mock Entreprises data - REMOVED: Data now comes from database
+const MOCK_ENTREPRISES: { id: string; name: string; email: string; phone: string; sector: string; status: string; users: number; plan: string; modules: string[]; createdAt: string; subscription: string }[] = [];
 
 // IDN.ga Citizen statistics (read-only)
 const IDN_STATS = {

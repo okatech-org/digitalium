@@ -48,18 +48,11 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 
-// Mock Subscriptions data - Demo Mode: Only Ministère de la Pêche and ASCOMA
-const MOCK_SUBSCRIPTIONS = [
-    { id: 'SUB-001', client: 'Ministère de la Pêche et des Mers', email: 'dsi@peche.gouv.ga', type: 'administration', plan: 'sovereign_gov', status: 'active', amount: 0, billingCycle: 'annual', users: 156, storage: '500 GB', nextBilling: '2026-12-31', createdAt: '2024-01-15', verified: true },
-    { id: 'SUB-002', client: 'ASCOMA Assurances', email: 'direction@ascoma.ga', type: 'enterprise', plan: 'sovereign_pro', status: 'active', amount: 150000, billingCycle: 'monthly', users: 87, storage: '100 GB', nextBilling: '2026-02-28', createdAt: '2024-01-20', verified: true },
-];
+// Mock Subscriptions data - REMOVED: Data now comes from database
+const MOCK_SUBSCRIPTIONS: { id: string; client: string; email: string; type: string; plan: string; status: string; amount: number; billingCycle: string; users: number; storage: string; nextBilling: string; createdAt: string; verified: boolean }[] = [];
 
-// Mock Invoices - Demo Mode: Only ASCOMA (Ministère de la Pêche is on convention)
-const MOCK_INVOICES = [
-    { id: 'INV-2026-001', client: 'ASCOMA Assurances', amount: 150000, status: 'paid', date: '2026-01-28', paidAt: '2026-01-29' },
-    { id: 'INV-2025-012', client: 'ASCOMA Assurances', amount: 150000, status: 'paid', date: '2025-12-28', paidAt: '2025-12-30' },
-    { id: 'INV-2025-011', client: 'ASCOMA Assurances', amount: 150000, status: 'paid', date: '2025-11-28', paidAt: '2025-11-29' },
-];
+// Mock Invoices - REMOVED: Data now comes from database
+const MOCK_INVOICES: { id: string; client: string; amount: number; status: string; date: string; paidAt: string }[] = [];
 
 // Aggregated stats - Demo Mode: Only Ministère de la Pêche + ASCOMA
 const STATS = {

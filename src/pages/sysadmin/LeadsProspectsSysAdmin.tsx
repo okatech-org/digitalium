@@ -50,13 +50,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 
-// Mock Leads data - Demo Mode: Prospects for Ministère sectors and ASCOMA ecosystem
-const MOCK_LEADS = [
-    { id: 'LEAD-001', name: 'Direction Générale de la Pêche', email: 'dgp@peche.gouv.ga', phone: '+241 01 76 01 00', company: 'DGP', type: 'administration', source: 'iDocument', status: 'won', score: 95, value: 0, assignee: 'Commercial B2G', createdAt: '2024-01-10', lastContact: '2024-01-15' },
-    { id: 'LEAD-002', name: 'SNAT - Société Nationale des Armateurs', email: 'contact@snat.ga', phone: '+241 01 74 80 00', company: 'SNAT', type: 'enterprise', source: 'Référence', status: 'negotiation', score: 82, value: 200000, assignee: 'Directeur Commercial', createdAt: '2026-01-20', lastContact: '2026-01-28' },
-    { id: 'LEAD-003', name: 'ONAREF - Office National des Ressources Halieutiques', email: 'dsi@onaref.ga', phone: '+241 01 76 10 00', company: 'ONAREF', type: 'administration', source: 'iArchive', status: 'qualified', score: 78, value: 0, assignee: 'Commercial B2G', createdAt: '2026-01-22', lastContact: '2026-01-29' },
-    { id: 'LEAD-004', name: 'UA-Gabon - Union des Assureurs', email: 'direction@ua-gabon.ga', phone: '+241 01 74 55 00', company: 'UA-Gabon', type: 'enterprise', source: 'Partenaire', status: 'contacted', score: 75, value: 180000, assignee: 'Commercial B2B', createdAt: '2026-01-25', lastContact: '2026-01-27' },
-];
+// Mock Leads data - REMOVED: Data now comes from database
+const MOCK_LEADS: { id: string; name: string; email: string; phone: string; company: string; type: string; source: string; status: string; score: number; value: number; assignee: string; createdAt: string; lastContact: string }[] = [];
 
 // Stats - Demo Mode: Based on filtered leads
 const STATS = {
