@@ -28,79 +28,14 @@ import {
 } from 'lucide-react';
 
 export default function SysAdminDashboard() {
-    // System health metrics
-    const systemMetrics = [
-        { label: 'CPU Moyen', value: '42%', icon: Cpu, color: 'text-blue-500 dark:text-blue-400', trend: 'down', trendValue: '-8%' },
-        { label: 'RAM Utilisée', value: '64 GB', icon: HardDrive, color: 'text-purple-500 dark:text-purple-400', trend: 'up', trendValue: '+2 GB' },
-        { label: 'Serveurs Actifs', value: '4/4', icon: Server, color: 'text-green-500 dark:text-green-400', trend: 'stable', trendValue: '100%' },
-        { label: 'Latence Moyenne', value: '12ms', icon: Wifi, color: 'text-orange-500 dark:text-orange-400', trend: 'down', trendValue: '-3ms' },
-    ];
+    // System health metrics - REMOVED: Data now comes from monitoring API
+    const systemMetrics: { label: string; value: string; icon: typeof Cpu; color: string; trend: string; trendValue: string }[] = [];
 
-    // Quick access modules
-    const modules = [
-        {
-            title: 'Infrastructure',
-            description: '4 Serveurs • 98% Uptime',
-            icon: Server,
-            href: '/admin/infrastructure',
-            color: 'from-slate-500 to-slate-700 dark:from-slate-600 dark:to-slate-800',
-            status: 'Operational',
-            statusColor: 'text-green-600 dark:text-green-400',
-        },
-        {
-            title: 'Monitoring',
-            description: '2.4k RPS • Real-time',
-            icon: Activity,
-            href: '/admin/monitoring',
-            color: 'from-blue-500 to-slate-600 dark:from-blue-600 dark:to-slate-700',
-            status: 'Live',
-            statusColor: 'text-blue-600 dark:text-blue-400',
-        },
-        {
-            title: 'Bases de Données',
-            description: 'Primary + 2 Replicas',
-            icon: Database,
-            href: '/admin/databases',
-            color: 'from-emerald-500 to-teal-600 dark:from-emerald-600 dark:to-teal-700',
-            status: 'Healthy',
-            statusColor: 'text-emerald-600 dark:text-emerald-400',
-        },
-        {
-            title: 'Logs Système',
-            description: '45 logs/sec',
-            icon: Terminal,
-            href: '/admin/logs',
-            color: 'from-zinc-500 to-neutral-700 dark:from-zinc-600 dark:to-neutral-800',
-            status: '0 Errors',
-            statusColor: 'text-muted-foreground',
-        },
-        {
-            title: 'Sécurité',
-            description: 'Score A+ • 14k Blocked',
-            icon: ShieldAlert,
-            href: '/admin/security',
-            color: 'from-red-500 to-orange-600 dark:from-red-600 dark:to-orange-700',
-            status: 'Protected',
-            statusColor: 'text-red-600 dark:text-red-400',
-        },
-        {
-            title: 'Utilisateurs IAM',
-            description: '4 Comptes Techniques',
-            icon: Users,
-            href: '/admin/iam',
-            color: 'from-indigo-500 to-violet-600 dark:from-indigo-600 dark:to-violet-700',
-            status: 'Active',
-            statusColor: 'text-indigo-600 dark:text-indigo-400',
-        },
-    ];
+    // Quick access modules - REMOVED: Data now comes from config API
+    const modules: { title: string; description: string; icon: typeof Server; href: string; color: string; status: string; statusColor: string }[] = [];
 
-    // Recent alerts
-    const recentAlerts = [
-        { message: 'Backup automatique terminé avec succès', time: '2 min', type: 'success' },
-        { message: 'Réplication DB synchronisée', time: '15 min', type: 'info' },
-        { message: 'Pic de charge détecté sur Worker-Node-01', time: '1h', type: 'warning' },
-        { message: 'Mise à jour de sécurité appliquée', time: '3h', type: 'success' },
-    ];
+    // Recent alerts - REMOVED: Data now comes from alerts API
+    const recentAlerts: { message: string; time: string; type: string }[] = [];
 
     return (
         <div className="space-y-6">
