@@ -13,6 +13,7 @@ import {
     Clock,
     Info,
     FileText,
+    GitBranch,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,6 +30,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { DocumentUploader } from './components/DocumentUploader';
 import { GABON_RETENTION_RULES } from './components/RetentionPolicy';
+import { DEFAULT_WORKFLOW_TEMPLATES, WORKFLOW_TRIGGER_LABELS } from '@/data/workflowTemplatesData';
 
 const CATEGORIES = [
     { value: 'fiscal', label: 'Fiscal', icon: '📊', color: 'text-green-500' },
@@ -49,8 +51,12 @@ export default function UploadPage() {
         tags: [] as string[],
         customRetention: false,
         retentionYears: 10,
+        workflowId: '',
     });
     const [tagInput, setTagInput] = useState('');
+
+    // Filter active workflows for archiving
+    const availableWorkflows = DEFAULT_WORKFLOW_TEMPLATES.filter(wf => wf.is_active);
 
     const handleUploadComplete = (files: any[]) => {
         setUploadedFiles(files);
@@ -272,6 +278,57 @@ export default function UploadPage() {
                                             ))}
                                         </div>
                                     )}
+                                </div>
+
+                                {/* Workflow Selection */}
+                                <div className="space-y-2">
+                                    <Label className="flex items-center gap-2">
+                                        <GitBranch className="h-4 w-4" />
+                                        Workflow d'archivage
+                                    </Label>
+                                    <Select
+                                        value={metadata.workflowId}
+                                        onValueChange={(value) => setMetadata(prev => ({ ...prev, workflowId: value }))}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Sélectionner un workflow (optionnel)" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {availableWorkflows.map(wf => (
+                                                <SelectItem key={wf.id} value={wf.id}>
+                                                    <div className="flex items-center gap-2">
+                                                        <span>{wf.name}</span>
+                                                        <span className="text-xs text-muted-foreground">
+                                                            ({wf.steps.length} étape{wf.steps.length > 1 ? 's' : ''})
+                                                        </span>
+                                                    </div>
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    {metadata.workflowId && (() => {
+                                        const selectedWf = availableWorkflows.find(wf => wf.id === metadata.workflowId);
+                                        if (!selectedWf) return null;
+                                        return (
+                                            <div className="p-3 rounded-lg bg-primary/5 border border-primary/20 space-y-2">
+                                                <div className="flex items-center gap-2 text-sm">
+                                                    <Badge variant="outline" className="text-xs">
+                                                        {WORKFLOW_TRIGGER_LABELS[selectedWf.trigger]?.label || selectedWf.trigger}
+                                                    </Badge>
+                                                    <span className="text-xs text-muted-foreground">
+                                                        {selectedWf.description}
+                                                    </span>
+                                                </div>
+                                                <div className="flex flex-wrap gap-1">
+                                                    {selectedWf.steps.map((step, idx) => (
+                                                        <Badge key={step.id} variant="secondary" className="text-xs">
+                                                            {idx + 1}. {step.name}
+                                                        </Badge>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
                                 </div>
 
                                 {/* Submit */}

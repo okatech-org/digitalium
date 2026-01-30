@@ -70,7 +70,7 @@ export function useUserSpace() {
         };
     }
 
-    if (email.includes('demo-entreprise')) {
+    if (email.includes('demo-entreprise') || email.endsWith('@entreprise.ga')) {
         return {
             type: 'enterprise',
             title: 'Espace Professionnel',

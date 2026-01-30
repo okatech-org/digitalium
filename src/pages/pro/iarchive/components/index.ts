@@ -51,4 +51,21 @@ export {
     type AnnotationPriority,
 } from './DocumentAnnotations';
 
+// Red Notes - Phase 3 Advanced Features
+export { NegativePermissions, type Permission, type PermissionType, type PermissionLevel } from './NegativePermissions';
+export { BatchOperationsPanel, type BatchOperationType, type SelectedDocument, type BatchOperationResult } from './BatchOperationsPanel';
+export { DestructionCertificateGenerator, type DocumentToDestroy, type DestructionCertificate } from './DestructionCertificateGenerator';
+export { AutoArchiveRules, type AutoArchiveRule, type Frequency } from './AutoArchiveRules';
+export { RenewalReminders, type DocumentReminder, type ReminderType } from './RenewalReminders';
+export { RedactionTool, type Redaction } from './RedactionTool';
+export { DocumentManagementTable, type ManagementCategory, type FinalDisposition } from './DocumentManagementTable';
 
+// Phase 4 - Workflows & Automation
+export { ApprovalWorkflow, type ApprovalWorkflowData, type ApprovalStep, type Approver } from './ApprovalWorkflow';
+export { ClassificationRules, type ClassificationRule, type ClassificationCondition } from './ClassificationRules';
+export { ExpirationNotifications, type ExpiringDocument } from './ExpirationNotifications';
+export { RetentionTransitions, type TransitionQueue, type RetentionPhase } from './RetentionTransitions';
+
+// Phase 5 - Integration & Polish
+export { ElectronicSignature, type SignatureRequest, type Signatory, type SignatureStatus } from './ElectronicSignature';
+export { IntegrationsPanel } from './IntegrationsPanel';

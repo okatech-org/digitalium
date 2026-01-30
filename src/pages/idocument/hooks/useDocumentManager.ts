@@ -9,8 +9,25 @@ import {
     SortType,
     NavigationLevel
 } from '../types';
-import { MOCK_CLASSEURS, DOCUMENT_TYPES } from '../constants';
+import { MOCK_CLASSEURS, MOCK_CLASSEURS_MINISTERE_PECHE, DOCUMENT_TYPES } from '../constants';
 import { CategoryId } from '../components/CategoryTabs';
+
+// Helper to determine which mock data to use based on user email
+const getDefaultClasseurs = (email: string | null | undefined): IClasseur[] => {
+    if (!email) return MOCK_CLASSEURS;
+    const lowerEmail = email.toLowerCase();
+    // Ministry of Fisheries accounts
+    if (lowerEmail.includes('peche.gouv.ga') ||
+        lowerEmail.includes('peche@digitalium.io') ||
+        lowerEmail.includes('ministere-peche@') ||
+        lowerEmail.includes('mpm@digitalium') ||
+        lowerEmail.includes('secretariat.peche@') ||
+        lowerEmail.includes('daf.peche@') ||
+        lowerEmail.includes('direction.peche@')) {
+        return MOCK_CLASSEURS_MINISTERE_PECHE;
+    }
+    return MOCK_CLASSEURS;
+};
 
 // Key for local storage
 const getStorageKey = (userId: string) => `idocument-classeurs-${userId}`;
@@ -57,20 +74,50 @@ export function useDocumentManager() {
                 const storageKey = getStorageKey(currentUserId);
                 const saved = localStorage.getItem(storageKey);
 
+                // Determine the correct mock data based on user email
+                const userEmail = user?.email;
+                const defaultData = getDefaultClasseurs(userEmail);
+
+                // Check if user is a ministry user - they should always get fresh ministry data
+                const isMinistryUser = userEmail?.toLowerCase().includes('peche.gouv.ga') ||
+                    userEmail?.toLowerCase().includes('peche@digitalium.io') ||
+                    userEmail?.toLowerCase().includes('ministere-peche@') ||
+                    userEmail?.toLowerCase().includes('mpm@digitalium') ||
+                    userEmail?.toLowerCase().includes('secretariat.peche@') ||
+                    userEmail?.toLowerCase().includes('daf.peche@') ||
+                    userEmail?.toLowerCase().includes('direction.peche@');
+
+                // Check if cached data is ministry data (by looking for ministry classeur IDs)
+                let cachedIsMinistryData = false;
                 if (saved) {
+                    try {
+                        const parsedData = JSON.parse(saved);
+                        cachedIsMinistryData = parsedData.some((c: IClasseur) => c.id.startsWith('mp-'));
+                    } catch { /* ignore */ }
+                }
+
+                // Force refresh for ministry users if they don't have ministry data cached
+                // or for non-ministry users if they have ministry data cached
+                const needsRefresh = (isMinistryUser && !cachedIsMinistryData) ||
+                    (!isMinistryUser && cachedIsMinistryData);
+
+                if (saved && !needsRefresh) {
                     try {
                         setClasseurs(JSON.parse(saved));
                     } catch {
-                        setClasseurs(MOCK_CLASSEURS);
-                        localStorage.setItem(storageKey, JSON.stringify(MOCK_CLASSEURS));
+                        setClasseurs(defaultData);
+                        localStorage.setItem(storageKey, JSON.stringify(defaultData));
                     }
                 } else {
-                    setClasseurs(MOCK_CLASSEURS);
-                    localStorage.setItem(storageKey, JSON.stringify(MOCK_CLASSEURS));
+                    // Force set fresh data (for new users or when cache mismatch)
+                    console.log('[useDocumentManager] Loading fresh data for', isMinistryUser ? 'ministry' : 'standard', 'user');
+                    setClasseurs(defaultData);
+                    localStorage.setItem(storageKey, JSON.stringify(defaultData));
                 }
             } catch (error) {
                 console.error('[useDocumentManager] Erreur de chargement:', error);
-                setClasseurs(MOCK_CLASSEURS);
+                const defaultData = getDefaultClasseurs(user?.email);
+                setClasseurs(defaultData);
             } finally {
                 setIsLoading(false);
             }

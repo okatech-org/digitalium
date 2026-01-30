@@ -26,6 +26,8 @@ import {
     Gauge,
     Database,
     Globe,
+    Sun,
+    Moon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -40,6 +42,7 @@ import {
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/FirebaseAuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface NavItem {
     label: string;
@@ -122,6 +125,7 @@ export default function AdminSpaceLayout() {
     const location = useLocation();
     const navigate = useNavigate();
     const { user, signOut } = useAuth();
+    const { theme, toggleTheme } = useTheme();
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
@@ -328,6 +332,27 @@ export default function AdminSpaceLayout() {
                                 </p>
                             </div>
                         )}
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8"
+                                        onClick={toggleTheme}
+                                    >
+                                        {theme === 'dark' ? (
+                                            <Sun className="h-4 w-4" />
+                                        ) : (
+                                            <Moon className="h-4 w-4" />
+                                        )}
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent side="top">
+                                    <p>{theme === 'dark' ? 'Mode Clair' : 'Mode Sombre'}</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
                         <TooltipProvider>
                             <Tooltip>
                                 <TooltipTrigger asChild>

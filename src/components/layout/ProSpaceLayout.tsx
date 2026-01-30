@@ -29,6 +29,8 @@ import {
     Bell,
     HelpCircle,
     Palette,
+    Sun,
+    Moon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -44,6 +46,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { QuickActionBar } from '@/components/pro/QuickActionBar';
 import { useAuth } from '@/contexts/FirebaseAuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { IAstedChat } from '@/pages/pro/iarchive/components/IAstedChat';
 
 // Module color tokens
@@ -144,6 +147,7 @@ export default function ProSpaceLayout() {
     const location = useLocation();
     const navigate = useNavigate();
     const { user, signOut } = useAuth();
+    const { theme, toggleTheme } = useTheme();
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [expandedItems, setExpandedItems] = useState<string[]>(['iDocument', 'iArchive', 'iSignature']);
     const [isIAstedOpen, setIsIAstedOpen] = useState(false);
@@ -389,6 +393,14 @@ export default function ProSpaceLayout() {
                                     <DropdownMenuItem onClick={() => window.open('https://docs.digitalium.ga', '_blank')}>
                                         <HelpCircle className="h-4 w-4 mr-2" />
                                         Aide
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={toggleTheme}>
+                                        {theme === 'dark' ? (
+                                            <Sun className="h-4 w-4 mr-2" />
+                                        ) : (
+                                            <Moon className="h-4 w-4 mr-2" />
+                                        )}
+                                        {theme === 'dark' ? 'Mode Clair' : 'Mode Sombre'}
                                     </DropdownMenuItem>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem

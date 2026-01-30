@@ -36,6 +36,10 @@ import SysAdminDashboard from "./pages/sysadmin/SysAdminDashboard";
 import DatabaseReplicas from "./pages/sysadmin/DatabaseReplicas";
 import DatabaseBackups from "./pages/sysadmin/DatabaseBackups";
 import SysAdminSpaceLayout from "@/components/layout/SysAdminSpaceLayout";
+import ClientsManagement from "./pages/sysadmin/ClientsManagement";
+import SubscriptionsSysAdmin from "./pages/sysadmin/SubscriptionsSysAdmin";
+import LeadsProspectsSysAdmin from "./pages/sysadmin/LeadsProspectsSysAdmin";
+import WorkflowTemplates from "./pages/sysadmin/WorkflowTemplates";
 // Institution Pages
 import CivilRegistry from "./pages/institution/CivilRegistry";
 import ServicesConfig from "./pages/institution/ServicesConfig";
@@ -48,6 +52,7 @@ import Partners from "./pages/institution/Partners";
 import ProSpaceLayout from "@/components/layout/ProSpaceLayout";
 import ProDashboard from "./pages/pro/ProDashboard";
 import IDocumentLayout from "./pages/pro/idocument/IDocumentLayout";
+import CollaborativeEditPage from "./pages/pro/idocument/edit/CollaborativeEditPage";
 import DocumentCategoryPage from "./pages/pro/idocument/DocumentCategoryPage";
 import IArchiveLayout from "./pages/pro/iarchive/IArchiveLayout";
 import FiscalArchive from "./pages/pro/iarchive/FiscalArchive";
@@ -126,6 +131,9 @@ const AnimatedRoutes = () => {
             <Route path="trash" element={<DocumentCategoryPage />} />
           </Route>
 
+          {/* Collaborative Document Editor */}
+          <Route path="/pro/idocument/edit/:id" element={<CollaborativeEditPage />} />
+
           {/* iArchive Module */}
           <Route path="/pro/iarchive" element={<IArchiveLayout />}>
             <Route index element={<ArchiveCategoryPage />} />
@@ -184,6 +192,11 @@ const AnimatedRoutes = () => {
           <Route path="iam" element={<Iam />} />
           <Route path="organization" element={<OrganizationConfig />} />
           <Route path="design-theme" element={<DesignThemeSettings />} />
+          {/* Business Management Routes */}
+          <Route path="users" element={<ClientsManagement />} />
+          <Route path="subscriptions" element={<SubscriptionsSysAdmin />} />
+          <Route path="leads" element={<LeadsProspectsSysAdmin />} />
+          <Route path="workflow-templates" element={<WorkflowTemplates />} />
         </Route>
 
         {/* Institution Routes */}

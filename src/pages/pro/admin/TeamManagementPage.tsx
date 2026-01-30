@@ -52,7 +52,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 
-type MemberRole = 'admin' | 'manager' | 'member' | 'viewer';
+type MemberRole = 'owner' | 'admin' | 'manager' | 'member' | 'viewer';
 
 interface TeamMember {
     id: string;
@@ -67,14 +67,26 @@ interface TeamMember {
 }
 
 const ROLE_CONFIG: Record<MemberRole, { label: string; color: string; icon: typeof Crown }> = {
+    owner: { label: 'Propriétaire', color: 'text-emerald-500 bg-emerald-500/10', icon: Crown },
     admin: { label: 'Administrateur', color: 'text-red-500 bg-red-500/10', icon: Crown },
     manager: { label: 'Gestionnaire', color: 'text-orange-500 bg-orange-500/10', icon: Shield },
     member: { label: 'Membre', color: 'text-blue-500 bg-blue-500/10', icon: Users },
     viewer: { label: 'Lecteur', color: 'text-gray-500 bg-gray-500/10', icon: Eye },
 };
 
-// Mock data
+// Mock data - Entreprise Demo ecosystem
 const MOCK_MEMBERS: TeamMember[] = [
+    {
+        id: '0',
+        name: 'Entreprise Démo',
+        email: 'demo-entreprise@digitalium.ga',
+        avatarUrl: undefined,
+        role: 'owner',
+        department: 'Direction Générale',
+        joinedAt: Date.now() - 730 * 24 * 60 * 60 * 1000,
+        lastActiveAt: Date.now() - 1 * 60 * 60 * 1000,
+        status: 'active',
+    },
     {
         id: '1',
         name: 'Jean Ndong',

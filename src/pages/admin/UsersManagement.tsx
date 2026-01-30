@@ -42,13 +42,14 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 
-// Mock users data
+// Mock users data - Ministère de la Pêche et des Mers ecosystem (Administration démo)
 const MOCK_USERS = [
-    { id: '1', name: 'Jean Dubois', email: 'jean@company.fr', phone: '+237 699 123 456', role: 'admin', status: 'active', organization: 'Tech Solutions', plan: 'pro', createdAt: '2024-01-15', lastLogin: '2025-01-25' },
-    { id: '2', name: 'Marie Kouassi', email: 'marie@startup.cm', phone: '+237 677 234 567', role: 'user', status: 'active', organization: 'StartupCM', plan: 'business', createdAt: '2024-03-20', lastLogin: '2025-01-24' },
-    { id: '3', name: 'Paul Nguema', email: 'paul@gov.ga', phone: '+241 06 345 678', role: 'user', status: 'active', organization: 'Ministère des Finances', plan: 'institution', createdAt: '2024-02-10', lastLogin: '2025-01-23' },
-    { id: '4', name: 'Sophie Biya', email: 'sophie@corporate.cm', phone: '+237 655 456 789', role: 'manager', status: 'inactive', organization: 'Corporate CM', plan: 'pro', createdAt: '2024-04-05', lastLogin: '2024-12-15' },
-    { id: '5', name: 'Amadou Diallo', email: 'amadou@startup.sn', phone: '+221 77 567 890', role: 'user', status: 'suspended', organization: null, plan: 'personal', createdAt: '2024-05-12', lastLogin: '2024-11-01' },
+    { id: '0', name: 'Ministère de la Pêche', email: 'ministre-peche@digitalium.io', phone: '+241 01 76 00 00', role: 'admin', status: 'active', organization: 'Cabinet Ministériel - Vue stratégique secteur halieutique', plan: 'institution', createdAt: '2024-01-01', lastLogin: '2026-01-30' },
+    { id: '1', name: 'Direction Centrale', email: 'dc-peche@digitalium.io', phone: '+241 01 76 00 01', role: 'admin', status: 'pending', organization: 'Coordination nationale des politiques de pêche', plan: 'institution', createdAt: '2024-02-15', lastLogin: '2026-01-29' },
+    { id: '2', name: 'DGPA', email: 'dgpa@digitalium.io', phone: '+241 01 76 00 02', role: 'manager', status: 'active', organization: 'Direction Générale des Pêches et de l\'Aquaculture', plan: 'institution', createdAt: '2024-03-10', lastLogin: '2026-01-28' },
+    { id: '3', name: 'Inspecteur Maritime', email: 'inspecteur-peche@digitalium.io', phone: '+241 06 45 67 89', role: 'user', status: 'active', organization: 'Surveillance terrain - Contrôles et inspections', plan: 'institution', createdAt: '2024-04-05', lastLogin: '2026-01-27' },
+    { id: '4', name: 'ANPA', email: 'anpa@digitalium.io', phone: '+241 01 76 00 03', role: 'manager', status: 'pending', organization: 'Agence Nationale des Pêches - Quotas et licences', plan: 'institution', createdAt: '2024-05-20', lastLogin: '2026-01-26' },
+    { id: '5', name: 'Administrateur Système', email: 'admin-peche@digitalium.io', phone: '+241 01 76 00 04', role: 'admin', status: 'active', organization: 'Gestion système, utilisateurs et données', plan: 'institution', createdAt: '2024-06-15', lastLogin: '2026-01-30' },
 ];
 
 const roleConfig: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
