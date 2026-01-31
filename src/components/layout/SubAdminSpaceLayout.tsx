@@ -1,8 +1,7 @@
 /**
- * ProSpaceLayout - Main layout wrapper for Pro user space
- * Adopts the SubAdmin module model with organized sections:
- * - Modules Métiers (iDocument, iArchive, iSignature)
- * - Administration (conditional)
+ * SubAdminSpaceLayout - Layout for sub-administrator (Ornella DOUMBA role)
+ * Provides unified sidebar navigation with Configuration Plateforme and Gestion Métier
+ * Plus access to iDocument, iArchive, iSignature workflows
  */
 
 import React, { useState } from 'react';
@@ -14,82 +13,45 @@ import {
     Archive,
     PenTool,
     Users,
-    BarChart3,
-    CreditCard,
-    Key,
-    Shield,
-    Globe,
-    ChevronRight,
+    Building2,
     ChevronDown,
+    ChevronRight,
+    LogOut,
     Menu,
     X,
-    Upload,
-    Sparkles,
-    Settings,
-    LogOut,
-    User,
-    Bell,
-    HelpCircle,
+    Cpu,
     Palette,
     Sun,
     Moon,
+    GitBranch,
+    Settings,
     Briefcase,
+    TrendingUp,
+    CreditCard,
+    ShieldCheck,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
     Tooltip,
     TooltipContent,
     TooltipProvider,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { QuickActionBar } from '@/components/pro/QuickActionBar';
+import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/FirebaseAuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { SpaceProvider } from '@/contexts/SpaceContext';
-import { IAstedChat } from '@/pages/pro/iarchive/components/IAstedChat';
-
-// Module color tokens
-export const MODULE_COLORS = {
-    iDocument: {
-        primary: '#3B82F6',
-        bg: 'bg-blue-500/10',
-        text: 'text-blue-500',
-        border: 'border-blue-500/30',
-        gradient: 'from-blue-500 to-cyan-500',
-    },
-    iArchive: {
-        primary: '#10B981',
-        bg: 'bg-emerald-500/10',
-        text: 'text-emerald-500',
-        border: 'border-emerald-500/30',
-        gradient: 'from-emerald-500 to-teal-500',
-    },
-    iSignature: {
-        primary: '#8B5CF6',
-        bg: 'bg-purple-500/10',
-        text: 'text-purple-500',
-        border: 'border-purple-500/30',
-        gradient: 'from-purple-500 to-pink-500',
-    },
-};
 
 interface NavItem {
     label: string;
     href: string;
     icon: React.ComponentType<{ className?: string }>;
-    module?: 'iDocument' | 'iArchive' | 'iSignature';
-    badge?: string | number;
+    badge?: number | string;
     badgeType?: 'default' | 'warning' | 'error' | 'success';
+    children?: { label: string; href: string; badge?: number }[];
 }
 
 interface NavSection {
@@ -101,71 +63,109 @@ interface NavSection {
 // Dashboard - Entry point
 const DASHBOARD_ITEM: NavItem = {
     label: 'Vue d\'ensemble',
-    href: '/pro',
+    href: '/subadmin',
     icon: LayoutDashboard,
 };
 
-// Workflow Modules Section - adopting SubAdmin model
+// Workflow Modules Section
 const WORKFLOW_SECTION: NavSection = {
     title: 'Modules Métiers',
     icon: FileText,
     items: [
         {
             label: 'iDocument',
-            href: '/pro/idocument',
+            href: '/subadmin/idocument',
             icon: FileText,
-            module: 'iDocument',
+            badge: 'Pro',
+            badgeType: 'success',
         },
         {
             label: 'iArchive',
-            href: '/pro/iarchive',
+            href: '/subadmin/iarchive',
             icon: Archive,
-            module: 'iArchive',
+            badge: 'PME',
+            badgeType: 'default',
         },
         {
             label: 'iSignature',
-            href: '/pro/isignature',
+            href: '/subadmin/isignature',
             icon: PenTool,
-            module: 'iSignature',
         },
     ],
 };
 
-// Administration Section - visible for admin users
-const ADMIN_SECTION: NavSection = {
-    title: 'Administration',
+// Configuration Plateforme - Platform settings & organization
+const CONFIG_SECTION: NavSection = {
+    title: 'Configuration Plateforme',
     icon: Settings,
     items: [
-        { label: 'Gestion Équipe', href: '/pro/team', icon: Users },
-        { label: 'Analytics', href: '/pro/analytics', icon: BarChart3 },
-        { label: 'Facturation Pro', href: '/pro/billing', icon: CreditCard },
-        { label: 'Accès API', href: '/pro/api', icon: Key },
-        { label: 'Sécurité', href: '/pro/security', icon: Shield },
-        { label: 'Espace Public', href: '/pro/public', icon: Globe },
-        { label: 'Thème Design', href: '/pro/design-theme', icon: Palette },
+        {
+            label: 'Utilisateurs IAM',
+            href: '/subadmin/iam',
+            icon: Users,
+        },
+        {
+            label: 'Configuration Orga',
+            href: '/subadmin/organization',
+            icon: Building2,
+        },
+        {
+            label: 'Thème Design',
+            href: '/subadmin/design-theme',
+            icon: Palette,
+        },
+        {
+            label: 'Modèles de Workflow',
+            href: '/subadmin/workflow-templates',
+            icon: GitBranch,
+        },
     ],
 };
 
-export default function ProSpaceLayout() {
+// Gestion Métier - Business management
+const BUSINESS_SECTION: NavSection = {
+    title: 'Gestion Métier',
+    icon: Briefcase,
+    items: [
+        {
+            label: 'Gestion Clients',
+            href: '/subadmin/clients',
+            icon: Users,
+        },
+        {
+            label: 'Leads & Prospects',
+            href: '/subadmin/leads',
+            icon: TrendingUp,
+        },
+        {
+            label: 'Abonnements',
+            href: '/subadmin/subscriptions',
+            icon: CreditCard,
+        },
+    ],
+};
+
+
+export default function SubAdminSpaceLayout() {
     const location = useLocation();
     const navigate = useNavigate();
     const { user, signOut } = useAuth();
     const { theme, toggleTheme } = useTheme();
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-    const [isIAstedOpen, setIsIAstedOpen] = useState(false);
+    const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
-    // Determine if current user has admin role based on email
-    const isProAdmin = (() => {
-        const email = user?.email?.toLowerCase() || '';
-        const adminEmails = [
-            'dg@ascoma.ga',
-            'ministre-peche@digitalium.io',
-        ];
-        return adminEmails.includes(email);
-    })();
+    const toggleExpand = (label: string) => {
+        setExpandedItems(prev =>
+            prev.includes(label)
+                ? prev.filter(item => item !== label)
+                : [...prev, label]
+        );
+    };
 
     const isActive = (href: string) => {
-        if (href === '/pro') return location.pathname === '/pro';
+        if (href === '/subadmin') {
+            return location.pathname === '/subadmin';
+        }
         return location.pathname.startsWith(href);
     };
 
@@ -175,9 +175,68 @@ export default function ProSpaceLayout() {
     };
 
     const renderNavItem = (item: NavItem) => {
+        const hasChildren = item.children && item.children.length > 0;
+        const isExpanded = expandedItems.includes(item.label);
         const active = isActive(item.href);
         const Icon = item.icon;
-        const moduleColors = item.module ? MODULE_COLORS[item.module] : null;
+
+        if (hasChildren) {
+            return (
+                <div key={item.label}>
+                    <button
+                        onClick={() => toggleExpand(item.label)}
+                        className={cn(
+                            'w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-left',
+                            active
+                                ? 'bg-purple-500/10 text-foreground'
+                                : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                        )}
+                    >
+                        <Icon className="h-5 w-5" />
+                        {isSidebarOpen && (
+                            <>
+                                <span className="flex-1">{item.label}</span>
+                                {isExpanded ? (
+                                    <ChevronDown className="h-4 w-4" />
+                                ) : (
+                                    <ChevronRight className="h-4 w-4" />
+                                )}
+                            </>
+                        )}
+                    </button>
+                    <AnimatePresence>
+                        {isExpanded && isSidebarOpen && (
+                            <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: 'auto', opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                className="ml-6 mt-1 space-y-1 overflow-hidden"
+                            >
+                                {item.children!.map(child => (
+                                    <Link
+                                        key={child.href}
+                                        to={child.href}
+                                        className={cn(
+                                            'flex items-center gap-2 px-3 py-1.5 rounded-md text-sm',
+                                            location.pathname === child.href
+                                                ? 'bg-purple-500/10 text-foreground'
+                                                : 'text-muted-foreground hover:text-foreground'
+                                        )}
+                                    >
+                                        <span>{child.label}</span>
+                                        {child.badge && (
+                                            <Badge variant="secondary" className="text-xs bg-muted">
+                                                {child.badge}
+                                            </Badge>
+                                        )}
+                                    </Link>
+                                ))}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
+            );
+        }
 
         const button = (
             <Link
@@ -185,16 +244,11 @@ export default function ProSpaceLayout() {
                 className={cn(
                     'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors',
                     active
-                        ? moduleColors
-                            ? `${moduleColors.bg} text-foreground`
-                            : 'bg-primary/10 text-foreground'
+                        ? 'bg-purple-500/10 text-foreground'
                         : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                 )}
             >
-                <Icon className={cn(
-                    'h-5 w-5',
-                    moduleColors && moduleColors.text
-                )} />
+                <Icon className="h-5 w-5" />
                 {isSidebarOpen && (
                     <>
                         <span className="flex-1">{item.label}</span>
@@ -234,8 +288,8 @@ export default function ProSpaceLayout() {
     };
 
     return (
-        <SpaceProvider spaceType="pro">
-            <div className="flex h-screen overflow-hidden bg-background">
+        <SpaceProvider spaceType="subadmin">
+            <div className="h-screen flex bg-background">
                 {/* Sidebar */}
                 <motion.aside
                     initial={false}
@@ -245,13 +299,13 @@ export default function ProSpaceLayout() {
                     {/* Sidebar Header */}
                     <div className="p-4 border-b border-border flex items-center justify-between">
                         <div className={cn('flex items-center gap-3', !isSidebarOpen && 'justify-center')}>
-                            <div className="p-2 rounded-lg bg-gradient-to-br from-primary/20 to-purple-500/20 border border-primary/30">
-                                <Briefcase className="h-6 w-6 text-primary" />
+                            <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30">
+                                <ShieldCheck className="h-6 w-6 text-purple-400" />
                             </div>
                             {isSidebarOpen && (
                                 <div>
-                                    <h1 className="font-bold text-foreground">Espace Pro</h1>
-                                    <p className="text-xs text-muted-foreground">Gestion documentaire</p>
+                                    <h1 className="font-bold text-foreground">Sous-Admin</h1>
+                                    <p className="text-xs text-muted-foreground">Config & Gestion Métier</p>
                                 </div>
                             )}
                         </div>
@@ -265,24 +319,14 @@ export default function ProSpaceLayout() {
                         </Button>
                     </div>
 
-                    {/* Quick Actions */}
+                    {/* Role Badge */}
                     {isSidebarOpen && (
-                        <div className="p-3 space-y-2 border-b border-border">
-                            <Button
-                                className="w-full justify-start bg-emerald-500 hover:bg-emerald-600"
-                                onClick={() => navigate('/pro/iarchive/upload')}
-                            >
-                                <Upload className="h-4 w-4 mr-2" />
-                                Archiver un document
-                            </Button>
-                            <Button
-                                variant="outline"
-                                className="w-full justify-start border-purple-500/30 text-purple-500 hover:bg-purple-500/10"
-                                onClick={() => setIsIAstedOpen(true)}
-                            >
-                                <Sparkles className="h-4 w-4 mr-2" />
-                                Assistant iAsted
-                            </Button>
+                        <div className="mx-3 mt-3 p-3 rounded-lg bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20">
+                            <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 rounded-full bg-purple-500 animate-pulse" />
+                                <span className="text-xs font-medium text-purple-400">SOUS-ADMINISTRATEUR</span>
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-1">Accès Configuration & Métier</p>
                         </div>
                     )}
 
@@ -308,24 +352,35 @@ export default function ProSpaceLayout() {
                             {WORKFLOW_SECTION.items.map(renderNavItem)}
                         </nav>
 
-                        {/* Administration Section - Only for admins */}
-                        {isProAdmin && (
-                            <>
-                                {isSidebarOpen && (
-                                    <div className="mt-4 pt-4 border-t border-border">
-                                        <div className="flex items-center gap-2 px-3 mb-2">
-                                            <Settings className="h-3.5 w-3.5 text-purple-400" />
-                                            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                                                {ADMIN_SECTION.title}
-                                            </p>
-                                        </div>
-                                    </div>
-                                )}
-                                <nav className="space-y-1 mt-1">
-                                    {ADMIN_SECTION.items.map(renderNavItem)}
-                                </nav>
-                            </>
+                        {/* Configuration Plateforme Section */}
+                        {isSidebarOpen && (
+                            <div className="mt-4 pt-4 border-t border-border">
+                                <div className="flex items-center gap-2 px-3 mb-2">
+                                    <Settings className="h-3.5 w-3.5 text-purple-400" />
+                                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                                        {CONFIG_SECTION.title}
+                                    </p>
+                                </div>
+                            </div>
                         )}
+                        <nav className="space-y-1 mt-1">
+                            {CONFIG_SECTION.items.map(renderNavItem)}
+                        </nav>
+
+                        {/* Gestion Métier Section */}
+                        {isSidebarOpen && (
+                            <div className="mt-4 pt-4 border-t border-border">
+                                <div className="flex items-center gap-2 px-3 mb-2">
+                                    <Briefcase className="h-3.5 w-3.5 text-emerald-400" />
+                                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                                        {BUSINESS_SECTION.title}
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+                        <nav className="space-y-1 mt-1">
+                            {BUSINESS_SECTION.items.map(renderNavItem)}
+                        </nav>
                     </ScrollArea>
 
                     {/* User Section */}
@@ -334,16 +389,19 @@ export default function ProSpaceLayout() {
                             'flex items-center gap-3 p-2 rounded-lg hover:bg-muted transition-colors',
                             !isSidebarOpen && 'justify-center'
                         )}>
-                            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white font-medium text-sm">
-                                {user?.displayName?.charAt(0) || user?.email?.charAt(0) || 'U'}
-                            </div>
+                            <Avatar className="h-9 w-9 border border-purple-500/30">
+                                <AvatarImage src={user?.photoURL || undefined} />
+                                <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white">
+                                    OD
+                                </AvatarFallback>
+                            </Avatar>
                             {isSidebarOpen && (
                                 <div className="flex-1 min-w-0">
                                     <p className="text-sm font-medium truncate text-foreground">
-                                        {user?.displayName || 'Utilisateur'}
+                                        {user?.displayName || 'Ornella DOUMBA'}
                                     </p>
                                     <p className="text-xs text-muted-foreground truncate">
-                                        {user?.email || 'email@exemple.com'}
+                                        {user?.email || 'ornella.doumba@digitalium.ga'}
                                     </p>
                                 </div>
                             )}
@@ -390,33 +448,11 @@ export default function ProSpaceLayout() {
                 </motion.aside>
 
                 {/* Main Content */}
-                <main className="flex-1 flex flex-col overflow-hidden">
-                    {/* Mobile Header */}
-                    <header className="lg:hidden h-14 border-b flex items-center px-4 gap-4">
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setIsSidebarOpen(true)}
-                        >
-                            <Menu className="h-5 w-5" />
-                        </Button>
-                        <span className="font-semibold">Espace Pro</span>
-                    </header>
-
-                    {/* Page Content */}
-                    <div className="flex-1 overflow-auto">
+                <main className="flex-1 overflow-auto bg-background">
+                    <div className="p-6">
                         <Outlet />
                     </div>
-
-                    {/* Quick Action Bar */}
-                    <QuickActionBar />
                 </main>
-
-                {/* iAsted AI Chat */}
-                <IAstedChat
-                    isOpen={isIAstedOpen}
-                    onClose={() => setIsIAstedOpen(false)}
-                />
             </div>
         </SpaceProvider>
     );

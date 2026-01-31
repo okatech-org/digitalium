@@ -1,10 +1,11 @@
 /**
  * DocumentCategoryPage - Dynamic iDocument category page
  * Adapts content based on route (my, shared, team, templates, trash)
+ * Shows files from selected folder in SubAdmin backoffice mode
  */
 
 import React, { useState, useMemo } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useOutletContext } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     FileText,
@@ -26,7 +27,6 @@ import {
     Filter,
     Grid,
     List,
-    Box, // Added for 3D view
     Plus,
     FileSpreadsheet,
     FileImage,
@@ -36,12 +36,16 @@ import {
     Lock,
     Globe,
     UserCheck,
+    ChevronRight,
+    Home,
+    Upload,
+    FolderPlus,
+    FolderTree,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { BookFolder3D } from '@/components/ui/BookFolder3D'; // Import new 3D component
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -57,6 +61,17 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import { useSpaceFromUrl } from '@/contexts/SpaceContext';
+import {
+    digitaliumDocuments,
+    digitaliumFiles,
+    getFilesInFolder,
+    getFolderBreadcrumb,
+    getFolderItemCount,
+    DigitaliumFile,
+    DigitaliumFolder
+} from '@/data/digitaliumMockData';
+import { IDocumentOutletContext } from './IDocumentLayout';
 
 // Category configuration
 interface CategoryConfig {
@@ -75,11 +90,11 @@ interface CategoryConfig {
 const CATEGORY_CONFIG: Record<string, CategoryConfig> = {
     my: {
         key: 'my',
-        title: 'Mes Documents',
-        description: 'Documents personnels et brouillons',
+        title: 'Mes Dossiers',
+        description: 'Dossiers personnels et fichiers importés',
         icon: FileText,
         color: 'text-blue-500 bg-blue-500/10',
-        emptyMessage: 'Créez votre premier document pour commencer',
+        emptyMessage: 'Créez votre premier dossier pour commencer',
         showOwner: false,
         showSharedWith: true,
         canDelete: true,
@@ -130,12 +145,24 @@ const CATEGORY_CONFIG: Record<string, CategoryConfig> = {
 
 // Document types with icons
 const DOCUMENT_TYPES = {
+    folder: { icon: FolderOpen, color: 'text-blue-500' },
     document: { icon: FileText, color: 'text-blue-500' },
     spreadsheet: { icon: FileSpreadsheet, color: 'text-green-500' },
     presentation: { icon: Presentation, color: 'text-orange-500' },
     image: { icon: FileImage, color: 'text-purple-500' },
     contract: { icon: FilePen, color: 'text-amber-500' },
+    pdf: { icon: FilePen, color: 'text-red-500' },
     other: { icon: File, color: 'text-gray-500' },
+};
+
+// Map document types from mock data
+const TYPE_MAP: Record<string, string> = {
+    'contract': 'contract',
+    'legal': 'document',
+    'procedure': 'document',
+    'technical': 'document',
+    'hr': 'document',
+    'marketing': 'presentation',
 };
 
 // Status configurations
@@ -148,22 +175,29 @@ const STATUS_CONFIG = {
     deleted: { label: 'Supprimé', color: 'bg-red-500/20 text-red-500' },
 };
 
-// Mock data generator - REMOVED: Data now comes from database
-const generateMockDocuments = (_category: string): {
-    id: string;
-    title: string;
-    type: string;
-    status: string;
-    lastEdit: string;
-    collaborators: string[];
-    starred: boolean;
-    size: string;
-    visibility: string;
-    owner?: string;
-    isTemplate?: boolean;
-    deletedAt?: number;
-}[] => {
-    return [];
+// Generate documents based on context (SubAdmin = Digitalium, Pro = empty/client)
+const generateContextualDocuments = (category: string, isBackoffice: boolean) => {
+    if (!isBackoffice) {
+        // Pro space - return empty for now (would come from database in production)
+        return [];
+    }
+
+    // SubAdmin backoffice - return Digitalium documents
+    return digitaliumDocuments
+        .filter(doc => doc.category === category)
+        .map(doc => ({
+            id: doc.id,
+            title: doc.title,
+            type: TYPE_MAP[doc.type] || 'document',
+            status: doc.status,
+            lastEdit: doc.lastModified,
+            collaborators: doc.collaborators.map(c => c.charAt(0)),
+            starred: false,
+            size: '1.2 MB',
+            visibility: 'team',
+            owner: doc.author,
+            isTemplate: doc.category === 'templates',
+        }));
 };
 
 const generateCollaborators = (_category: string) => {
@@ -185,6 +219,18 @@ const formatRelativeTime = (timestamp: number) => {
 
 export default function DocumentCategoryPage() {
     const location = useLocation();
+    const { isBackoffice } = useSpaceFromUrl();
+
+    // Get selected folder from parent layout context
+    const {
+        selectedFolder,
+        setSelectedFolder,
+        toggleFolders,
+        folders,
+        getSubfolders,
+        openCreateFolderDialog
+    } = useOutletContext<IDocumentOutletContext>();
+
     // Local view mode state - fully managed by this component
     const [viewMode, setViewMode] = useState<'grid' | 'list' | '3d'>('grid');
 
@@ -208,8 +254,68 @@ export default function DocumentCategoryPage() {
     const config = CATEGORY_CONFIG[resolvedCategory];
     const CategoryIcon = config.icon;
 
-    // Generate and filter documents
-    const documents = useMemo(() => generateMockDocuments(resolvedCategory), [resolvedCategory]);
+    // Get breadcrumb for current folder
+    const breadcrumb = useMemo(() => {
+        if (!selectedFolder || !isBackoffice) return [];
+        return getFolderBreadcrumb(selectedFolder.id);
+    }, [selectedFolder, isBackoffice]);
+
+    // Get files from selected folder (for backoffice) or use legacy method
+    const documents = useMemo(() => {
+        if (!isBackoffice) {
+            // Pro space - return empty for now
+            return [];
+        }
+
+        if (resolvedCategory === 'my' && selectedFolder) {
+            // Get files from the selected folder
+            const files = getFilesInFolder(selectedFolder.id);
+            const subfolders = getSubfolders(selectedFolder.id);
+
+            // Convert DigitaliumFile to display format
+            const fileDocuments = files.map(f => ({
+                id: f.id,
+                title: f.name,
+                type: f.type === 'pdf' ? 'contract' : f.type,
+                status: f.status,
+                lastEdit: f.modifiedAt,
+                collaborators: f.collaborators?.map(c => c.charAt(0)) || [],
+                starred: f.starred || false,
+                size: f.size,
+                visibility: 'team',
+                owner: f.author,
+                isTemplate: false,
+                isFolder: false,
+            }));
+
+            // Sous-dossiers comme cartes cliquables
+            const folderItems = subfolders.map(sf => {
+                const itemCount = getFolderItemCount(sf.id);
+                return {
+                    id: sf.id,
+                    title: sf.name,
+                    type: 'folder' as string,
+                    status: 'approved' as const,
+                    lastEdit: sf.modifiedAt,
+                    collaborators: [],
+                    starred: false,
+                    size: `${itemCount.files + itemCount.folders} éléments`,
+                    visibility: 'team',
+                    owner: '',
+                    isTemplate: false,
+                    isFolder: true,
+                    folderData: sf,
+                    color: sf.color,
+                };
+            });
+
+            // Afficher dossiers en premier, puis fichiers
+            return [...folderItems, ...fileDocuments];
+        }
+
+        // Fallback to legacy documents
+        return generateContextualDocuments(resolvedCategory, isBackoffice);
+    }, [resolvedCategory, isBackoffice, selectedFolder, folders, getSubfolders]);
 
     const filteredDocuments = documents.filter(doc => {
         if (statusFilter !== 'all' && doc.status !== statusFilter) return false;
@@ -286,8 +392,40 @@ export default function DocumentCategoryPage() {
         </DropdownMenuContent>
     );
 
+    // Handler for clicking on a folder item
+    const handleFolderClick = (doc: any) => {
+        if (doc.isFolder && doc.folderData) {
+            setSelectedFolder(doc.folderData);
+        }
+    };
+
     return (
         <div className="space-y-4">
+            {/* Breadcrumb Navigation (SubAdmin only) */}
+            {isBackoffice && resolvedCategory === 'my' && breadcrumb.length > 0 && (
+                <nav className="flex items-center gap-1 text-sm text-muted-foreground">
+                    {breadcrumb.map((folder, index) => (
+                        <React.Fragment key={folder.id}>
+                            {index > 0 && <ChevronRight className="h-4 w-4" />}
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className={cn(
+                                    "h-7 px-2",
+                                    index === breadcrumb.length - 1
+                                        ? "font-medium text-foreground"
+                                        : "hover:text-foreground"
+                                )}
+                                onClick={() => setSelectedFolder(folder)}
+                            >
+                                {index === 0 && <Home className="h-3.5 w-3.5 mr-1" />}
+                                {folder.name}
+                            </Button>
+                        </React.Fragment>
+                    ))}
+                </nav>
+            )}
+
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -295,23 +433,42 @@ export default function DocumentCategoryPage() {
                         <CategoryIcon className={cn('h-5 w-5', config.color.split(' ')[0])} />
                     </div>
                     <div>
-                        <h2 className="text-lg font-semibold">{config.title}</h2>
+                        <h2 className="text-lg font-semibold">
+                            {isBackoffice && resolvedCategory === 'my' && selectedFolder
+                                ? selectedFolder.name
+                                : config.title}
+                        </h2>
                         <p className="text-sm text-muted-foreground">
-                            {filteredDocuments.length} documents • {config.description}
+                            {filteredDocuments.length} élément{filteredDocuments.length !== 1 ? 's' : ''}
+                            {isBackoffice && selectedFolder && selectedFolder.id !== 'root'
+                                ? ''
+                                : ''}
                         </p>
                     </div>
                 </div>
                 {resolvedCategory !== 'trash' && resolvedCategory !== 'shared' && (
-                    <Button className="bg-blue-500 hover:bg-blue-600">
-                        <Plus className="h-4 w-4 mr-2" />
-                        {resolvedCategory === 'templates' ? 'Nouveau modèle' : 'Nouveau document'}
-                    </Button>
+                    <div className="flex gap-2">
+                        {isBackoffice && resolvedCategory === 'my' && (
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={openCreateFolderDialog}
+                            >
+                                <FolderPlus className="h-4 w-4 mr-2" />
+                                Dossier
+                            </Button>
+                        )}
+                        <Button className="bg-blue-500 hover:bg-blue-600" size="sm">
+                            <Upload className="h-4 w-4 mr-2" />
+                            {resolvedCategory === 'templates' ? 'Nouveau modèle' : 'Importer'}
+                        </Button>
+                    </div>
                 )}
             </div>
 
             {/* Filters */}
             <div className="flex gap-3 items-center">
-                {/* View Toggle */}
+                {/* View Toggle + Arborescence */}
                 <div className="flex border rounded-lg overflow-hidden bg-background">
                     <Button
                         variant={viewMode === 'grid' ? 'default' : 'ghost'}
@@ -329,13 +486,15 @@ export default function DocumentCategoryPage() {
                     >
                         <List className="h-4 w-4" />
                     </Button>
+                    {/* Arborescence button */}
                     <Button
-                        variant={viewMode === '3d' ? 'default' : 'ghost'}
+                        variant="ghost"
                         size="icon"
-                        className={cn('h-9 w-9 rounded-none', viewMode === '3d' && 'bg-primary')}
-                        onClick={() => setViewMode('3d')}
+                        className="h-9 w-9 rounded-none border-l"
+                        onClick={toggleFolders}
+                        title="Afficher l'arborescence"
                     >
-                        <Box className="h-4 w-4" />
+                        <FolderTree className="h-4 w-4" />
                     </Button>
                 </div>
 
@@ -370,35 +529,9 @@ export default function DocumentCategoryPage() {
                 </Button>
             </div>
 
-            {/* Documents Grid / List / 3D */}
+            {/* Documents Grid / List */}
             <AnimatePresence mode="wait">
-                {viewMode === '3d' ? (
-                    <motion.div
-                        key="3d"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                    >
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8 px-4 py-8">
-                            {filteredDocuments.map((doc, i) => (
-                                <motion.div
-                                    key={doc.id}
-                                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                                    transition={{ delay: i * 0.05 }}
-                                >
-                                    <BookFolder3D
-                                        title={doc.title}
-                                        documentCount={Math.floor(Math.random() * 10) + 1} // Mock count
-                                        color={DOCUMENT_TYPES[doc.type as keyof typeof DOCUMENT_TYPES]?.color.replace('text-', '#').replace('-500', '') || '#3B82F6'} // Map color
-                                        hasContent={doc.status !== 'draft'} // Mock content based on status
-                                        isStarred={doc.starred}
-                                    />
-                                </motion.div>
-                            ))}
-                        </div>
-                    </motion.div>
-                ) : viewMode === 'grid' ? (
+                {viewMode === 'grid' ? (
                     <motion.div
                         key="grid"
                         initial={{ opacity: 0 }}
@@ -413,7 +546,10 @@ export default function DocumentCategoryPage() {
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: i * 0.05 }}
                             >
-                                <Card className="group cursor-pointer hover:border-blue-500/50 transition-all h-full">
+                                <Card
+                                    className="group cursor-pointer hover:border-blue-500/50 transition-all h-full"
+                                    onClick={() => (doc as any).isFolder && handleFolderClick(doc)}
+                                >
                                     <CardContent className="p-4 flex flex-col h-full">
                                         {/* Header */}
                                         <div className="flex items-start justify-between mb-3">
@@ -504,6 +640,7 @@ export default function DocumentCategoryPage() {
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: i * 0.03 }}
                                 className="flex items-center gap-4 p-4 rounded-lg border hover:border-blue-500/50 transition-all cursor-pointer group"
+                                onClick={() => (doc as any).isFolder && handleFolderClick(doc)}
                             >
                                 <div className={cn('p-2 rounded-lg',
                                     DOCUMENT_TYPES[doc.type as keyof typeof DOCUMENT_TYPES]?.color.replace('text-', 'bg-') + '/10'
@@ -575,7 +712,7 @@ export default function DocumentCategoryPage() {
                     {resolvedCategory === 'my' && (
                         <Button className="mt-4 bg-blue-500 hover:bg-blue-600">
                             <Plus className="h-4 w-4 mr-2" />
-                            Créer un document
+                            Créer un dossier
                         </Button>
                     )}
                 </motion.div>

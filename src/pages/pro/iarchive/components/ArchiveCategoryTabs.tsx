@@ -35,10 +35,17 @@ const colorMap: Record<string, { active: string; hover: string; text: string }> 
     amber: { active: 'bg-amber-500', hover: 'hover:bg-amber-500/10', text: 'text-amber-500' },
 };
 
+// Helper to get base path from current location
+function getBasePath(pathname: string): string {
+    if (pathname.startsWith('/subadmin')) return '/subadmin';
+    return '/pro';
+}
+
 export function ArchiveCategoryTabs() {
     const location = useLocation();
     const pathParts = location.pathname.split('/');
     const activeCategory = pathParts[pathParts.length - 1] || 'fiscal';
+    const basePath = getBasePath(location.pathname);
 
     return (
         <div className="flex items-center gap-1 overflow-x-auto pb-1 scrollbar-thin">
@@ -53,7 +60,7 @@ export function ArchiveCategoryTabs() {
                 return (
                     <Link
                         key={cat.id}
-                        to={`/pro/iarchive/${cat.id}`}
+                        to={`${basePath}/iarchive/${cat.id}`}
                         className="relative flex-shrink-0"
                     >
                         <motion.div

@@ -25,6 +25,10 @@ import {
     Sun,
     Moon,
     GitBranch,
+    Settings,
+    Briefcase,
+    TrendingUp,
+    CreditCard,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -50,86 +54,112 @@ interface NavItem {
     children?: { label: string; href: string; badge?: number }[];
 }
 
-const NAV_ITEMS: NavItem[] = [
-    {
-        label: 'Console Système',
-        href: '/admin',
-        icon: LayoutDashboard,
-    },
-    {
-        label: 'Infrastructure',
-        href: '/admin/infrastructure',
-        icon: Server,
-        badge: '4',
-        badgeType: 'success',
-    },
-    {
-        label: 'Monitoring',
-        href: '/admin/monitoring',
-        icon: Activity,
-    },
-    {
-        label: 'Bases de Données',
-        href: '/admin/databases',
-        icon: Database,
-        children: [
-            { label: 'Vue d\'ensemble', href: '/admin/databases' },
-            { label: 'Réplicas', href: '/admin/databases/replicas' },
-            { label: 'Backups', href: '/admin/databases/backups' },
-        ],
-    },
-    {
-        label: 'Logs Système',
-        href: '/admin/logs',
-        icon: Terminal,
-    },
-    {
-        label: 'Sécurité',
-        href: '/admin/security',
-        icon: ShieldAlert,
-        badge: 'A+',
-        badgeType: 'success',
-    },
-    {
-        label: 'Utilisateurs IAM',
-        href: '/admin/iam',
-        icon: Users,
-    },
-    {
-        label: 'Configuration Orga',
-        href: '/admin/organization',
-        icon: Building2,
-    },
-    {
-        label: 'Thème Design',
-        href: '/admin/design-theme',
-        icon: Palette,
-    },
-];
+interface NavSection {
+    title: string;
+    icon: React.ComponentType<{ className?: string }>;
+    items: NavItem[];
+}
 
-// Business management items - separate section
-const BUSINESS_NAV_ITEMS: NavItem[] = [
-    {
-        label: 'Gestion Utilisateurs',
-        href: '/admin/users',
-        icon: Users,
-    },
-    {
-        label: 'Leads & Prospects',
-        href: '/admin/leads',
-        icon: Activity,
-    },
-    {
-        label: 'Abonnements',
-        href: '/admin/subscriptions',
-        icon: Database,
-    },
-    {
-        label: 'Modèles de Workflow',
-        href: '/admin/workflow-templates',
-        icon: GitBranch,
-    },
-];
+// Dashboard - Entry point
+const DASHBOARD_ITEM: NavItem = {
+    label: 'Console Système',
+    href: '/admin',
+    icon: LayoutDashboard,
+};
+
+// Infrastructure Technique - Technical aspects (servers, network, security)
+const INFRASTRUCTURE_SECTION: NavSection = {
+    title: 'Infrastructure Technique',
+    icon: Server,
+    items: [
+        {
+            label: 'Serveurs',
+            href: '/admin/infrastructure',
+            icon: Server,
+            badge: '4',
+            badgeType: 'success',
+        },
+        {
+            label: 'Monitoring',
+            href: '/admin/monitoring',
+            icon: Activity,
+        },
+        {
+            label: 'Bases de Données',
+            href: '/admin/databases',
+            icon: Database,
+            children: [
+                { label: 'Vue d\'ensemble', href: '/admin/databases' },
+                { label: 'Réplicas', href: '/admin/databases/replicas' },
+                { label: 'Backups', href: '/admin/databases/backups' },
+            ],
+        },
+        {
+            label: 'Logs Système',
+            href: '/admin/logs',
+            icon: Terminal,
+        },
+        {
+            label: 'Sécurité',
+            href: '/admin/security',
+            icon: ShieldAlert,
+            badge: 'A+',
+            badgeType: 'success',
+        },
+    ],
+};
+
+// Configuration Plateforme - Platform settings & organization
+const CONFIG_SECTION: NavSection = {
+    title: 'Configuration Plateforme',
+    icon: Settings,
+    items: [
+        {
+            label: 'Utilisateurs IAM',
+            href: '/admin/iam',
+            icon: Users,
+        },
+        {
+            label: 'Configuration Orga',
+            href: '/admin/organization',
+            icon: Building2,
+        },
+        {
+            label: 'Thème Design',
+            href: '/admin/design-theme',
+            icon: Palette,
+        },
+        {
+            label: 'Modèles de Workflow',
+            href: '/admin/workflow-templates',
+            icon: GitBranch,
+        },
+    ],
+};
+
+// Gestion Métier - Business management
+const BUSINESS_SECTION: NavSection = {
+    title: 'Gestion Métier',
+    icon: Briefcase,
+    items: [
+        {
+            label: 'Gestion Clients',
+            href: '/admin/users',
+            icon: Users,
+        },
+        {
+            label: 'Leads & Prospects',
+            href: '/admin/leads',
+            icon: TrendingUp,
+        },
+        {
+            label: 'Abonnements',
+            href: '/admin/subscriptions',
+            icon: CreditCard,
+        },
+    ],
+};
+
 
 export default function SysAdminSpaceLayout() {
     const location = useLocation();
@@ -315,20 +345,54 @@ export default function SysAdminSpaceLayout() {
 
                 {/* Navigation */}
                 <ScrollArea className="flex-1 p-3">
+                    {/* Dashboard */}
                     <nav className="space-y-1">
-                        {NAV_ITEMS.map(renderNavItem)}
+                        {renderNavItem(DASHBOARD_ITEM)}
                     </nav>
 
-                    {/* Business Management Section */}
+                    {/* Infrastructure Technique Section */}
                     {isSidebarOpen && (
                         <div className="mt-4 pt-4 border-t border-border">
-                            <p className="text-xs font-medium text-muted-foreground px-3 mb-2 uppercase tracking-wider">
-                                Gestion Métier
-                            </p>
+                            <div className="flex items-center gap-2 px-3 mb-2">
+                                <Server className="h-3.5 w-3.5 text-blue-400" />
+                                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                                    {INFRASTRUCTURE_SECTION.title}
+                                </p>
+                            </div>
                         </div>
                     )}
                     <nav className="space-y-1 mt-1">
-                        {BUSINESS_NAV_ITEMS.map(renderNavItem)}
+                        {INFRASTRUCTURE_SECTION.items.map(renderNavItem)}
+                    </nav>
+
+                    {/* Configuration Plateforme Section */}
+                    {isSidebarOpen && (
+                        <div className="mt-4 pt-4 border-t border-border">
+                            <div className="flex items-center gap-2 px-3 mb-2">
+                                <Settings className="h-3.5 w-3.5 text-purple-400" />
+                                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                                    {CONFIG_SECTION.title}
+                                </p>
+                            </div>
+                        </div>
+                    )}
+                    <nav className="space-y-1 mt-1">
+                        {CONFIG_SECTION.items.map(renderNavItem)}
+                    </nav>
+
+                    {/* Gestion Métier Section */}
+                    {isSidebarOpen && (
+                        <div className="mt-4 pt-4 border-t border-border">
+                            <div className="flex items-center gap-2 px-3 mb-2">
+                                <Briefcase className="h-3.5 w-3.5 text-emerald-400" />
+                                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                                    {BUSINESS_SECTION.title}
+                                </p>
+                            </div>
+                        </div>
+                    )}
+                    <nav className="space-y-1 mt-1">
+                        {BUSINESS_SECTION.items.map(renderNavItem)}
                     </nav>
                 </ScrollArea>
 

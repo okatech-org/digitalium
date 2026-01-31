@@ -1,5 +1,6 @@
 /**
  * SignedDocuments - History of completed signatures
+ * A4 Miniature Grid Layout with actions below each document
  */
 
 import React, { useState } from 'react';
@@ -16,20 +17,13 @@ import {
     Search,
     MoreVertical,
     Shield,
+    User,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -47,7 +41,23 @@ import { cn } from '@/lib/utils';
 import { useSignatureSearch } from './ISignatureLayout';
 
 // Mock data - REMOVED: Data now comes from database
-const MOCK_SIGNED: { id: string; title: string; signedAt: string; initiator: string; signers: string[]; certified: boolean; hash: string }[] = [];
+const MOCK_SIGNED: { id: string; title: string; signedAt: string; initiator: string; signers: string[]; certified: boolean; hash: string; type?: string }[] = [];
+
+// Generate document preview content
+const getDocumentPreviewContent = (doc: { title: string; signedAt: string; hash: string }): string[] => {
+    return [
+        "DOCUMENT SIGNÉ",
+        "",
+        doc.title,
+        "",
+        "Signé le " + doc.signedAt,
+        "",
+        "✓ Signature validée",
+        "✓ Document certifié",
+        "",
+        "Hash: " + doc.hash.substring(0, 8) + "...",
+    ];
+};
 
 export default function SignedDocuments() {
     const { searchQuery: globalSearchQuery } = useSignatureSearch();
@@ -96,6 +106,16 @@ export default function SignedDocuments() {
         return true;
     });
 
+    const container = {
+        hidden: { opacity: 0 },
+        show: { opacity: 1, transition: { staggerChildren: 0.03 } }
+    };
+
+    const item = {
+        hidden: { opacity: 0, y: 10 },
+        show: { opacity: 1, y: 0 }
+    };
+
     return (
         <div className="space-y-4">
             {/* Header */}
@@ -140,72 +160,45 @@ export default function SignedDocuments() {
                 </Select>
             </div>
 
-            {/* Table */}
-            <Card>
-                <Table>
-                    <TableHeader>
-                        <TableRow className="bg-muted/30">
-                            <TableHead>Document</TableHead>
-                            <TableHead>Signé le</TableHead>
-                            <TableHead>Signataires</TableHead>
-                            <TableHead>Statut</TableHead>
-                            <TableHead className="w-12"></TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {filteredDocs.map((doc, i) => (
-                            <motion.tr
-                                key={doc.id}
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                transition={{ delay: i * 0.03 }}
-                                className="group"
-                            >
-                                <TableCell>
-                                    <div className="flex items-center gap-3">
-                                        <div className="p-2 rounded-lg bg-green-500/10">
-                                            <CheckCircle2 className="h-4 w-4 text-green-500" />
-                                        </div>
-                                        <div>
-                                            <p className="font-medium">{doc.title}</p>
-                                            <p className="text-xs text-muted-foreground">
-                                                Initié par {doc.initiator}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </TableCell>
-                                <TableCell className="text-muted-foreground">
-                                    {doc.signedAt}
-                                </TableCell>
-                                <TableCell>
-                                    <div className="flex -space-x-2">
-                                        {doc.signers.slice(0, 3).map((signer, j) => (
-                                            <Avatar key={j} className="h-6 w-6 border-2 border-background">
-                                                <AvatarFallback className="text-[8px] bg-purple-500/20 text-purple-500">
-                                                    {signer.slice(0, 2).toUpperCase()}
-                                                </AvatarFallback>
-                                            </Avatar>
-                                        ))}
-                                        {doc.signers.length > 3 && (
-                                            <div className="h-6 w-6 rounded-full bg-muted border-2 border-background flex items-center justify-center text-[10px]">
-                                                +{doc.signers.length - 3}
-                                            </div>
-                                        )}
-                                    </div>
-                                </TableCell>
-                                <TableCell>
-                                    {doc.certified && (
-                                        <Badge variant="secondary" className="bg-green-500/10 text-green-500">
-                                            <Award className="h-3 w-3 mr-1" />
+            {/* A4 Document Grid */}
+            <motion.div
+                variants={container}
+                initial="hidden"
+                animate="show"
+                className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5"
+            >
+                {filteredDocs.map((doc) => {
+                    const previewLines = getDocumentPreviewContent(doc);
+
+                    return (
+                        <motion.div
+                            key={doc.id}
+                            variants={item}
+                            className="group cursor-pointer"
+                        >
+                            {/* A4 Document Thumbnail */}
+                            <div className={cn(
+                                "relative bg-white dark:bg-zinc-900 rounded-lg shadow-md overflow-hidden",
+                                "aspect-[210/297]",
+                                "border-2 transition-all duration-200",
+                                "border-green-300 dark:border-green-700 hover:border-green-500 hover:shadow-xl"
+                            )}>
+                                {/* Certified Badge */}
+                                {doc.certified && (
+                                    <div className="absolute top-2 left-2 z-20">
+                                        <Badge variant="secondary" className="bg-green-500/90 text-white text-[9px] px-1.5">
+                                            <CheckCircle2 className="h-2.5 w-2.5 mr-1" />
                                             Certifié
                                         </Badge>
-                                    )}
-                                </TableCell>
-                                <TableCell>
+                                    </div>
+                                )}
+
+                                {/* Action Menu */}
+                                <div className="absolute top-2 right-2 z-20">
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
-                                            <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100">
-                                                <MoreVertical className="h-4 w-4" />
+                                            <Button variant="ghost" size="icon" className="h-6 w-6 bg-white/80 dark:bg-zinc-800/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <MoreVertical className="h-3 w-3" />
                                             </Button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end">
@@ -223,26 +216,102 @@ export default function SignedDocuments() {
                                             </DropdownMenuItem>
                                         </DropdownMenuContent>
                                     </DropdownMenu>
-                                </TableCell>
-                            </motion.tr>
-                        ))}
-                        {filteredDocs.length === 0 && (
-                            <TableRow>
-                                <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
-                                    <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                                    Aucun document trouvé
-                                </TableCell>
-                            </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
-            </Card>
+                                </div>
+
+                                {/* Document Content Preview */}
+                                <div className="absolute inset-0 p-3 pt-8 overflow-hidden">
+                                    <div className="text-[6px] leading-[8px] text-gray-700 dark:text-gray-300 font-mono select-none">
+                                        {previewLines.map((line, i) => (
+                                            <div key={i} className={`${i === 0 ? 'font-bold text-[7px] text-gray-900 dark:text-white' : ''} truncate`}>
+                                                {line || '\u00A0'}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Gradient Overlay */}
+                                <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white dark:from-zinc-900 via-white/95 dark:via-zinc-900/95 to-transparent" />
+
+                                {/* Signers Avatars */}
+                                <div className="absolute bottom-2 left-2 right-2">
+                                    <div className="flex -space-x-1">
+                                        {doc.signers.slice(0, 4).map((signer, j) => (
+                                            <Avatar key={j} className="h-4 w-4 border border-white dark:border-zinc-900">
+                                                <AvatarFallback className="text-[6px] bg-green-500/20 text-green-600">
+                                                    {signer.slice(0, 2).toUpperCase()}
+                                                </AvatarFallback>
+                                            </Avatar>
+                                        ))}
+                                        {doc.signers.length > 4 && (
+                                            <div className="h-4 w-4 rounded-full bg-muted border border-white dark:border-zinc-900 flex items-center justify-center text-[6px]">
+                                                +{doc.signers.length - 4}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Corner Fold */}
+                                <div className="absolute top-0 right-0 w-4 h-4 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-zinc-700 dark:to-zinc-600"
+                                    style={{ clipPath: 'polygon(100% 0, 0 100%, 100% 100%)' }} />
+                            </div>
+
+                            {/* Document Info Below A4 */}
+                            <div className="mt-3 space-y-2 px-1">
+                                <h4 className="font-semibold text-foreground text-sm line-clamp-2 leading-tight group-hover:text-green-500 transition-colors">
+                                    {doc.title}
+                                </h4>
+
+                                <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                                    <User className="h-3 w-3" />
+                                    <span className="truncate">{doc.initiator}</span>
+                                </div>
+
+                                <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                                    <span className="flex items-center gap-1">
+                                        <Calendar className="h-3 w-3" />
+                                        {doc.signedAt}
+                                    </span>
+                                    {doc.certified && (
+                                        <Badge variant="secondary" className="text-[9px] px-1.5 h-4 bg-green-500/10 text-green-500">
+                                            <Award className="h-2.5 w-2.5 mr-1" />
+                                            Certifié
+                                        </Badge>
+                                    )}
+                                </div>
+
+                                {/* Download Button */}
+                                <Button variant="outline" size="sm" className="w-full h-8 text-xs border-green-500/30 text-green-600 hover:bg-green-500/10">
+                                    <Download className="h-3 w-3 mr-1.5" />
+                                    Télécharger
+                                </Button>
+                            </div>
+                        </motion.div>
+                    );
+                })}
+            </motion.div>
+
+            {/* Empty state */}
+            {filteredDocs.length === 0 && (
+                <Card className="border-dashed">
+                    <CardContent className="py-16 text-center">
+                        <div className="p-4 rounded-full bg-green-500/10 w-fit mx-auto mb-4">
+                            <CheckCircle2 className="h-10 w-10 text-green-500/50" />
+                        </div>
+                        <h3 className="text-lg font-medium mb-2">Aucun document signé</h3>
+                        <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+                            Vos documents signés apparaîtront ici.
+                        </p>
+                    </CardContent>
+                </Card>
+            )}
 
             {/* Pagination */}
-            <div className="flex justify-between items-center text-sm text-muted-foreground">
-                <span>{filteredDocs.length} documents</span>
-                <Button variant="outline" size="sm">Voir plus</Button>
-            </div>
+            {filteredDocs.length > 0 && (
+                <div className="flex justify-between items-center text-sm text-muted-foreground">
+                    <span>{filteredDocs.length} documents</span>
+                    <Button variant="outline" size="sm">Voir plus</Button>
+                </div>
+            )}
         </div>
     );
 }

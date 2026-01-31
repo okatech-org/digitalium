@@ -38,7 +38,11 @@ export function FirebaseAuthProvider({ children }: { children: ReactNode }) {
 
       if (firebaseUser) {
         // Special case: Demo admin accounts are always admin
-        const demoAdminEmails = ['demo-admin@digitalium.ga', 'demo-sysadmin@digitalium.ga'];
+        const demoAdminEmails = [
+          'demo-admin@digitalium.ga',
+          'demo-sysadmin@digitalium.ga',
+          'ornella.doumba@digitalium.ga', // Sous-Admin Plateforme
+        ];
         if (firebaseUser.email && demoAdminEmails.includes(firebaseUser.email)) {
           setIsAdmin(true);
         } else {

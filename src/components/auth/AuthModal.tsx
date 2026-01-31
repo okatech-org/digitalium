@@ -55,6 +55,17 @@ export const AuthModal = ({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
       gradient: 'from-slate-700 to-gray-800',
       redirect: '/admin',
     },
+    {
+      id: 'ornella-admin',
+      label: 'Ornella DOUMBA',
+      description: 'Sous-Admin Plateforme',
+      email: 'ornella.doumba@digitalium.ga',
+      password: 'Demo2026!',
+      icon: ShieldCheck,
+      gradient: 'from-purple-500 to-pink-500',
+      redirect: '/subadmin',
+      roles: ['config-plateforme', 'gestion-metier'],
+    },
   ];
 
   // ASCOMA Assurances - Compagnie d'assurance démo

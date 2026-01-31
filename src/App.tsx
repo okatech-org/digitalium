@@ -75,10 +75,28 @@ import {
   PublicPageEditor,
 } from "./pages/pro/admin";
 import ArchiveSettings from "./pages/pro/admin/ArchiveSettings";
+import PublicPageEditorLayout from "./components/public-page/PublicPageEditorLayout";
+import {
+  EditorOverviewPage,
+  EditorThemePage,
+  EditorHeroPage,
+  EditorAboutPage,
+  EditorServicesPage,
+  EditorTeamPage,
+  EditorContactPage,
+  EditorGalleryPage,
+  EditorDocumentsPage,
+  EditorPagesPage,
+  EditorMediaPage,
+} from "./pages/pro/public-editor";
 import DesignThemePage from "./pages/pro/admin/DesignThemePage";
 import { OrganizationProvider } from "./contexts/OrganizationContext";
 import { DesignThemeProvider } from "./contexts/DesignThemeContext";
 import DesignThemeSettings from "./pages/sysadmin/DesignThemeSettings";
+
+// SubAdmin Space Pages
+import SubAdminSpaceLayout from "@/components/layout/SubAdminSpaceLayout";
+import SubAdminDashboard from "./pages/subadmin/SubAdminDashboard";
 
 // Admin Space Pages
 import AdminSpaceLayout from "@/components/layout/AdminSpaceLayout";
@@ -161,6 +179,21 @@ const AnimatedRoutes = () => {
           <Route path="/pro/api" element={<ApiAccessPage />} />
           <Route path="/pro/security" element={<ProSecurityPage />} />
           <Route path="/pro/public" element={<PublicPageEditor />} />
+
+          {/* Public Page Editor V2 - Multi-page architecture */}
+          <Route path="/pro/public-editor" element={<PublicPageEditorLayout />}>
+            <Route index element={<EditorOverviewPage />} />
+            <Route path="theme" element={<EditorThemePage />} />
+            <Route path="pages" element={<EditorPagesPage />} />
+            <Route path="media" element={<EditorMediaPage />} />
+            <Route path="hero" element={<EditorHeroPage />} />
+            <Route path="about" element={<EditorAboutPage />} />
+            <Route path="services" element={<EditorServicesPage />} />
+            <Route path="team" element={<EditorTeamPage />} />
+            <Route path="gallery" element={<EditorGalleryPage />} />
+            <Route path="documents" element={<EditorDocumentsPage />} />
+            <Route path="contact" element={<EditorContactPage />} />
+          </Route>
           <Route path="/pro/archive-settings" element={<ArchiveSettings />} />
           <Route path="/pro/design-theme" element={<DesignThemePage />} />
         </Route>
@@ -198,6 +231,49 @@ const AnimatedRoutes = () => {
           <Route path="subscriptions" element={<SubscriptionsSysAdmin />} />
           <Route path="leads" element={<LeadsProspectsSysAdmin />} />
           <Route path="workflow-templates" element={<WorkflowTemplates />} />
+        </Route>
+
+        {/* SubAdmin Space Routes - Sous-administrateur (Ornella DOUMBA role) */}
+        <Route path="/subadmin" element={<ProtectedRoute requireAdmin><SubAdminSpaceLayout /></ProtectedRoute>}>
+          <Route index element={<SubAdminDashboard />} />
+
+          {/* Workflow Modules - nested routes within SubAdmin layout */}
+          <Route path="idocument" element={<IDocumentLayout />}>
+            <Route index element={<DocumentCategoryPage />} />
+            <Route path="shared" element={<DocumentCategoryPage />} />
+            <Route path="team" element={<DocumentCategoryPage />} />
+            <Route path="templates" element={<DocumentCategoryPage />} />
+            <Route path="trash" element={<DocumentCategoryPage />} />
+          </Route>
+          <Route path="idocument/edit/:id" element={<CollaborativeEditPage />} />
+
+          <Route path="iarchive" element={<IArchiveLayout />}>
+            <Route index element={<ArchiveCategoryPage />} />
+            <Route path="fiscal" element={<ArchiveCategoryPage />} />
+            <Route path="social" element={<ArchiveCategoryPage />} />
+            <Route path="legal" element={<ArchiveCategoryPage />} />
+            <Route path="clients" element={<ArchiveCategoryPage />} />
+            <Route path="vault" element={<ArchiveCategoryPage />} />
+            <Route path="certificates" element={<ArchiveCategoryPage />} />
+          </Route>
+          <Route path="iarchive/upload" element={<ArchiveUploadPage />} />
+
+          <Route path="isignature" element={<ISignatureLayout />}>
+            <Route index element={<ToSign />} />
+            <Route path="pending" element={<PendingSignatures />} />
+            <Route path="signed" element={<SignedDocuments />} />
+            <Route path="workflows" element={<Workflows />} />
+          </Route>
+
+          {/* Configuration Plateforme */}
+          <Route path="iam" element={<Iam />} />
+          <Route path="organization" element={<OrganizationConfig />} />
+          <Route path="design-theme" element={<DesignThemeSettings />} />
+          <Route path="workflow-templates" element={<WorkflowTemplates />} />
+          {/* Gestion Métier */}
+          <Route path="clients" element={<ClientsManagement />} />
+          <Route path="leads" element={<LeadsProspectsSysAdmin />} />
+          <Route path="subscriptions" element={<SubscriptionsSysAdmin />} />
         </Route>
 
         {/* Institution Routes */}

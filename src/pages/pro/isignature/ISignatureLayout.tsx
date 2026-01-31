@@ -25,11 +25,17 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 
 const NAV_ITEMS = [
-    { id: 'sign', label: 'À signer', href: '/pro/isignature', icon: Inbox },
-    { id: 'pending', label: 'En attente', href: '/pro/isignature/pending', icon: Clock },
-    { id: 'signed', label: 'Signés', href: '/pro/isignature/signed', icon: CheckCircle2 },
-    { id: 'workflows', label: 'Workflows', href: '/pro/isignature/workflows', icon: Workflow },
+    { id: 'sign', label: 'À signer', path: 'isignature', icon: Inbox },
+    { id: 'pending', label: 'En attente', path: 'isignature/pending', icon: Clock },
+    { id: 'signed', label: 'Signés', path: 'isignature/signed', icon: CheckCircle2 },
+    { id: 'workflows', label: 'Workflows', path: 'isignature/workflows', icon: Workflow },
 ];
+
+// Helper to get base path from current location
+function getBasePath(pathname: string): string {
+    if (pathname.startsWith('/subadmin')) return '/subadmin';
+    return '/pro';
+}
 
 // Search context for child components
 interface SignatureSearchContextType {
@@ -94,23 +100,31 @@ export default function ISignatureLayout() {
 
                     {/* Sub-navigation */}
                     <div className="flex items-center justify-between">
-                        <Tabs value={location.pathname} className="w-auto">
-                            <TabsList className="bg-muted/50">
-                                {NAV_ITEMS.map((item) => (
-                                    <TabsTrigger
-                                        key={item.href}
-                                        value={item.href}
-                                        asChild
-                                        className="data-[state=active]:bg-purple-500/10 data-[state=active]:text-purple-500"
-                                    >
-                                        <Link to={item.href} className="flex items-center gap-2">
-                                            <item.icon className="h-4 w-4" />
-                                            {item.label}
-                                        </Link>
-                                    </TabsTrigger>
-                                ))}
-                            </TabsList>
-                        </Tabs>
+                        {(() => {
+                            const basePath = getBasePath(location.pathname);
+                            return (
+                                <Tabs value={location.pathname} className="w-auto">
+                                    <TabsList className="bg-muted/50">
+                                        {NAV_ITEMS.map((item) => {
+                                            const href = `${basePath}/${item.path}`;
+                                            return (
+                                                <TabsTrigger
+                                                    key={href}
+                                                    value={href}
+                                                    asChild
+                                                    className="data-[state=active]:bg-purple-500/10 data-[state=active]:text-purple-500"
+                                                >
+                                                    <Link to={href} className="flex items-center gap-2">
+                                                        <item.icon className="h-4 w-4" />
+                                                        {item.label}
+                                                    </Link>
+                                                </TabsTrigger>
+                                            );
+                                        })}
+                                    </TabsList>
+                                </Tabs>
+                            );
+                        })()}
 
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />

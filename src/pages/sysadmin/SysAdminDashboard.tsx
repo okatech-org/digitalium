@@ -5,7 +5,7 @@
  */
 
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -25,17 +25,38 @@ import {
     ChevronRight,
     ArrowUp,
     ArrowDown,
+    BarChart3,
 } from 'lucide-react';
 
 export default function SysAdminDashboard() {
-    // System health metrics - REMOVED: Data now comes from monitoring API
-    const systemMetrics: { label: string; value: string; icon: typeof Cpu; color: string; trend: string; trendValue: string }[] = [];
+    const navigate = useNavigate();
 
-    // Quick access modules - REMOVED: Data now comes from config API
-    const modules: { title: string; description: string; icon: typeof Server; href: string; color: string; status: string; statusColor: string }[] = [];
+    // System health metrics
+    const systemMetrics: { label: string; value: string; icon: typeof Cpu; color: string; trend: string; trendValue: string }[] = [
+        { label: 'CPU', value: '42%', icon: Cpu, color: 'text-blue-500', trend: 'down', trendValue: '-3%' },
+        { label: 'RAM', value: '64 GB', icon: HardDrive, color: 'text-purple-500', trend: 'up', trendValue: '+2%' },
+        { label: 'Stockage', value: '2.4 TB', icon: Database, color: 'text-emerald-500', trend: 'stable', trendValue: '48%' },
+        { label: 'Uptime', value: '99.97%', icon: Wifi, color: 'text-green-500', trend: 'stable', trendValue: '30j' },
+    ];
 
-    // Recent alerts - REMOVED: Data now comes from alerts API
-    const recentAlerts: { message: string; time: string; type: string }[] = [];
+    // Quick access modules
+    const modules: { title: string; description: string; icon: typeof Server; href: string; color: string; status: string; statusColor: string }[] = [
+        { title: 'Infrastructure', description: 'Serveurs et ressources système', icon: Server, href: '/admin/infrastructure', color: 'from-blue-500 to-blue-700', status: 'Actif', statusColor: 'text-green-500' },
+        { title: 'Monitoring', description: 'Métriques et performances en temps réel', icon: BarChart3, href: '/admin/monitoring', color: 'from-purple-500 to-purple-700', status: 'Actif', statusColor: 'text-green-500' },
+        { title: 'Bases de Données', description: 'PostgreSQL, Redis, MongoDB, ClickHouse', icon: Database, href: '/admin/databases', color: 'from-emerald-500 to-emerald-700', status: 'Healthy', statusColor: 'text-green-500' },
+        { title: 'Logs Système', description: 'Journaux et événements du système', icon: Terminal, href: '/admin/logs', color: 'from-slate-500 to-slate-700', status: 'Actif', statusColor: 'text-green-500' },
+        { title: 'Sécurité', description: 'WAF, firewall et détection de menaces', icon: ShieldAlert, href: '/admin/security', color: 'from-red-500 to-red-700', status: 'A+', statusColor: 'text-green-500' },
+        { title: 'Utilisateurs IAM', description: 'Identités et contrôle d\'accès', icon: Users, href: '/admin/iam', color: 'from-orange-500 to-orange-700', status: '12 actifs', statusColor: 'text-blue-500' },
+    ];
+
+    // Recent alerts
+    const recentAlerts: { message: string; time: string; type: string }[] = [
+        { message: 'Backup automatique PostgreSQL complété avec succès', time: 'Il y a 5 min', type: 'success' },
+        { message: 'Connexion admin système depuis nouvelle IP', time: 'Il y a 12 min', type: 'info' },
+        { message: 'Certificats SSL renouvelés automatiquement', time: 'Il y a 1h', type: 'success' },
+        { message: 'Nouvelle organisation "ASCOMA Assurances" créée', time: 'Il y a 2h', type: 'info' },
+        { message: 'Scan sécurité hebdomadaire terminé - Score A+', time: 'Il y a 3h', type: 'success' },
+    ];
 
     return (
         <div className="space-y-6">
@@ -156,19 +177,19 @@ export default function SysAdminDashboard() {
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-2">
-                        <Button variant="outline" className="w-full justify-start bg-muted/50 border-border text-foreground hover:bg-muted">
+                        <Button variant="outline" className="w-full justify-start bg-muted/50 border-border text-foreground hover:bg-muted" onClick={() => navigate('/admin/databases/backups')}>
                             <Database className="w-4 h-4 mr-2" />
                             Lancer un Backup DB
                         </Button>
-                        <Button variant="outline" className="w-full justify-start bg-muted/50 border-border text-foreground hover:bg-muted">
+                        <Button variant="outline" className="w-full justify-start bg-muted/50 border-border text-foreground hover:bg-muted" onClick={() => navigate('/admin/monitoring')}>
                             <Activity className="w-4 h-4 mr-2" />
                             Voir les Métriques Live
                         </Button>
-                        <Button variant="outline" className="w-full justify-start bg-muted/50 border-border text-foreground hover:bg-muted">
+                        <Button variant="outline" className="w-full justify-start bg-muted/50 border-border text-foreground hover:bg-muted" onClick={() => navigate('/admin/logs')}>
                             <Terminal className="w-4 h-4 mr-2" />
                             Accéder aux Logs
                         </Button>
-                        <Button variant="outline" className="w-full justify-start bg-muted/50 border-border text-foreground hover:bg-muted">
+                        <Button variant="outline" className="w-full justify-start bg-muted/50 border-border text-foreground hover:bg-muted" onClick={() => navigate('/admin/security')}>
                             <ShieldAlert className="w-4 h-4 mr-2" />
                             Audit de Sécurité
                         </Button>

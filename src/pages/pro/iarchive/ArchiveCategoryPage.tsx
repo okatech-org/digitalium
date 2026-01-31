@@ -1,10 +1,10 @@
 /**
- * ArchiveCategoryPage - Optimized archive category page
- * Compact header, simplified table with expandable rows
+ * ArchiveCategoryPage - Card-based archive display (aligned with iDocument)
+ * Grid/List view layout with folder navigation support
  */
 
-import React, { useState, useMemo, Suspense, lazy } from 'react';
-import { useLocation } from 'react-router-dom';
+import React, { useState, useMemo } from 'react';
+import { useLocation, useOutletContext } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     FileText,
@@ -14,7 +14,6 @@ import {
     Download,
     Eye,
     MoreVertical,
-    Hash,
     Search,
     Filter,
     Users,
@@ -25,27 +24,27 @@ import {
     AlertTriangle,
     Building2,
     List,
-    Box,
-    ChevronDown,
+    Grid,
     ChevronRight,
+    FolderTree,
+    Folder,
+    Home,
+    Hash,
     Sparkles,
+    FolderOpen,
+    Star,
+    StarOff,
 } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
+    DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import {
     Select,
@@ -61,9 +60,9 @@ import {
     TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-
-// Lazy load 3D view for performance
-const Archive3DView = lazy(() => import('@/components/3d/Archive3DView'));
+import { useSpaceFromUrl } from '@/contexts/SpaceContext';
+import { digitaliumArchives, digitaliumArchiveFolders, ArchiveCategory } from '@/data/digitaliumMockData';
+import { IArchiveOutletContext } from './IArchiveLayout';
 
 // Category configuration
 interface CategoryConfig {
@@ -91,68 +90,53 @@ const CATEGORY_CONFIG: Record<string, CategoryConfig> = {
     social: {
         key: 'social',
         title: 'Archive Sociale',
-        description: 'Bulletins de paie, contrats de travail, attestations',
+        description: 'Contrats de travail, bulletins de paie, déclarations sociales',
         retentionYears: 5,
         icon: Users,
         color: 'text-blue-500 bg-blue-500/10',
-        documentTypes: ['Bulletin de paie', 'Contrat', 'Attestation', 'Certificat', 'Avenant'],
-        legalBasis: 'Code du Travail - Art. L3243-4',
+        documentTypes: ['Contrat', 'Bulletin de paie', 'DSN', 'DPAE', 'Attestation'],
+        legalBasis: 'Code du Travail - Art. D3243-4',
     },
     legal: {
         key: 'legal',
         title: 'Archive Juridique',
-        description: 'Statuts, PV assemblées, contrats commerciaux',
+        description: 'Statuts, PV, contrats commerciaux, actes juridiques',
         retentionYears: 30,
         icon: Scale,
         color: 'text-purple-500 bg-purple-500/10',
-        documentTypes: ['Statuts', 'PV', 'Contrat', 'Acte notarié', 'Assignation'],
+        documentTypes: ['Statuts', 'PV Assemblée', 'Contrat', 'Acte notarié', 'Décision'],
         legalBasis: 'Code Civil - Art. 2224',
     },
     clients: {
         key: 'clients',
         title: 'Archive Clients',
-        description: 'Dossiers clients, devis, bons de commande',
+        description: 'Contrats clients, factures émises, correspondances',
         retentionYears: 10,
         icon: Building2,
         color: 'text-orange-500 bg-orange-500/10',
-        documentTypes: ['Devis', 'Bon de commande', 'Contrat client', 'Dossier', 'Correspondance'],
-        legalBasis: 'Code de Commerce',
+        documentTypes: ['Contrat client', 'Facture', 'Devis', 'Avenant', 'Correspondance'],
+        legalBasis: 'Code du Commerce - Art. L123-22',
     },
     vault: {
         key: 'vault',
-        title: 'Coffre-fort Numérique',
-        description: 'Documents sensibles, conservation permanente',
+        title: 'Coffre-fort',
+        description: 'Documents sensibles, secrets commerciaux, clés de chiffrement',
         retentionYears: 'permanent',
         icon: Lock,
         color: 'text-red-500 bg-red-500/10',
-        documentTypes: ['Document sensible', 'Titre de propriété', 'Brevet', 'Marque', 'Secret'],
-        legalBasis: 'Conservation volontaire',
+        documentTypes: ['Secret', 'Clé', 'Certificat', 'Credentials', 'Backup'],
+        legalBasis: 'Conservation permanente',
     },
     certificates: {
         key: 'certificates',
-        title: 'Certificats de Dépôt',
-        description: 'Preuves légales d\'archivage à valeur probante',
+        title: 'Certificats',
+        description: 'Certificats SSL, signatures électroniques, attestations',
         retentionYears: 'permanent',
         icon: Award,
         color: 'text-amber-500 bg-amber-500/10',
-        documentTypes: ['Certificat', 'Attestation', 'Horodatage', 'Preuve'],
-        legalBasis: 'Décret n°2016-1673',
+        documentTypes: ['Certificat SSL', 'Signature électronique', 'Attestation', 'Label'],
+        legalBasis: 'Règlement eIDAS',
     },
-};
-
-// Mock data generator per category - REMOVED: Data now comes from database
-const generateMockDocuments = (_category: string, _count: number): {
-    id: string;
-    reference: string;
-    title: string;
-    type: string;
-    archivedAt: string;
-    retentionEnd: string;
-    hash: string;
-    verified: boolean;
-    size: string;
-}[] => {
-    return [];
 };
 
 // Quick filter chips
@@ -162,19 +146,44 @@ const QUICK_FILTERS = [
     { id: 'expiring', label: 'Expirant bientôt', icon: Clock },
 ];
 
+// Generate contextual archives (SubAdmin = Digitalium data, Pro = empty)
+const generateContextualArchives = (category: string, isBackoffice: boolean) => {
+    if (!isBackoffice) return [];
+
+    return digitaliumArchives
+        .filter(a => a.category === category)
+        .map(a => ({
+            id: a.id,
+            title: a.title,
+            type: 'archive',
+            reference: a.id.toUpperCase(),
+            archivedAt: a.archivedDate,
+            retentionEnd: a.retentionYears >= 99 ? 'Permanent' : a.expirationDate,
+            verified: a.certified,
+            hash: a.hash || `SHA256:${a.id.slice(-8)}...`,
+            size: a.size,
+            starred: false,
+            folderId: a.folderId,
+        }));
+};
+
 export default function ArchiveCategoryPage() {
     const location = useLocation();
+    const { isBackoffice } = useSpaceFromUrl();
     const [searchQuery, setSearchQuery] = useState('');
     const [typeFilter, setTypeFilter] = useState<string>('all');
-    const [viewMode, setViewMode] = useState<'2d' | '3d'>('2d');
+    const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [quickFilter, setQuickFilter] = useState<string | null>(null);
-    const [expandedRow, setExpandedRow] = useState<string | null>(null);
+
+    // Get folder context from IArchiveLayout
+    const outletContext = useOutletContext<IArchiveOutletContext | undefined>();
+    const selectedFolder = outletContext?.selectedFolder;
+    const toggleFolders = outletContext?.toggleFolders;
 
     // Determine category from URL path
     const pathParts = location.pathname.split('/');
     const categoryKey = pathParts[pathParts.length - 1] || 'fiscal';
 
-    // Map URL segments to config keys
     const categoryMap: Record<string, string> = {
         'fiscal': 'fiscal',
         'social': 'social',
@@ -185,30 +194,39 @@ export default function ArchiveCategoryPage() {
         'coffre-fort': 'vault',
         'certificates': 'certificates',
         'certificats': 'certificates',
+        'iarchive': 'fiscal',
     };
 
     const resolvedCategory = categoryMap[categoryKey] || 'fiscal';
     const config = CATEGORY_CONFIG[resolvedCategory];
     const CategoryIcon = config.icon;
 
-    // Document counts - REMOVED: Now fetched from database
-    const documentCounts: Record<string, number> = {
-        fiscal: 0,
-        social: 0,
-        legal: 0,
-        clients: 0,
-        vault: 0,
-        certificates: 0,
-    };
+    // Generate documents with folder filtering
+    const documents = useMemo(() => {
+        const allDocs = generateContextualArchives(resolvedCategory, isBackoffice);
 
-    const documents = useMemo(() =>
-        generateMockDocuments(resolvedCategory, Math.min(documentCounts[resolvedCategory] || 50, 20)),
-        [resolvedCategory]
-    );
+        if (selectedFolder) {
+            return allDocs.filter(doc => doc.folderId === selectedFolder.id);
+        }
+
+        return allDocs;
+    }, [resolvedCategory, isBackoffice, selectedFolder]);
+
+    // Document counts
+    const documentCounts: Record<string, number> = useMemo(() => {
+        if (!isBackoffice) return {};
+        return {
+            fiscal: digitaliumArchives.filter(a => a.category === 'fiscal').length,
+            social: digitaliumArchives.filter(a => a.category === 'social').length,
+            legal: digitaliumArchives.filter(a => a.category === 'legal').length,
+            clients: digitaliumArchives.filter(a => a.category === 'clients').length,
+            vault: digitaliumArchives.filter(a => a.category === 'vault').length,
+            certificates: digitaliumArchives.filter(a => a.category === 'certificates').length,
+        };
+    }, [isBackoffice]);
 
     // Filter documents
     const filteredDocuments = documents.filter(doc => {
-        if (typeFilter !== 'all' && doc.type !== typeFilter) return false;
         if (quickFilter === 'unverified' && doc.verified) return false;
         if (searchQuery) {
             const q = searchQuery.toLowerCase();
@@ -220,11 +238,51 @@ export default function ArchiveCategoryPage() {
 
     // Stats
     const verifiedCount = documents.filter(d => d.verified).length;
-    const complianceRate = Math.round((verifiedCount / documents.length) * 100);
+    const complianceRate = documents.length > 0 ? Math.round((verifiedCount / documents.length) * 100) : 100;
+
+    const renderDocumentActions = (doc: any) => (
+        <DropdownMenuContent align="end">
+            <DropdownMenuItem>
+                <Eye className="h-4 w-4 mr-2" />
+                Voir
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+                <Download className="h-4 w-4 mr-2" />
+                Télécharger
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>
+                <Shield className="h-4 w-4 mr-2" />
+                Vérifier l'intégrité
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+                <Award className="h-4 w-4 mr-2" />
+                Générer certificat
+            </DropdownMenuItem>
+        </DropdownMenuContent>
+    );
 
     return (
         <div className="space-y-4">
-            {/* Compact Header - Single Line */}
+            {/* Folder breadcrumb when a folder is selected */}
+            {selectedFolder && isBackoffice && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/30 px-3 py-2 rounded-lg">
+                    <Folder className="h-4 w-4 text-emerald-500" />
+                    <button
+                        onClick={() => outletContext?.setSelectedFolder(null as any)}
+                        className="hover:text-foreground transition-colors"
+                    >
+                        <Home className="h-3 w-3" />
+                    </button>
+                    <ChevronRight className="h-3 w-3" />
+                    <span className="font-medium text-foreground">{selectedFolder.name}</span>
+                    <Badge variant="secondary" className="text-[10px] ml-2">
+                        {documents.length} archive{documents.length !== 1 ? 's' : ''}
+                    </Badge>
+                </div>
+            )}
+
+            {/* Header */}
             <div className="flex items-center justify-between flex-wrap gap-3">
                 <div className="flex items-center gap-3">
                     <div className={cn('p-2 rounded-lg', config.color.split(' ')[1])}>
@@ -234,7 +292,7 @@ export default function ArchiveCategoryPage() {
                         <div className="flex items-center gap-2">
                             <h2 className="text-lg font-semibold">{config.title}</h2>
                             <Badge variant="secondary" className="text-xs">
-                                {documentCounts[resolvedCategory]?.toLocaleString()} docs
+                                {documentCounts[resolvedCategory]?.toLocaleString() || 0} docs
                             </Badge>
                             <Badge variant="outline" className="text-xs text-muted-foreground">
                                 <Clock className="h-3 w-3 mr-1" />
@@ -249,25 +307,6 @@ export default function ArchiveCategoryPage() {
                 </div>
 
                 <div className="flex gap-2 items-center">
-                    {/* View mode toggle */}
-                    <div className="flex border rounded-lg overflow-hidden">
-                        <Button
-                            variant={viewMode === '2d' ? 'default' : 'ghost'}
-                            size="sm"
-                            onClick={() => setViewMode('2d')}
-                            className={cn('rounded-none h-8', viewMode === '2d' && 'bg-primary')}
-                        >
-                            <List className="h-4 w-4" />
-                        </Button>
-                        <Button
-                            variant={viewMode === '3d' ? 'default' : 'ghost'}
-                            size="sm"
-                            onClick={() => setViewMode('3d')}
-                            className={cn('rounded-none h-8', viewMode === '3d' && 'bg-primary')}
-                        >
-                            <Box className="h-4 w-4" />
-                        </Button>
-                    </div>
                     <Badge variant="secondary" className={cn(
                         'h-8 px-2',
                         complianceRate === 100
@@ -281,7 +320,37 @@ export default function ArchiveCategoryPage() {
             </div>
 
             {/* Filters Row */}
-            <div className="flex gap-2 flex-wrap items-center">
+            <div className="flex gap-3 items-center flex-wrap">
+                {/* View Toggle + Arborescence */}
+                <div className="flex border rounded-lg overflow-hidden bg-background">
+                    <Button
+                        variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                        size="icon"
+                        className={cn('h-9 w-9 rounded-none', viewMode === 'grid' && 'bg-emerald-500 hover:bg-emerald-600')}
+                        onClick={() => setViewMode('grid')}
+                    >
+                        <Grid className="h-4 w-4" />
+                    </Button>
+                    <Button
+                        variant={viewMode === 'list' ? 'default' : 'ghost'}
+                        size="icon"
+                        className={cn('h-9 w-9 rounded-none', viewMode === 'list' && 'bg-emerald-500 hover:bg-emerald-600')}
+                        onClick={() => setViewMode('list')}
+                    >
+                        <List className="h-4 w-4" />
+                    </Button>
+                    {/* Arborescence button */}
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-9 w-9 rounded-none border-l"
+                        onClick={toggleFolders}
+                        title="Afficher l'arborescence"
+                    >
+                        <FolderTree className="h-4 w-4" />
+                    </Button>
+                </div>
+
                 {/* Quick Filter Chips */}
                 <div className="flex gap-1">
                     {QUICK_FILTERS.map(f => (
@@ -290,7 +359,7 @@ export default function ArchiveCategoryPage() {
                             variant={quickFilter === f.id ? 'default' : 'outline'}
                             size="sm"
                             className={cn(
-                                'h-7 text-xs',
+                                'h-8 text-xs',
                                 quickFilter === f.id && 'bg-emerald-500 hover:bg-emerald-600'
                             )}
                             onClick={() => setQuickFilter(quickFilter === f.id ? null : f.id)}
@@ -301,228 +370,210 @@ export default function ArchiveCategoryPage() {
                     ))}
                 </div>
 
-                <div className="h-4 w-px bg-border mx-1" />
-
-                {/* Type Filter */}
-                <Select value={typeFilter} onValueChange={setTypeFilter}>
-                    <SelectTrigger className="w-36 h-8 text-xs">
-                        <SelectValue placeholder="Type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">Tous les types</SelectItem>
-                        {config.documentTypes.map(type => (
-                            <SelectItem key={type} value={type}>{type}</SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-
                 {/* Search */}
-                <div className="relative flex-1 min-w-[200px]">
-                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                <div className="relative flex-1 max-w-sm">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                         placeholder="Rechercher..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-8 h-8 text-sm"
+                        className="pl-9"
                     />
                 </div>
             </div>
 
-            {/* Content - 2D or 3D view */}
+            {/* Documents Grid / List */}
             <AnimatePresence mode="wait">
-                {viewMode === '3d' ? (
+                {viewMode === 'grid' ? (
                     <motion.div
-                        key="3d-view"
+                        key="grid"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="h-[600px] rounded-lg overflow-hidden"
+                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
                     >
-                        <Suspense fallback={
-                            <div className="flex items-center justify-center h-full bg-muted rounded-lg">
-                                <div className="text-center">
-                                    <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-                                    <p className="text-sm text-muted-foreground">Chargement 3D...</p>
-                                </div>
-                            </div>
-                        }>
-                            <Archive3DView
-                                category={resolvedCategory}
-                                onDocumentSelect={(doc) => console.log('Selected:', doc)}
-                            />
-                        </Suspense>
+                        {filteredDocuments.map((doc, i) => (
+                            <motion.div
+                                key={doc.id}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: i * 0.05 }}
+                            >
+                                <Card className="group cursor-pointer hover:border-emerald-500/50 transition-all h-full">
+                                    <CardContent className="p-4 flex flex-col h-full">
+                                        {/* Header */}
+                                        <div className="flex items-start justify-between mb-3">
+                                            <div className={cn('p-2 rounded-lg bg-emerald-500/10')}>
+                                                <FileText className="h-5 w-5 text-emerald-500" />
+                                            </div>
+                                            <div className="flex items-center gap-1">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-8 w-8 opacity-0 group-hover:opacity-100"
+                                                    onClick={(e) => e.stopPropagation()}
+                                                >
+                                                    {doc.starred ? (
+                                                        <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
+                                                    ) : (
+                                                        <StarOff className="h-4 w-4" />
+                                                    )}
+                                                </Button>
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100">
+                                                            <MoreVertical className="h-4 w-4" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    {renderDocumentActions(doc)}
+                                                </DropdownMenu>
+                                            </div>
+                                        </div>
+
+                                        {/* Title */}
+                                        <h3 className="font-medium text-sm mb-2 line-clamp-2 flex-1">{doc.title}</h3>
+
+                                        {/* Reference */}
+                                        <p className="text-xs text-muted-foreground mb-2 font-mono">
+                                            {doc.reference}
+                                        </p>
+
+                                        {/* Status */}
+                                        {doc.verified ? (
+                                            <Badge variant="secondary" className="bg-green-500/10 text-green-500 text-xs w-fit">
+                                                <Shield className="h-3 w-3 mr-1" />
+                                                Vérifié
+                                            </Badge>
+                                        ) : (
+                                            <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-500 text-xs w-fit">
+                                                <AlertTriangle className="h-3 w-3 mr-1" />
+                                                En attente
+                                            </Badge>
+                                        )}
+
+                                        {/* Footer */}
+                                        <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground">
+                                            <span className="flex items-center gap-1">
+                                                <Clock className="h-3 w-3" />
+                                                {doc.archivedAt}
+                                            </span>
+                                            <span>{doc.size}</span>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </motion.div>
+                        ))}
                     </motion.div>
                 ) : (
+                    // List View
                     <motion.div
-                        key="2d-view"
+                        key="list"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="border rounded-lg overflow-hidden"
+                        className="space-y-2"
                     >
-                        <TooltipProvider>
-                            <Table>
-                                <TableHeader>
-                                    <TableRow className="bg-muted/30">
-                                        <TableHead className="w-8"></TableHead>
-                                        <TableHead>Document</TableHead>
-                                        <TableHead className="w-28">Date</TableHead>
-                                        <TableHead className="w-32">Statut</TableHead>
-                                        <TableHead className="w-12"></TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {filteredDocuments.map((doc, i) => (
-                                        <React.Fragment key={doc.id}>
-                                            <motion.tr
-                                                initial={{ opacity: 0 }}
-                                                animate={{ opacity: 1 }}
-                                                transition={{ delay: i * 0.02 }}
-                                                className={cn(
-                                                    'group cursor-pointer hover:bg-muted/50 transition-colors',
-                                                    expandedRow === doc.id && 'bg-muted/30'
-                                                )}
-                                                onClick={() => setExpandedRow(expandedRow === doc.id ? null : doc.id)}
-                                            >
-                                                <TableCell className="w-8 px-2">
-                                                    <ChevronRight className={cn(
-                                                        'h-4 w-4 text-muted-foreground transition-transform',
-                                                        expandedRow === doc.id && 'rotate-90'
-                                                    )} />
-                                                </TableCell>
-                                                <TableCell>
-                                                    <div className="flex items-center gap-3">
-                                                        <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                                                        <div className="min-w-0">
-                                                            <p className="font-medium truncate">{doc.title}</p>
-                                                            <p className="text-xs text-muted-foreground">
-                                                                <Badge variant="outline" className="mr-2 text-[10px] px-1 py-0">
-                                                                    {doc.type}
-                                                                </Badge>
-                                                                {doc.reference}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell className="text-sm text-muted-foreground">
-                                                    {doc.archivedAt}
-                                                </TableCell>
-                                                <TableCell>
-                                                    {doc.verified ? (
-                                                        <Badge variant="secondary" className="bg-green-500/10 text-green-500 text-xs">
-                                                            <Shield className="h-3 w-3 mr-1" />
-                                                            Vérifié
-                                                        </Badge>
-                                                    ) : (
-                                                        <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-500 text-xs">
-                                                            <AlertTriangle className="h-3 w-3 mr-1" />
-                                                            Attente
-                                                        </Badge>
-                                                    )}
-                                                </TableCell>
-                                                <TableCell>
-                                                    <DropdownMenu>
-                                                        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                                            <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100">
-                                                                <MoreVertical className="h-4 w-4" />
-                                                            </Button>
-                                                        </DropdownMenuTrigger>
-                                                        <DropdownMenuContent align="end">
-                                                            <DropdownMenuItem>
-                                                                <Eye className="h-4 w-4 mr-2" />
-                                                                Voir
-                                                            </DropdownMenuItem>
-                                                            <DropdownMenuItem>
-                                                                <Download className="h-4 w-4 mr-2" />
-                                                                Télécharger
-                                                            </DropdownMenuItem>
-                                                            <DropdownMenuItem>
-                                                                <Award className="h-4 w-4 mr-2" />
-                                                                Certificat
-                                                            </DropdownMenuItem>
-                                                        </DropdownMenuContent>
-                                                    </DropdownMenu>
-                                                </TableCell>
-                                            </motion.tr>
-                                            {/* Expanded Row Details */}
-                                            <AnimatePresence>
-                                                {expandedRow === doc.id && (
-                                                    <motion.tr
-                                                        initial={{ opacity: 0, height: 0 }}
-                                                        animate={{ opacity: 1, height: 'auto' }}
-                                                        exit={{ opacity: 0, height: 0 }}
-                                                    >
-                                                        <TableCell colSpan={5} className="bg-muted/20 py-3">
-                                                            <div className="flex gap-6 text-sm pl-10">
-                                                                <div>
-                                                                    <p className="text-xs text-muted-foreground mb-1">Expiration</p>
-                                                                    <p className="font-medium flex items-center gap-1">
-                                                                        {doc.retentionEnd === 'Permanent' ? (
-                                                                            <><Lock className="h-3 w-3" /> Permanent</>
-                                                                        ) : (
-                                                                            <><Clock className="h-3 w-3" /> {doc.retentionEnd}</>
-                                                                        )}
-                                                                    </p>
-                                                                </div>
-                                                                <div>
-                                                                    <p className="text-xs text-muted-foreground mb-1">Hash SHA-256</p>
-                                                                    <Tooltip>
-                                                                        <TooltipTrigger asChild>
-                                                                            <p className="font-mono text-xs flex items-center gap-1 cursor-help">
-                                                                                <Hash className="h-3 w-3" />
-                                                                                {doc.hash}...
-                                                                            </p>
-                                                                        </TooltipTrigger>
-                                                                        <TooltipContent>
-                                                                            <p className="font-mono text-xs">{doc.hash}{doc.hash}{doc.hash}</p>
-                                                                        </TooltipContent>
-                                                                    </Tooltip>
-                                                                </div>
-                                                                <div>
-                                                                    <p className="text-xs text-muted-foreground mb-1">Taille</p>
-                                                                    <p className="font-medium">{doc.size}</p>
-                                                                </div>
-                                                                <div className="ml-auto flex gap-2">
-                                                                    <Button size="sm" variant="outline" className="h-7">
-                                                                        <Shield className="h-3 w-3 mr-1" />
-                                                                        Vérifier
-                                                                    </Button>
-                                                                    <Button size="sm" variant="outline" className="h-7">
-                                                                        <Download className="h-3 w-3 mr-1" />
-                                                                        Télécharger
-                                                                    </Button>
-                                                                </div>
-                                                            </div>
-                                                        </TableCell>
-                                                    </motion.tr>
-                                                )}
-                                            </AnimatePresence>
-                                        </React.Fragment>
-                                    ))}
-                                    {filteredDocuments.length === 0 && (
-                                        <TableRow>
-                                            <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
-                                                <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                                                Aucun document trouvé
-                                            </TableCell>
-                                        </TableRow>
+                        {filteredDocuments.map((doc, i) => (
+                            <motion.div
+                                key={doc.id}
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: i * 0.03 }}
+                                className="flex items-center gap-4 p-4 rounded-lg border hover:border-emerald-500/50 transition-all cursor-pointer group"
+                            >
+                                <div className="p-2 rounded-lg bg-emerald-500/10">
+                                    <FileText className="h-5 w-5 text-emerald-500" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <h3 className="font-medium truncate">{doc.title}</h3>
+                                    <p className="text-sm text-muted-foreground flex items-center gap-2">
+                                        <Clock className="h-3 w-3" />
+                                        {doc.archivedAt}
+                                        <span>•</span>
+                                        <span className="font-mono text-xs">{doc.reference}</span>
+                                        <span>•</span>
+                                        <span>{doc.size}</span>
+                                    </p>
+                                </div>
+                                {doc.verified ? (
+                                    <Badge variant="secondary" className="bg-green-500/10 text-green-500 text-xs">
+                                        <Shield className="h-3 w-3 mr-1" />
+                                        Vérifié
+                                    </Badge>
+                                ) : (
+                                    <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-500 text-xs">
+                                        <AlertTriangle className="h-3 w-3 mr-1" />
+                                        Attente
+                                    </Badge>
+                                )}
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <span className="text-xs text-muted-foreground font-mono">
+                                                <Hash className="h-3 w-3 inline mr-1" />
+                                                {doc.hash.slice(0, 16)}...
+                                            </span>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p className="font-mono text-xs">{doc.hash}</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="opacity-0 group-hover:opacity-100"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    {doc.starred ? (
+                                        <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
+                                    ) : (
+                                        <StarOff className="h-4 w-4" />
                                     )}
-                                </TableBody>
-                            </Table>
-                        </TooltipProvider>
+                                </Button>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100">
+                                            <MoreVertical className="h-4 w-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    {renderDocumentActions(doc)}
+                                </DropdownMenu>
+                            </motion.div>
+                        ))}
                     </motion.div>
                 )}
             </AnimatePresence>
 
+            {/* Empty State */}
+            {filteredDocuments.length === 0 && (
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="text-center py-12"
+                >
+                    <FolderOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
+                    <h3 className="font-medium mb-2">Aucune archive</h3>
+                    <p className="text-sm text-muted-foreground">
+                        {selectedFolder
+                            ? `Aucune archive dans "${selectedFolder.name}"`
+                            : 'Aucune archive trouvée dans cette catégorie'
+                        }
+                    </p>
+                </motion.div>
+            )}
+
             {/* Pagination */}
-            <div className="flex justify-between items-center text-sm text-muted-foreground">
-                <span>
-                    {filteredDocuments.length} sur {documentCounts[resolvedCategory]?.toLocaleString() || 0}
-                </span>
-                <Button variant="outline" size="sm">
-                    Voir plus
-                </Button>
-            </div>
+            {filteredDocuments.length > 0 && (
+                <div className="flex justify-between items-center text-sm text-muted-foreground">
+                    <span>
+                        {filteredDocuments.length} sur {documentCounts[resolvedCategory]?.toLocaleString() || 0}
+                    </span>
+                    <Button variant="outline" size="sm">
+                        Voir plus
+                    </Button>
+                </div>
+            )}
         </div>
     );
 }
