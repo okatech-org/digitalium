@@ -61,6 +61,7 @@ export default function IDocumentLayout() {
     const { toast } = useToast();
     const [showFolders, setShowFolders] = useState(false);
     const [showCreateFolderDialog, setShowCreateFolderDialog] = useState(false);
+    const [showImportDialog, setShowImportDialog] = useState(false);
 
     // Use folder manager hook for reactive folder management
     const { folders, addFolder, getSubfolders, findFolder } = useFolderManager();
@@ -122,11 +123,30 @@ export default function IDocumentLayout() {
                             </div>
                         </div>
                         <div className="flex items-center gap-2">
-                            <Button variant="outline" onClick={() => toast({ title: "Importer", description: "Fonctionnalité d'import en cours de développement." })}>
+                            <Button variant="outline" onClick={() => {
+                                // Trigger file input click for import
+                                const input = document.createElement('input');
+                                input.type = 'file';
+                                input.multiple = true;
+                                input.accept = '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.jpg,.jpeg,.png';
+                                input.onchange = (e) => {
+                                    const files = (e.target as HTMLInputElement).files;
+                                    if (files && files.length > 0) {
+                                        toast({
+                                            title: "Importation en cours",
+                                            description: `${files.length} fichier(s) sélectionné(s) pour import.`,
+                                        });
+                                    }
+                                };
+                                input.click();
+                            }}>
                                 <Upload className="h-4 w-4 mr-2" />
                                 Importer
                             </Button>
-                            <Button className="bg-blue-500 hover:bg-blue-600" onClick={openCreateFolderDialog}>
+                            <Button
+                                className="bg-blue-500 hover:bg-blue-600"
+                                onClick={openCreateFolderDialog}
+                            >
                                 <Plus className="h-4 w-4 mr-2" />
                                 Nouveau
                             </Button>

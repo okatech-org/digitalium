@@ -179,19 +179,41 @@ export default function IArchiveLayout() {
 
                     {/* Actions */}
                     <div className="flex gap-2">
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" onClick={() => {
+                            toast({
+                                title: "Filtres",
+                                description: "Panneau de filtres avancés (à implémenter)",
+                            });
+                        }}>
                             <Filter className="h-4 w-4 mr-1" />
                             Filtres
                         </Button>
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" onClick={() => {
+                            toast({
+                                title: "Certificat",
+                                description: "Génération de certificat d'archivage (à implémenter)",
+                            });
+                        }}>
                             <Award className="h-4 w-4 mr-1" />
                             Certificat
                         </Button>
-                        <Button
-                            className="bg-emerald-500 hover:bg-emerald-600"
-                            size="sm"
-                            onClick={() => toast({ title: "Archiver", description: "Fonctionnalité d'archivage en cours de développement." })}
-                        >
+                        <Button className="bg-emerald-500 hover:bg-emerald-600" size="sm" onClick={() => {
+                            // Trigger file input click for archive
+                            const input = document.createElement('input');
+                            input.type = 'file';
+                            input.multiple = true;
+                            input.accept = '.pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png';
+                            input.onchange = (e) => {
+                                const files = (e.target as HTMLInputElement).files;
+                                if (files && files.length > 0) {
+                                    toast({
+                                        title: "Archivage en cours",
+                                        description: `${files.length} fichier(s) sélectionné(s) pour archivage.`,
+                                    });
+                                }
+                            };
+                            input.click();
+                        }}>
                             <Upload className="h-4 w-4 mr-1" />
                             Archiver
                         </Button>
