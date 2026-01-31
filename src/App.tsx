@@ -50,7 +50,11 @@ import Partners from "./pages/institution/Partners";
 
 // Pro Space Pages
 import ProSpaceLayout from "@/components/layout/ProSpaceLayout";
+import AdmSpaceLayout from "@/components/layout/AdmSpaceLayout";
+import OrgSpaceLayout from "@/components/layout/OrgSpaceLayout";
 import ProDashboard from "./pages/pro/ProDashboard";
+import AdmDashboard from "./pages/adm/AdmDashboard";
+import OrgDashboard from "./pages/org/OrgDashboard";
 import IDocumentLayout from "./pages/pro/idocument/IDocumentLayout";
 import CollaborativeEditPage from "./pages/pro/idocument/edit/CollaborativeEditPage";
 import DocumentCategoryPage from "./pages/pro/idocument/DocumentCategoryPage";
@@ -196,6 +200,88 @@ const AnimatedRoutes = () => {
           </Route>
           <Route path="/pro/archive-settings" element={<ArchiveSettings />} />
           <Route path="/pro/design-theme" element={<DesignThemePage />} />
+        </Route>
+
+        {/* Administration Space - Ministères, Justice, Collectivités */}
+        <Route element={<ProtectedRoute><AdmSpaceLayout /></ProtectedRoute>}>
+          <Route path="/adm" element={<AdmDashboard />} />
+
+          {/* iDocument Module - Courrier Officiel */}
+          <Route path="/adm/idocument" element={<IDocumentLayout />}>
+            <Route index element={<DocumentCategoryPage />} />
+            <Route path="shared" element={<DocumentCategoryPage />} />
+            <Route path="team" element={<DocumentCategoryPage />} />
+            <Route path="templates" element={<DocumentCategoryPage />} />
+            <Route path="trash" element={<DocumentCategoryPage />} />
+          </Route>
+          <Route path="/adm/idocument/edit/:id" element={<CollaborativeEditPage />} />
+
+          {/* iArchive Module - Archives Légales */}
+          <Route path="/adm/iarchive" element={<IArchiveLayout />}>
+            <Route index element={<ArchiveCategoryPage />} />
+            <Route path="fiscal" element={<ArchiveCategoryPage />} />
+            <Route path="social" element={<ArchiveCategoryPage />} />
+            <Route path="legal" element={<ArchiveCategoryPage />} />
+            <Route path="clients" element={<ArchiveCategoryPage />} />
+            <Route path="vault" element={<ArchiveCategoryPage />} />
+            <Route path="certificates" element={<ArchiveCategoryPage />} />
+          </Route>
+          <Route path="/adm/iarchive/upload" element={<ArchiveUploadPage />} />
+
+          {/* iSignature Module - Parapheur */}
+          <Route path="/adm/isignature" element={<ISignatureLayout />}>
+            <Route index element={<ToSign />} />
+            <Route path="pending" element={<PendingSignatures />} />
+            <Route path="signed" element={<SignedDocuments />} />
+            <Route path="workflows" element={<Workflows />} />
+          </Route>
+
+          <Route path="/adm/team" element={<TeamManagementPage />} />
+          <Route path="/adm/analytics" element={<ProAnalyticsPage />} />
+          <Route path="/adm/billing" element={<ProBillingPage />} />
+          <Route path="/adm/security" element={<ProSecurityPage />} />
+          <Route path="/adm/public" element={<PublicPageEditor />} />
+        </Route>
+
+        {/* Organisme Space - Éducation, Culture, Santé Publique */}
+        <Route element={<ProtectedRoute><OrgSpaceLayout /></ProtectedRoute>}>
+          <Route path="/org" element={<OrgDashboard />} />
+
+          {/* iDocument Module - Documents */}
+          <Route path="/org/idocument" element={<IDocumentLayout />}>
+            <Route index element={<DocumentCategoryPage />} />
+            <Route path="shared" element={<DocumentCategoryPage />} />
+            <Route path="team" element={<DocumentCategoryPage />} />
+            <Route path="templates" element={<DocumentCategoryPage />} />
+            <Route path="trash" element={<DocumentCategoryPage />} />
+          </Route>
+          <Route path="/org/idocument/edit/:id" element={<CollaborativeEditPage />} />
+
+          {/* iArchive Module - Archives */}
+          <Route path="/org/iarchive" element={<IArchiveLayout />}>
+            <Route index element={<ArchiveCategoryPage />} />
+            <Route path="fiscal" element={<ArchiveCategoryPage />} />
+            <Route path="social" element={<ArchiveCategoryPage />} />
+            <Route path="legal" element={<ArchiveCategoryPage />} />
+            <Route path="clients" element={<ArchiveCategoryPage />} />
+            <Route path="vault" element={<ArchiveCategoryPage />} />
+            <Route path="certificates" element={<ArchiveCategoryPage />} />
+          </Route>
+          <Route path="/org/iarchive/upload" element={<ArchiveUploadPage />} />
+
+          {/* iSignature Module - Signatures */}
+          <Route path="/org/isignature" element={<ISignatureLayout />}>
+            <Route index element={<ToSign />} />
+            <Route path="pending" element={<PendingSignatures />} />
+            <Route path="signed" element={<SignedDocuments />} />
+            <Route path="workflows" element={<Workflows />} />
+          </Route>
+
+          <Route path="/org/team" element={<TeamManagementPage />} />
+          <Route path="/org/analytics" element={<ProAnalyticsPage />} />
+          <Route path="/org/billing" element={<ProBillingPage />} />
+          <Route path="/org/security" element={<ProSecurityPage />} />
+          <Route path="/org/public" element={<PublicPageEditor />} />
         </Route>
 
         {/* Admin Space Routes - Administration institutionnelle */}

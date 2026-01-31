@@ -1,14 +1,16 @@
 /**
- * SpaceContext - Context to differentiate Pro vs SubAdmin (Backoffice) spaces
+ * SpaceContext - Context to differentiate organization space types
  * 
- * Pro space = Client workspace (generic companies)
- * SubAdmin space = Digitalium backoffice (internal documents, archives, signatures)
+ * Pro space = Enterprises (commerce, tech, services)
+ * Adm space = Administrations (ministères, justice, collectivités)
+ * Org space = Organisms (éducation, culture, santé publique)
+ * SubAdmin space = Digitalium backoffice (internal documents)
  */
 
 import React, { createContext, useContext, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 
-export type SpaceType = 'pro' | 'subadmin';
+export type SpaceType = 'pro' | 'adm' | 'org' | 'subadmin';
 
 interface SpaceContextValue {
     spaceType: SpaceType;
@@ -30,14 +32,40 @@ export function useSpace(): SpaceContextValue {
 // Hook that auto-detects space from URL (for components that need space context outside provider)
 export function useSpaceFromUrl(): SpaceContextValue {
     const location = useLocation();
-    const isSubAdmin = location.pathname.startsWith('/subadmin');
+    const path = location.pathname;
 
-    return useMemo(() => ({
-        spaceType: isSubAdmin ? 'subadmin' : 'pro',
-        isBackoffice: isSubAdmin,
-        organizationName: isSubAdmin ? 'Digitalium' : 'Mon Entreprise',
-        basePath: isSubAdmin ? '/subadmin' : '/pro',
-    }), [isSubAdmin]);
+    return useMemo(() => {
+        if (path.startsWith('/subadmin')) {
+            return {
+                spaceType: 'subadmin' as SpaceType,
+                isBackoffice: true,
+                organizationName: 'Digitalium',
+                basePath: '/subadmin',
+            };
+        }
+        if (path.startsWith('/adm')) {
+            return {
+                spaceType: 'adm' as SpaceType,
+                isBackoffice: false,
+                organizationName: 'Mon Administration',
+                basePath: '/adm',
+            };
+        }
+        if (path.startsWith('/org')) {
+            return {
+                spaceType: 'org' as SpaceType,
+                isBackoffice: false,
+                organizationName: 'Mon Organisme',
+                basePath: '/org',
+            };
+        }
+        return {
+            spaceType: 'pro' as SpaceType,
+            isBackoffice: false,
+            organizationName: 'Mon Entreprise',
+            basePath: '/pro',
+        };
+    }, [path]);
 }
 
 interface SpaceProviderProps {
@@ -46,12 +74,15 @@ interface SpaceProviderProps {
 }
 
 export function SpaceProvider({ children, spaceType }: SpaceProviderProps) {
-    const value = useMemo<SpaceContextValue>(() => ({
-        spaceType,
-        isBackoffice: spaceType === 'subadmin',
-        organizationName: spaceType === 'subadmin' ? 'Digitalium' : 'Mon Entreprise',
-        basePath: spaceType === 'subadmin' ? '/subadmin' : '/pro',
-    }), [spaceType]);
+    const value = useMemo<SpaceContextValue>(() => {
+        const configs: Record<SpaceType, Omit<SpaceContextValue, 'spaceType'>> = {
+            pro: { isBackoffice: false, organizationName: 'Mon Entreprise', basePath: '/pro' },
+            adm: { isBackoffice: false, organizationName: 'Mon Administration', basePath: '/adm' },
+            org: { isBackoffice: false, organizationName: 'Mon Organisme', basePath: '/org' },
+            subadmin: { isBackoffice: true, organizationName: 'Digitalium', basePath: '/subadmin' },
+        };
+        return { spaceType, ...configs[spaceType] };
+    }, [spaceType]);
 
     return (
         <SpaceContext.Provider value={value}>
