@@ -148,64 +148,26 @@ const STATUS_CONFIG = {
     deleted: { label: 'Supprimé', color: 'bg-red-500/20 text-red-500' },
 };
 
-// Mock data generator
-const generateMockDocuments = (category: string) => {
-    const docs = [];
-    const now = Date.now();
-
-    const templates = {
-        my: [
-            { title: 'Contrat Auto - Client Moussavou', type: 'contract', status: 'review' },
-            { title: 'Police MRH - Villa Libreville N°4521', type: 'contract', status: 'approved' },
-            { title: 'Attestation RC Pro - SARL Ndong', type: 'document', status: 'published' },
-            { title: 'Proposition Flotte - Société ABC', type: 'document', status: 'draft' },
-            { title: 'Déclaration Sinistre #2026-147', type: 'document', status: 'review' },
-            { title: 'Avenant N°3 - Contrat 845621', type: 'contract', status: 'draft' },
-        ],
-        shared: [
-            { title: 'Barème Indemnisation 2026', type: 'spreadsheet', status: 'published', owner: 'Direction' },
-            { title: 'Procédure Expertise Auto', type: 'document', status: 'review', owner: 'Sinistres' },
-            { title: 'Tableau Tarification MRH', type: 'spreadsheet', status: 'published', owner: 'Commercial' },
-            { title: 'Modèle Attestation Assurance', type: 'document', status: 'approved', owner: 'Juridique' },
-        ],
-        team: [
-            { title: 'Conditions Générales Auto v4.2', type: 'document', status: 'published', owner: 'Juridique' },
-            { title: 'Manuel Gestion Sinistres', type: 'document', status: 'approved', owner: 'Formation' },
-            { title: 'Planning Commerciaux Q1 2026', type: 'spreadsheet', status: 'published', owner: 'Direction' },
-            { title: 'Grille Commissions Agents', type: 'spreadsheet', status: 'draft', owner: 'RH' },
-            { title: 'Rapport Sinistralité Janvier', type: 'spreadsheet', status: 'review', owner: 'Actuariat' },
-        ],
-        templates: [
-            { title: 'Modèle Contrat Auto Tiers', type: 'contract', status: 'published', owner: 'Juridique', isTemplate: true },
-            { title: 'Modèle Police MRH Standard', type: 'contract', status: 'published', owner: 'Juridique', isTemplate: true },
-            { title: 'Modèle Déclaration Sinistre', type: 'document', status: 'published', owner: 'Sinistres', isTemplate: true },
-            { title: 'Modèle Attestation Assurance', type: 'document', status: 'published', owner: 'Juridique', isTemplate: true },
-            { title: 'Modèle Lettre Résiliation', type: 'document', status: 'published', owner: 'Juridique', isTemplate: true },
-        ],
-        trash: [
-            { title: 'Ancien Barème 2024', type: 'spreadsheet', status: 'deleted', deletedAt: now - 2 * 24 * 60 * 60 * 1000 },
-            { title: 'Brouillon Police Annulée', type: 'contract', status: 'deleted', deletedAt: now - 5 * 24 * 60 * 60 * 1000 },
-            { title: 'Test Modèle v1', type: 'document', status: 'deleted', deletedAt: now - 10 * 24 * 60 * 60 * 1000 },
-        ],
-    };
-
-    const categoryDocs = templates[category as keyof typeof templates] || templates.my;
-
-    return categoryDocs.map((doc, i) => ({
-        id: `${category}-${i}`,
-        ...doc,
-        lastEdit: formatRelativeTime(now - Math.random() * 7 * 24 * 60 * 60 * 1000),
-        collaborators: generateCollaborators(category),
-        starred: Math.random() > 0.7,
-        size: `${Math.floor(Math.random() * 2000 + 100)} KB`,
-        visibility: Math.random() > 0.5 ? 'private' : 'shared',
-    }));
+// Mock data generator - REMOVED: Data now comes from database
+const generateMockDocuments = (_category: string): {
+    id: string;
+    title: string;
+    type: string;
+    status: string;
+    lastEdit: string;
+    collaborators: string[];
+    starred: boolean;
+    size: string;
+    visibility: string;
+    owner?: string;
+    isTemplate?: boolean;
+    deletedAt?: number;
+}[] => {
+    return [];
 };
 
-const generateCollaborators = (category: string) => {
-    const names = ['M', 'J', 'P', 'S', 'C', 'R', 'V'];
-    const count = category === 'my' ? Math.floor(Math.random() * 3) + 1 : Math.floor(Math.random() * 5) + 1;
-    return names.slice(0, count);
+const generateCollaborators = (_category: string) => {
+    return [];
 };
 
 const formatRelativeTime = (timestamp: number) => {
