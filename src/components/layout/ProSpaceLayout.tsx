@@ -152,6 +152,17 @@ export default function ProSpaceLayout() {
     const [expandedItems, setExpandedItems] = useState<string[]>(['iDocument', 'iArchive', 'iSignature']);
     const [isIAstedOpen, setIsIAstedOpen] = useState(false);
 
+    // Determine if current user has admin role based on email
+    // Only DG ASCOMA (dg@ascoma.ga) and Ministère de la Pêche (ministre-peche@digitalium.io) are admins
+    const isProAdmin = (() => {
+        const email = user?.email?.toLowerCase() || '';
+        const adminEmails = [
+            'dg@ascoma.ga',           // Directeur Général ASCOMA
+            'ministre-peche@digitalium.io', // Ministère de la Pêche
+        ];
+        return adminEmails.includes(email);
+    })();
+
     const toggleExpand = (label: string) => {
         setExpandedItems(prev =>
             prev.includes(label)
@@ -338,22 +349,26 @@ export default function ProSpaceLayout() {
                             )}
                             {CORE_MODULES.map((item) => renderNavItem(item))}
 
-                            {/* Separator */}
-                            {isSidebarOpen && (
+                            {/* Separator - Only show if admin */}
+                            {isSidebarOpen && isProAdmin && (
                                 <div className="py-2">
                                     <Separator />
                                 </div>
                             )}
 
-                            {/* Admin Section */}
-                            {isSidebarOpen && (
-                                <div className="px-3 py-2">
-                                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                                        Administration
-                                    </span>
-                                </div>
+                            {/* Admin Section - Only visible for admin users */}
+                            {isProAdmin && (
+                                <>
+                                    {isSidebarOpen && (
+                                        <div className="px-3 py-2">
+                                            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                                                Administration
+                                            </span>
+                                        </div>
+                                    )}
+                                    {ADMIN_ITEMS.map((item) => renderNavItem(item, true))}
+                                </>
                             )}
-                            {ADMIN_ITEMS.map((item) => renderNavItem(item, true))}
                         </nav>
                     </ScrollArea>
 

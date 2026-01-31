@@ -78,7 +78,7 @@ export const AuthModal = ({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
       email: 'commercial@ascoma.ga',
       password: 'Demo2026!',
       initials: 'DC',
-      role: 'admin' as const,
+      role: 'manager' as const,
       department: 'Commercial',
       gradient: 'from-blue-500 to-indigo-600',
       redirect: '/pro',
