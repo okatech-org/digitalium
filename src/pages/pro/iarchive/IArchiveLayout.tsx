@@ -138,20 +138,18 @@ export default function IArchiveLayout() {
                         </div>
                     </div>
 
-                    {/* Arborescence button (SubAdmin only) */}
-                    {isBackoffice && (
-                        <Button
-                            variant={showFolders ? 'default' : 'outline'}
-                            size="sm"
-                            onClick={toggleFolders}
-                            className={cn(
-                                showFolders && 'bg-emerald-500 hover:bg-emerald-600'
-                            )}
-                        >
-                            <FolderTree className="h-4 w-4 mr-1" />
-                            Arborescence
-                        </Button>
-                    )}
+                    {/* Arborescence button */}
+                    <Button
+                        variant={showFolders ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={toggleFolders}
+                        className={cn(
+                            showFolders && 'bg-emerald-500 hover:bg-emerald-600'
+                        )}
+                    >
+                        <FolderTree className="h-4 w-4 mr-1" />
+                        Arborescence
+                    </Button>
 
                     {/* Global search */}
                     <div className="relative flex-1 max-w-lg">
@@ -189,7 +187,11 @@ export default function IArchiveLayout() {
                             <Award className="h-4 w-4 mr-1" />
                             Certificat
                         </Button>
-                        <Button className="bg-emerald-500 hover:bg-emerald-600" size="sm">
+                        <Button
+                            className="bg-emerald-500 hover:bg-emerald-600"
+                            size="sm"
+                            onClick={() => toast({ title: "Archiver", description: "Fonctionnalité d'archivage en cours de développement." })}
+                        >
                             <Upload className="h-4 w-4 mr-1" />
                             Archiver
                         </Button>
@@ -202,9 +204,9 @@ export default function IArchiveLayout() {
 
             {/* Content */}
             <div className="flex-1 flex overflow-hidden relative">
-                {/* Folder Explorer Modal (SubAdmin only) - Floating overlay */}
+                {/* Folder Explorer Modal - Floating overlay */}
                 <AnimatePresence initial={false}>
-                    {isBackoffice && showFolders && (
+                    {showFolders && (
                         <>
                             {/* Backdrop */}
                             <motion.div

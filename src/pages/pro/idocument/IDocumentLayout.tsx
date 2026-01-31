@@ -122,11 +122,11 @@ export default function IDocumentLayout() {
                             </div>
                         </div>
                         <div className="flex items-center gap-2">
-                            <Button variant="outline">
+                            <Button variant="outline" onClick={() => toast({ title: "Importer", description: "Fonctionnalité d'import en cours de développement." })}>
                                 <Upload className="h-4 w-4 mr-2" />
                                 Importer
                             </Button>
-                            <Button className="bg-blue-500 hover:bg-blue-600">
+                            <Button className="bg-blue-500 hover:bg-blue-600" onClick={openCreateFolderDialog}>
                                 <Plus className="h-4 w-4 mr-2" />
                                 Nouveau
                             </Button>
@@ -166,9 +166,9 @@ export default function IDocumentLayout() {
 
             {/* Content */}
             <div className="flex-1 flex overflow-hidden relative">
-                {/* Folder Explorer Modal (SubAdmin only) - Floating overlay */}
+                {/* Folder Explorer Modal - Floating overlay */}
                 <AnimatePresence initial={false}>
-                    {isBackoffice && showFolders && (
+                    {showFolders && (
                         <>
                             {/* Backdrop (no click to close) */}
                             <motion.div

@@ -448,7 +448,7 @@ export default function DocumentCategoryPage() {
                 </div>
                 {resolvedCategory !== 'trash' && resolvedCategory !== 'shared' && (
                     <div className="flex gap-2">
-                        {isBackoffice && resolvedCategory === 'my' && (
+                        {resolvedCategory === 'my' && (
                             <Button
                                 variant="outline"
                                 size="sm"
