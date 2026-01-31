@@ -140,33 +140,19 @@ const CATEGORY_CONFIG: Record<string, CategoryConfig> = {
     },
 };
 
-// Mock data generator per category
-const generateMockDocuments = (category: string, count: number) => {
-    const config = CATEGORY_CONFIG[category] || CATEGORY_CONFIG.fiscal;
-    const docs = [];
-
-    for (let i = 0; i < count; i++) {
-        const typeIdx = i % config.documentTypes.length;
-        const year = 2024 - Math.floor(i / 10);
-        const month = 12 - (i % 12);
-        const day = 28 - (i % 20);
-
-        docs.push({
-            id: `${category}-${i}`,
-            reference: `ARCH-${year}-${String(i + 100).padStart(5, '0')}`,
-            title: `${config.documentTypes[typeIdx]} - ${String(month).padStart(2, '0')}/${year}`,
-            type: config.documentTypes[typeIdx],
-            archivedAt: `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${year}`,
-            retentionEnd: config.retentionYears === 'permanent'
-                ? 'Permanent'
-                : `31/12/${year + config.retentionYears}`,
-            hash: Math.random().toString(16).substr(2, 8),
-            verified: Math.random() > 0.05,
-            size: `${Math.floor(Math.random() * 2000 + 100)} KB`,
-        });
-    }
-
-    return docs;
+// Mock data generator per category - REMOVED: Data now comes from database
+const generateMockDocuments = (_category: string, _count: number): {
+    id: string;
+    reference: string;
+    title: string;
+    type: string;
+    archivedAt: string;
+    retentionEnd: string;
+    hash: string;
+    verified: boolean;
+    size: string;
+}[] => {
+    return [];
 };
 
 // Quick filter chips
@@ -205,14 +191,14 @@ export default function ArchiveCategoryPage() {
     const config = CATEGORY_CONFIG[resolvedCategory];
     const CategoryIcon = config.icon;
 
-    // Generate mock data based on category
+    // Document counts - REMOVED: Now fetched from database
     const documentCounts: Record<string, number> = {
-        fiscal: 2847,
-        social: 1523,
-        legal: 456,
-        clients: 892,
-        vault: 34,
-        certificates: 156,
+        fiscal: 0,
+        social: 0,
+        legal: 0,
+        clients: 0,
+        vault: 0,
+        certificates: 0,
     };
 
     const documents = useMemo(() =>
