@@ -122,11 +122,9 @@ const CORE_MODULES: NavItem[] = [
         href: '/pro/isignature',
         icon: PenTool,
         module: 'iSignature',
-        badge: 5,
-        badgeType: 'warning',
         children: [
-            { label: 'À signer', href: '/pro/isignature', badge: 5 },
-            { label: 'En attente', href: '/pro/isignature/pending', badge: 3 },
+            { label: 'À signer', href: '/pro/isignature' },
+            { label: 'En attente', href: '/pro/isignature/pending' },
             { label: 'Signés', href: '/pro/isignature/signed' },
             { label: 'Workflows', href: '/pro/isignature/workflows' },
         ],
