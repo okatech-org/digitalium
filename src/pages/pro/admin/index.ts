@@ -8,3 +8,5 @@ export { default as BillingPage } from './BillingPage';
 export { default as ApiAccessPage } from './ApiAccessPage';
 export { default as SecurityPage } from './SecurityPage';
 export { default as PublicProfilePage } from './PublicProfilePage';
+export { default as PublicPageEditor } from './PublicPageEditor';
+

@@ -72,6 +72,7 @@ import {
   ApiAccessPage,
   SecurityPage as ProSecurityPage,
   PublicProfilePage,
+  PublicPageEditor,
 } from "./pages/pro/admin";
 import ArchiveSettings from "./pages/pro/admin/ArchiveSettings";
 import DesignThemePage from "./pages/pro/admin/DesignThemePage";
@@ -159,7 +160,7 @@ const AnimatedRoutes = () => {
           <Route path="/pro/billing" element={<ProBillingPage />} />
           <Route path="/pro/api" element={<ApiAccessPage />} />
           <Route path="/pro/security" element={<ProSecurityPage />} />
-          <Route path="/pro/public" element={<PublicProfilePage />} />
+          <Route path="/pro/public" element={<PublicPageEditor />} />
           <Route path="/pro/archive-settings" element={<ArchiveSettings />} />
           <Route path="/pro/design-theme" element={<DesignThemePage />} />
         </Route>
