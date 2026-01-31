@@ -6,38 +6,37 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
-    ScrollText,
+    FileText,
     Archive,
-    Scale,
+    PenTool,
     HardDrive,
     Users,
     Clock,
     ChevronRight,
     Upload,
-    FileSignature,
-    Inbox,
+    Send,
+    Plus,
     FolderOpen,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { cn } from '@/lib/utils';
 
 // Mock data
 const MOCK_STATS = {
     storage: { used: 456, total: 1000, unit: 'GB' },
-    courriers: 3842,
-    archives: 24567,
+    documents: 3842,
+    archived: 24567,
     signatures: { pending: 12, thisMonth: 156 },
     agents: 48,
 };
 
 const MOCK_ACTIVITY = [
-    { id: 1, user: 'Dir. Cabinet', action: 'a signé', doc: 'Arrêté ministériel N°2026-012', module: 'Parapheur', time: 'Il y a 10 min' },
-    { id: 2, user: 'SG', action: 'a archivé', doc: 'Procès-verbal séance plénière', module: 'Archives', time: 'Il y a 30 min' },
-    { id: 3, user: 'DAF', action: 'a transmis', doc: 'Budget exercice 2026', module: 'Courrier', time: 'Il y a 1h' },
-    { id: 4, user: 'DRH', action: 'a validé', doc: 'Dossiers recrutement Q1', module: 'Parapheur', time: 'Il y a 2h' },
+    { id: 1, user: 'Dir. Cabinet', action: 'a signé', doc: 'Arrêté ministériel N°2026-012', module: 'iSignature', time: 'Il y a 10 min' },
+    { id: 2, user: 'SG', action: 'a archivé', doc: 'Procès-verbal séance plénière', module: 'iArchive', time: 'Il y a 30 min' },
+    { id: 3, user: 'DAF', action: 'a transmis', doc: 'Budget exercice 2026', module: 'iDocument', time: 'Il y a 1h' },
+    { id: 4, user: 'DRH', action: 'a validé', doc: 'Dossiers recrutement Q1', module: 'iSignature', time: 'Il y a 2h' },
 ];
 
 export default function AdmDashboard() {
@@ -81,67 +80,67 @@ export default function AdmDashboard() {
                     </Card>
                 </motion.div>
 
-                {/* Courrier Officiel */}
+                {/* iDocument */}
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
                     <Link to="/adm/idocument">
-                        <Card className="hover:border-sky-500/50 transition-colors cursor-pointer group">
+                        <Card className="hover:border-blue-500/50 transition-colors cursor-pointer group">
                             <CardContent className="pt-6">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
-                                        <div className="p-2 rounded-lg bg-sky-500/10 group-hover:scale-110 transition-transform">
-                                            <ScrollText className="h-5 w-5 text-sky-500" />
+                                        <div className="p-2 rounded-lg bg-blue-500/10 group-hover:scale-110 transition-transform">
+                                            <FileText className="h-5 w-5 text-blue-500" />
                                         </div>
                                         <div>
-                                            <p className="text-sm text-muted-foreground">Courrier Officiel</p>
-                                            <p className="text-xl font-bold">{MOCK_STATS.courriers.toLocaleString()}</p>
+                                            <p className="text-sm text-muted-foreground">iDocument</p>
+                                            <p className="text-xl font-bold">{MOCK_STATS.documents.toLocaleString()}</p>
                                         </div>
                                     </div>
-                                    <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-sky-500 transition-colors" />
+                                    <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-blue-500 transition-colors" />
                                 </div>
                             </CardContent>
                         </Card>
                     </Link>
                 </motion.div>
 
-                {/* Archives */}
+                {/* iArchive */}
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
                     <Link to="/adm/iarchive">
-                        <Card className="hover:border-amber-500/50 transition-colors cursor-pointer group">
+                        <Card className="hover:border-emerald-500/50 transition-colors cursor-pointer group">
                             <CardContent className="pt-6">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
-                                        <div className="p-2 rounded-lg bg-amber-500/10 group-hover:scale-110 transition-transform">
-                                            <Archive className="h-5 w-5 text-amber-500" />
+                                        <div className="p-2 rounded-lg bg-emerald-500/10 group-hover:scale-110 transition-transform">
+                                            <Archive className="h-5 w-5 text-emerald-500" />
                                         </div>
                                         <div>
-                                            <p className="text-sm text-muted-foreground">Archives Légales</p>
-                                            <p className="text-xl font-bold">{MOCK_STATS.archives.toLocaleString()}</p>
+                                            <p className="text-sm text-muted-foreground">iArchive</p>
+                                            <p className="text-xl font-bold">{MOCK_STATS.archived.toLocaleString()}</p>
                                         </div>
                                     </div>
-                                    <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-amber-500 transition-colors" />
+                                    <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-emerald-500 transition-colors" />
                                 </div>
                             </CardContent>
                         </Card>
                     </Link>
                 </motion.div>
 
-                {/* Parapheur */}
+                {/* iSignature */}
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
                     <Link to="/adm/isignature">
-                        <Card className="hover:border-red-500/50 transition-colors cursor-pointer group">
+                        <Card className="hover:border-purple-500/50 transition-colors cursor-pointer group">
                             <CardContent className="pt-6">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
-                                        <div className="p-2 rounded-lg bg-red-500/10 group-hover:scale-110 transition-transform">
-                                            <Scale className="h-5 w-5 text-red-500" />
+                                        <div className="p-2 rounded-lg bg-purple-500/10 group-hover:scale-110 transition-transform">
+                                            <PenTool className="h-5 w-5 text-purple-500" />
                                         </div>
                                         <div>
-                                            <p className="text-sm text-muted-foreground">Parapheur</p>
+                                            <p className="text-sm text-muted-foreground">iSignature</p>
                                             <p className="text-xl font-bold">{MOCK_STATS.signatures.thisMonth} ce mois</p>
                                         </div>
                                     </div>
                                     {MOCK_STATS.signatures.pending > 0 && (
-                                        <Badge variant="secondary" className="bg-red-500/20 text-red-500">
+                                        <Badge variant="secondary" className="bg-purple-500/20 text-purple-500">
                                             {MOCK_STATS.signatures.pending} en attente
                                         </Badge>
                                     )}
@@ -162,20 +161,20 @@ export default function AdmDashboard() {
                     <CardContent className="space-y-3">
                         <Button variant="outline" className="w-full justify-start gap-3" asChild>
                             <Link to="/adm/idocument?action=new">
-                                <Inbox className="h-4 w-4 text-sky-500" />
-                                <span>Nouveau courrier</span>
+                                <Plus className="h-4 w-4 text-blue-500" />
+                                <span>Créer un document</span>
                             </Link>
                         </Button>
                         <Button variant="outline" className="w-full justify-start gap-3" asChild>
-                            <Link to="/adm/iarchive/upload">
-                                <Upload className="h-4 w-4 text-amber-500" />
-                                <span>Archiver des documents</span>
+                            <Link to="/adm/iarchive?action=import">
+                                <Upload className="h-4 w-4 text-emerald-500" />
+                                <span>Archiver un lot</span>
                             </Link>
                         </Button>
                         <Button variant="outline" className="w-full justify-start gap-3" asChild>
-                            <Link to="/adm/isignature">
-                                <FileSignature className="h-4 w-4 text-red-500" />
-                                <span>Ouvrir le parapheur</span>
+                            <Link to="/adm/isignature?action=new">
+                                <Send className="h-4 w-4 text-purple-500" />
+                                <span>Envoyer à signature</span>
                             </Link>
                         </Button>
                     </CardContent>
@@ -199,8 +198,8 @@ export default function AdmDashboard() {
                                     animate={{ opacity: 1, x: 0 }}
                                     className="flex items-start gap-3"
                                 >
-                                    <div className="p-1.5 rounded-lg bg-amber-500/10">
-                                        <FolderOpen className="h-4 w-4 text-amber-500" />
+                                    <div className="p-1.5 rounded-lg bg-blue-500/10">
+                                        <FolderOpen className="h-4 w-4 text-blue-500" />
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <p className="text-sm">
@@ -222,75 +221,75 @@ export default function AdmDashboard() {
 
             {/* Module Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card className="border-sky-500/20 hover:border-sky-500/40 transition-colors">
+                <Card className="border-blue-500/20 hover:border-blue-500/40 transition-colors">
                     <CardHeader>
                         <div className="flex items-center gap-3">
-                            <div className="p-3 rounded-xl bg-sky-500/10">
-                                <ScrollText className="h-6 w-6 text-sky-500" />
+                            <div className="p-3 rounded-xl bg-blue-500/10">
+                                <FileText className="h-6 w-6 text-blue-500" />
                             </div>
                             <div>
-                                <CardTitle>Courrier Officiel</CardTitle>
-                                <CardDescription>Gestion des correspondances</CardDescription>
+                                <CardTitle>iDocument</CardTitle>
+                                <CardDescription>Documents collaboratifs</CardDescription>
                             </div>
                         </div>
                     </CardHeader>
                     <CardContent className="space-y-3">
                         <p className="text-sm text-muted-foreground">
-                            Créez, suivez et archivez vos courriers officiels entrants et sortants.
+                            Créez, éditez et partagez vos documents de travail avec votre équipe.
                         </p>
-                        <Button className="w-full bg-sky-500 hover:bg-sky-600" asChild>
+                        <Button className="w-full bg-blue-500 hover:bg-blue-600" asChild>
                             <Link to="/adm/idocument">
-                                Accéder
+                                Ouvrir iDocument
                                 <ChevronRight className="h-4 w-4 ml-2" />
                             </Link>
                         </Button>
                     </CardContent>
                 </Card>
 
-                <Card className="border-amber-500/20 hover:border-amber-500/40 transition-colors">
+                <Card className="border-emerald-500/20 hover:border-emerald-500/40 transition-colors">
                     <CardHeader>
                         <div className="flex items-center gap-3">
-                            <div className="p-3 rounded-xl bg-amber-500/10">
-                                <Archive className="h-6 w-6 text-amber-500" />
+                            <div className="p-3 rounded-xl bg-emerald-500/10">
+                                <Archive className="h-6 w-6 text-emerald-500" />
                             </div>
                             <div>
-                                <CardTitle>Archives Légales</CardTitle>
-                                <CardDescription>Conservation permanente</CardDescription>
+                                <CardTitle>iArchive</CardTitle>
+                                <CardDescription>Archivage légal</CardDescription>
                             </div>
                         </div>
                     </CardHeader>
                     <CardContent className="space-y-3">
                         <p className="text-sm text-muted-foreground">
-                            Archivage légal conforme aux exigences des Archives Nationales.
+                            Conservez vos documents avec intégrité garantie et conformité légale.
                         </p>
-                        <Button className="w-full bg-amber-500 hover:bg-amber-600" asChild>
+                        <Button className="w-full bg-emerald-500 hover:bg-emerald-600" asChild>
                             <Link to="/adm/iarchive">
-                                Accéder
+                                Ouvrir iArchive
                                 <ChevronRight className="h-4 w-4 ml-2" />
                             </Link>
                         </Button>
                     </CardContent>
                 </Card>
 
-                <Card className="border-red-500/20 hover:border-red-500/40 transition-colors">
+                <Card className="border-purple-500/20 hover:border-purple-500/40 transition-colors">
                     <CardHeader>
                         <div className="flex items-center gap-3">
-                            <div className="p-3 rounded-xl bg-red-500/10">
-                                <Scale className="h-6 w-6 text-red-500" />
+                            <div className="p-3 rounded-xl bg-purple-500/10">
+                                <PenTool className="h-6 w-6 text-purple-500" />
                             </div>
                             <div>
-                                <CardTitle>Parapheur</CardTitle>
-                                <CardDescription>Signature hiérarchique</CardDescription>
+                                <CardTitle>iSignature</CardTitle>
+                                <CardDescription>Signature électronique</CardDescription>
                             </div>
                         </div>
                     </CardHeader>
                     <CardContent className="space-y-3">
                         <p className="text-sm text-muted-foreground">
-                            Circuit de validation et signature électronique institutionnelle.
+                            Envoyez vos documents à signature et suivez les validations en temps réel.
                         </p>
-                        <Button className="w-full bg-red-500 hover:bg-red-600" asChild>
+                        <Button className="w-full bg-purple-500 hover:bg-purple-600" asChild>
                             <Link to="/adm/isignature">
-                                Accéder
+                                Ouvrir iSignature
                                 <ChevronRight className="h-4 w-4 ml-2" />
                             </Link>
                         </Button>

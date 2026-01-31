@@ -87,27 +87,27 @@ const DASHBOARD_ITEM: NavItem = {
     icon: LayoutDashboard,
 };
 
-// Workflow Modules for Administration
+// Workflow Modules for Administration - Same modules, different workflows
 const WORKFLOW_SECTION: NavSection = {
-    title: 'Modules Institutionnels',
+    title: 'Modules Métiers',
     icon: Building2,
     items: [
         {
-            label: 'Courrier Officiel',
+            label: 'iDocument',
             href: '/adm/idocument',
-            icon: ScrollText,
+            icon: FileText,
             module: 'iDocument',
         },
         {
-            label: 'Archives Légales',
+            label: 'iArchive',
             href: '/adm/iarchive',
             icon: Archive,
             module: 'iArchive',
         },
         {
-            label: 'Parapheur',
+            label: 'iSignature',
             href: '/adm/isignature',
-            icon: Scale,
+            icon: PenTool,
             module: 'iSignature',
         },
     ],

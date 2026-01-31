@@ -260,13 +260,8 @@ export default function DocumentCategoryPage() {
         return getFolderBreadcrumb(selectedFolder.id);
     }, [selectedFolder, isBackoffice]);
 
-    // Get files from selected folder (for backoffice) or use legacy method
+    // Get files from selected folder - works for all spaces
     const documents = useMemo(() => {
-        if (!isBackoffice) {
-            // Pro space - return empty for now
-            return [];
-        }
-
         if (resolvedCategory === 'my' && selectedFolder) {
             // Get files from the selected folder
             const files = getFilesInFolder(selectedFolder.id);
@@ -313,7 +308,7 @@ export default function DocumentCategoryPage() {
             return [...folderItems, ...fileDocuments];
         }
 
-        // Fallback to legacy documents
+        // Fallback to legacy documents for other categories
         return generateContextualDocuments(resolvedCategory, isBackoffice);
     }, [resolvedCategory, isBackoffice, selectedFolder, folders, getSubfolders]);
 
@@ -448,7 +443,7 @@ export default function DocumentCategoryPage() {
                 </div>
                 {resolvedCategory !== 'trash' && resolvedCategory !== 'shared' && (
                     <div className="flex gap-2">
-                        {isBackoffice && resolvedCategory === 'my' && (
+                        {resolvedCategory === 'my' && (
                             <Button
                                 variant="outline"
                                 size="sm"
@@ -710,7 +705,10 @@ export default function DocumentCategoryPage() {
                     <h3 className="font-medium mb-2">Aucun document</h3>
                     <p className="text-sm text-muted-foreground">{config.emptyMessage}</p>
                     {resolvedCategory === 'my' && (
-                        <Button className="mt-4 bg-blue-500 hover:bg-blue-600">
+                        <Button
+                            className="mt-4 bg-blue-500 hover:bg-blue-600"
+                            onClick={openCreateFolderDialog}
+                        >
                             <Plus className="h-4 w-4 mr-2" />
                             Créer un dossier
                         </Button>

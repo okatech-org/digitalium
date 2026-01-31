@@ -88,27 +88,27 @@ const DASHBOARD_ITEM: NavItem = {
     icon: LayoutDashboard,
 };
 
-// Workflow Modules for Organisms
+// Workflow Modules for Organisms - Same modules, different workflows
 const WORKFLOW_SECTION: NavSection = {
-    title: 'Modules',
+    title: 'Modules Métiers',
     icon: GraduationCap,
     items: [
         {
-            label: 'Documents',
+            label: 'iDocument',
             href: '/org/idocument',
-            icon: FolderOpen,
+            icon: FileText,
             module: 'iDocument',
         },
         {
-            label: 'Archives',
+            label: 'iArchive',
             href: '/org/iarchive',
-            icon: BookOpen,
+            icon: Archive,
             module: 'iArchive',
         },
         {
-            label: 'Signatures',
+            label: 'iSignature',
             href: '/org/isignature',
-            icon: ClipboardSignature,
+            icon: PenTool,
             module: 'iSignature',
         },
     ],
