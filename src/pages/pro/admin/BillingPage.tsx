@@ -34,6 +34,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
+import { useOrganizationContext } from '@/hooks/useOrganizationContext';
 
 interface Plan {
     id: string;
@@ -83,6 +84,14 @@ const PLANS: Plan[] = [
         features: ['Utilisateurs illimités', '500 Go stockage', 'Documents illimités', 'API Premium', 'Account manager', 'SLA 99.9%'],
         limits: { storage: 500, users: -1, documents: -1 },
     },
+    {
+        id: 'institutional',
+        name: 'Institutionnel',
+        price: 0,
+        period: 'year',
+        features: ['Utilisateurs illimités', '100 Go stockage', 'Documents illimités', 'API Gouvernementale', 'Support dédié', 'Souveraineté données'],
+        limits: { storage: 100, users: -1, documents: -1 },
+    },
 ];
 
 const MOCK_INVOICES: Invoice[] = [
@@ -92,16 +101,27 @@ const MOCK_INVOICES: Invoice[] = [
 ];
 
 export default function BillingPage() {
-    const [currentPlan] = useState(PLANS[1]); // Pro plan
+    const orgContext = useOrganizationContext();
+
+    // Find the current plan based on organization context
+    const currentPlan = PLANS.find(p => p.name === orgContext.planName) || PLANS[1];
     const [isUpgradeOpen, setIsUpgradeOpen] = useState(false);
 
     const usage = {
-        storage: { used: 24, limit: currentPlan.limits.storage },
-        users: { used: 12, limit: currentPlan.limits.users },
-        documents: { used: 1247, limit: currentPlan.limits.documents },
+        storage: { used: orgContext.storageUsed, limit: orgContext.storageTotalGB },
+        users: { used: orgContext.members.length, limit: currentPlan.limits.users },
+        documents: { used: orgContext.stats.documents.value, limit: currentPlan.limits.documents },
     };
 
     const nextBillingDate = new Date(Date.now() + 25 * 24 * 60 * 60 * 1000);
+
+    // Organization billing info
+    const billingInfo = {
+        name: orgContext.name,
+        address: orgContext.address,
+        city: `${orgContext.city}, ${orgContext.country}`,
+        nif: orgContext.nif,
+    };
 
     return (
         <div className="p-6 space-y-6">

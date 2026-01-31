@@ -3,7 +3,7 @@
  * Manage team members, roles, and permissions
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
     Users,
@@ -51,6 +51,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
+import { useOrganizationContext, type OrganizationMember } from '@/hooks/useOrganizationContext';
 
 type MemberRole = 'owner' | 'admin' | 'manager' | 'member' | 'viewer';
 
@@ -74,67 +75,42 @@ const ROLE_CONFIG: Record<MemberRole, { label: string; color: string; icon: type
     viewer: { label: 'Lecteur', color: 'text-gray-500 bg-gray-500/10', icon: Eye },
 };
 
-// Mock data - Entreprise Demo ecosystem
-const MOCK_MEMBERS: TeamMember[] = [
-    {
-        id: '0',
-        name: 'Entreprise Démo',
-        email: 'demo-entreprise@digitalium.ga',
-        avatarUrl: undefined,
-        role: 'owner',
-        department: 'Direction Générale',
-        joinedAt: Date.now() - 730 * 24 * 60 * 60 * 1000,
-        lastActiveAt: Date.now() - 1 * 60 * 60 * 1000,
-        status: 'active',
-    },
-    {
-        id: '1',
-        name: 'Jean Ndong',
-        email: 'j.ndong@entreprise.ga',
-        role: 'admin',
-        department: 'Direction',
-        joinedAt: Date.now() - 365 * 24 * 60 * 60 * 1000,
-        lastActiveAt: Date.now() - 2 * 60 * 60 * 1000,
-        status: 'active',
-    },
-    {
-        id: '2',
-        name: 'Marie Obame',
-        email: 'm.obame@entreprise.ga',
-        role: 'manager',
-        department: 'Comptabilité',
-        joinedAt: Date.now() - 180 * 24 * 60 * 60 * 1000,
-        lastActiveAt: Date.now() - 30 * 60 * 1000,
-        status: 'active',
-    },
-    {
-        id: '3',
-        name: 'Pierre Mba',
-        email: 'p.mba@entreprise.ga',
-        role: 'member',
-        department: 'RH',
-        joinedAt: Date.now() - 90 * 24 * 60 * 60 * 1000,
-        lastActiveAt: Date.now() - 5 * 24 * 60 * 60 * 1000,
-        status: 'active',
-    },
-    {
-        id: '4',
-        name: 'Sophie Ella',
-        email: 's.ella@entreprise.ga',
-        role: 'viewer',
-        department: 'Juridique',
-        joinedAt: Date.now() - 30 * 24 * 60 * 60 * 1000,
-        status: 'pending',
-    },
-];
-
 export default function TeamManagementPage() {
-    const [members, setMembers] = useState<TeamMember[]>(MOCK_MEMBERS);
+    const orgContext = useOrganizationContext();
+
+    // Convert OrganizationMember to TeamMember format
+    const initialMembers: TeamMember[] = orgContext.members.map(m => ({
+        id: m.id,
+        name: m.name,
+        email: m.email,
+        role: m.role,
+        department: m.department,
+        joinedAt: m.joinedAt,
+        lastActiveAt: m.lastActiveAt,
+        status: m.status,
+    }));
+
+    const [members, setMembers] = useState<TeamMember[]>(initialMembers);
     const [searchQuery, setSearchQuery] = useState('');
     const [roleFilter, setRoleFilter] = useState<string>('all');
     const [isInviteOpen, setIsInviteOpen] = useState(false);
     const [inviteEmail, setInviteEmail] = useState('');
     const [inviteRole, setInviteRole] = useState<MemberRole>('member');
+
+    // Update members when organization changes
+    useEffect(() => {
+        const newMembers: TeamMember[] = orgContext.members.map(m => ({
+            id: m.id,
+            name: m.name,
+            email: m.email,
+            role: m.role,
+            department: m.department,
+            joinedAt: m.joinedAt,
+            lastActiveAt: m.lastActiveAt,
+            status: m.status,
+        }));
+        setMembers(newMembers);
+    }, [orgContext.type]);
 
     const filteredMembers = members.filter(m => {
         if (roleFilter !== 'all' && m.role !== roleFilter) return false;

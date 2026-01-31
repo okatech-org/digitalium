@@ -32,6 +32,7 @@ import {
 } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
+import { useOrganizationContext } from '@/hooks/useOrganizationContext';
 
 interface StatCard {
     label: string;
@@ -40,13 +41,6 @@ interface StatCard {
     icon: typeof FileText;
     color: string;
 }
-
-const STATS: StatCard[] = [
-    { label: 'Documents', value: '1,247', change: 12.5, icon: FileText, color: 'text-blue-500 bg-blue-500/10' },
-    { label: 'Archives', value: '856', change: 8.2, icon: Archive, color: 'text-emerald-500 bg-emerald-500/10' },
-    { label: 'Signatures', value: '324', change: -3.1, icon: PenTool, color: 'text-purple-500 bg-purple-500/10' },
-    { label: 'Utilisateurs', value: '18', change: 22.0, icon: Users, color: 'text-orange-500 bg-orange-500/10' },
-];
 
 const ACTIVITY_DATA = [
     { day: 'Lun', uploads: 45, views: 120, signatures: 12 },
@@ -58,27 +52,30 @@ const ACTIVITY_DATA = [
     { day: 'Dim', uploads: 8, views: 22, signatures: 1 },
 ];
 
-const TOP_DOCUMENTS = [
-    { name: 'Contrat Fournisseur ABC', views: 234, category: 'juridique' },
-    { name: 'Facture Q4 2025', views: 189, category: 'fiscal' },
-    { name: 'Bulletin Décembre', views: 156, category: 'social' },
-    { name: 'Statuts Société', views: 142, category: 'juridique' },
-    { name: 'Devis Client XYZ', views: 98, category: 'client' },
-];
-
-const STORAGE_USAGE = {
-    used: 2.4,
-    total: 10,
-    breakdown: [
-        { category: 'Documents', size: 1.2, color: 'bg-blue-500' },
-        { category: 'Archives', size: 0.8, color: 'bg-emerald-500' },
-        { category: 'Signatures', size: 0.3, color: 'bg-purple-500' },
-        { category: 'Autres', size: 0.1, color: 'bg-gray-500' },
-    ],
-};
-
 export default function AnalyticsPage() {
     const [period, setPeriod] = useState('7d');
+    const orgContext = useOrganizationContext();
+
+    // Build stats from organization context
+    const STATS: StatCard[] = [
+        { label: 'Documents', value: orgContext.stats.documents.value.toLocaleString('fr-FR'), change: orgContext.stats.documents.change, icon: FileText, color: 'text-blue-500 bg-blue-500/10' },
+        { label: 'Archives', value: orgContext.stats.archives.value.toLocaleString('fr-FR'), change: orgContext.stats.archives.change, icon: Archive, color: 'text-emerald-500 bg-emerald-500/10' },
+        { label: 'Signatures', value: orgContext.stats.signatures.value.toLocaleString('fr-FR'), change: orgContext.stats.signatures.change, icon: PenTool, color: 'text-purple-500 bg-purple-500/10' },
+        { label: 'Utilisateurs', value: orgContext.stats.users.value.toString(), change: orgContext.stats.users.change, icon: Users, color: 'text-orange-500 bg-orange-500/10' },
+    ];
+
+    const TOP_DOCUMENTS = orgContext.topDocuments;
+
+    const STORAGE_USAGE = {
+        used: orgContext.storageUsed,
+        total: orgContext.storageTotalGB,
+        breakdown: [
+            { category: 'Documents', size: orgContext.storageUsed * 0.5, color: 'bg-blue-500' },
+            { category: 'Archives', size: orgContext.storageUsed * 0.33, color: 'bg-emerald-500' },
+            { category: 'Signatures', size: orgContext.storageUsed * 0.12, color: 'bg-purple-500' },
+            { category: 'Autres', size: orgContext.storageUsed * 0.05, color: 'bg-gray-500' },
+        ],
+    };
 
     return (
         <div className="p-6 space-y-6">

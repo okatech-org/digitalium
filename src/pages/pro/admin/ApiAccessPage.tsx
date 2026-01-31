@@ -44,6 +44,7 @@ import {
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
+import { useOrganizationContext } from '@/hooks/useOrganizationContext';
 
 interface ApiKey {
     id: string;
@@ -113,7 +114,34 @@ print(data)`,
 };
 
 export default function ApiAccessPage() {
-    const [keys, setKeys] = useState<ApiKey[]>(MOCK_KEYS);
+    const orgContext = useOrganizationContext();
+    const apiPrefix = orgContext.apiPrefix;
+
+    // Generate contextual mock keys based on organization
+    const getContextualKeys = (): ApiKey[] => [
+        {
+            id: '1',
+            name: 'Production API',
+            key: `${apiPrefix}_live_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6`,
+            prefix: `${apiPrefix}_live`,
+            createdAt: Date.now() - 90 * 24 * 60 * 60 * 1000,
+            lastUsedAt: Date.now() - 2 * 60 * 60 * 1000,
+            permissions: ['read', 'write', 'delete'],
+            isActive: true,
+        },
+        {
+            id: '2',
+            name: 'Test API',
+            key: `${apiPrefix}_test_z9y8x7w6v5u4t3s2r1q0p9o8n7m6l5k4`,
+            prefix: `${apiPrefix}_test`,
+            createdAt: Date.now() - 30 * 24 * 60 * 60 * 1000,
+            lastUsedAt: Date.now() - 24 * 60 * 60 * 1000,
+            permissions: ['read'],
+            isActive: true,
+        },
+    ];
+
+    const [keys, setKeys] = useState<ApiKey[]>(getContextualKeys());
     const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set());
     const [copiedKey, setCopiedKey] = useState<string | null>(null);
     const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -138,7 +166,7 @@ export default function ApiAccessPage() {
     };
 
     const createKey = () => {
-        const prefix = newKeyType === 'live' ? 'dgm_live' : 'dgm_test';
+        const prefix = newKeyType === 'live' ? `${apiPrefix}_live` : `${apiPrefix}_test`;
         const newKey: ApiKey = {
             id: crypto.randomUUID(),
             name: newKeyName,
