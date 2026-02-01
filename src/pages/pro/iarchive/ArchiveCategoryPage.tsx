@@ -66,6 +66,7 @@ import { useSpaceFromUrl } from '@/contexts/SpaceContext';
 import { digitaliumArchives, digitaliumArchiveFolders, ArchiveCategory } from '@/data/digitaliumMockData';
 import { IArchiveOutletContext } from './IArchiveLayout';
 import { getArchivedFilesFromStorage } from '@/services/documentFilesService';
+import { A4DocumentCard } from '@/pages/pro/idocument/components/A4DocumentCard';
 
 // Category configuration
 interface CategoryConfig {
@@ -170,6 +171,8 @@ const generateContextualArchives = (category: string, isBackoffice: boolean) => 
             isFolder: false as const,
             folderData: null,
             color: undefined as string | undefined,
+            mimeType: 'application/pdf',
+            isImported: false,
         }));
 };
 
@@ -233,9 +236,11 @@ export default function ArchiveCategoryPage() {
                 size: `${archivesInFolder + subfoldersCount} éléments`,
                 starred: false,
                 folderId: sf.parentId || 'root',
-                isFolder: true,
+                isFolder: true as const,
                 folderData: sf,
                 color: sf.color,
+                mimeType: undefined as string | undefined,
+                isImported: false,
             };
         });
 
@@ -502,17 +507,15 @@ export default function ArchiveCategoryPage() {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: i * 0.05 }}
-                                onClick={() => doc.isFolder && handleFolderClick(doc)}
                             >
-                                <Card className={cn(
-                                    "group cursor-pointer hover:border-emerald-500/50 transition-all h-full",
-                                    doc.isFolder && "hover:shadow-lg"
-                                )}>
-                                    <CardContent className="p-4 flex flex-col h-full">
-                                        {/* Header */}
-                                        <div className="flex items-start justify-between mb-3">
-                                            {/* Folder or Document icon */}
-                                            {doc.isFolder ? (
+                                {doc.isFolder ? (
+                                    // Folder card with navigation
+                                    <Card
+                                        className="group cursor-pointer hover:border-emerald-500/50 transition-all h-full hover:shadow-lg"
+                                        onClick={() => handleFolderClick(doc)}
+                                    >
+                                        <CardContent className="p-4 flex flex-col h-full">
+                                            <div className="flex items-start justify-between mb-3">
                                                 <div
                                                     className="p-2 rounded-lg"
                                                     style={{
@@ -521,79 +524,46 @@ export default function ArchiveCategoryPage() {
                                                 >
                                                     <FolderOpen className="h-5 w-5" style={{ color: doc.color || '#10b981' }} />
                                                 </div>
-                                            ) : (
-                                                <div className={cn('p-2 rounded-lg bg-emerald-500/10')}>
-                                                    <FileText className="h-5 w-5 text-emerald-500" />
-                                                </div>
-                                            )}
-                                            <div className="flex items-center gap-1">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-8 w-8 opacity-0 group-hover:opacity-100"
-                                                    onClick={(e) => e.stopPropagation()}
-                                                >
-                                                    {doc.starred ? (
-                                                        <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
-                                                    ) : (
-                                                        <StarOff className="h-4 w-4" />
-                                                    )}
-                                                </Button>
-                                                {!doc.isFolder && (
-                                                    <DropdownMenu>
-                                                        <DropdownMenuTrigger asChild>
-                                                            <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100">
-                                                                <MoreVertical className="h-4 w-4" />
-                                                            </Button>
-                                                        </DropdownMenuTrigger>
-                                                        {renderDocumentActions(doc)}
-                                                    </DropdownMenu>
-                                                )}
                                             </div>
-                                        </div>
-
-                                        {/* Title */}
-                                        <h3 className="font-medium text-sm mb-2 line-clamp-2 flex-1">{doc.title}</h3>
-
-                                        {/* Reference or folder info */}
-                                        {doc.isFolder ? (
-                                            <p className="text-xs text-muted-foreground mb-2">
-                                                {doc.size}
-                                            </p>
-                                        ) : (
-                                            <p className="text-xs text-muted-foreground mb-2 font-mono">
-                                                {doc.reference}
-                                            </p>
-                                        )}
-
-                                        {/* Status badge */}
-                                        {doc.isFolder ? (
+                                            <h3 className="font-medium text-sm mb-2 line-clamp-2 flex-1">{doc.title}</h3>
+                                            <p className="text-xs text-muted-foreground mb-2">{doc.size}</p>
                                             <Badge variant="secondary" className="bg-blue-500/10 text-blue-500 text-xs w-fit">
                                                 <FolderOpen className="h-3 w-3 mr-1" />
                                                 Dossier
                                             </Badge>
-                                        ) : doc.verified ? (
-                                            <Badge variant="secondary" className="bg-green-500/10 text-green-500 text-xs w-fit">
-                                                <Shield className="h-3 w-3 mr-1" />
-                                                Vérifié
-                                            </Badge>
-                                        ) : (
-                                            <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-500 text-xs w-fit">
-                                                <AlertTriangle className="h-3 w-3 mr-1" />
-                                                En attente
-                                            </Badge>
-                                        )}
-
-                                        {/* Footer */}
-                                        <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground">
-                                            <span className="flex items-center gap-1">
-                                                <Clock className="h-3 w-3" />
-                                                {doc.archivedAt}
-                                            </span>
-                                            {!doc.isFolder && <span>{doc.size}</span>}
-                                        </div>
-                                    </CardContent>
-                                </Card>
+                                            <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground">
+                                                <span className="flex items-center gap-1">
+                                                    <Clock className="h-3 w-3" />
+                                                    {doc.archivedAt}
+                                                </span>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                ) : (
+                                    // Archive document with A4 miniature style
+                                    <A4DocumentCard
+                                        document={{
+                                            id: doc.id,
+                                            title: doc.title,
+                                            type: doc.mimeType?.includes('pdf') ? 'pdf' :
+                                                doc.mimeType?.includes('image') ? 'image' : 'document',
+                                            status: doc.verified ? 'approved' : 'review',
+                                            lastEdit: doc.archivedAt,
+                                            starred: doc.starred,
+                                            isImported: doc.isImported,
+                                            mimeType: doc.mimeType,
+                                        }}
+                                        onDocumentClick={() => {
+                                            // TODO: Open archive preview
+                                        }}
+                                        onDelete={(docId) => {
+                                            // Archive deletion
+                                        }}
+                                        onArchive={(docId) => {
+                                            // Already archived
+                                        }}
+                                    />
+                                )}
                             </motion.div>
                         ))}
                     </motion.div>
