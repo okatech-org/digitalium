@@ -164,11 +164,14 @@ function FolderNode({ folder, allFolders, depth, onSelect, selectedId, defaultEx
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48">
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={(e) => {
+                            e.stopPropagation();
+                            // Trigger create subfolder - would need to be passed as prop
+                        }}>
                             <Plus className="h-4 w-4 mr-2" />
                             Nouveau sous-dossier
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
                             <Upload className="h-4 w-4 mr-2" />
                             Importer des fichiers
                         </DropdownMenuItem>

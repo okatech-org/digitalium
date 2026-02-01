@@ -34,6 +34,8 @@ import {
     FolderOpen,
     Star,
     StarOff,
+    Upload,
+    Plus,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -264,22 +266,42 @@ export default function ArchiveCategoryPage() {
 
     return (
         <div className="space-y-4">
-            {/* Folder breadcrumb when a folder is selected */}
+            {/* Breadcrumb Navigation - macOS Finder style (matching iDocument) */}
             {selectedFolder && isBackoffice && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/30 px-3 py-2 rounded-lg">
-                    <Folder className="h-4 w-4 text-emerald-500" />
-                    <button
+                <nav className="flex items-center gap-0.5 text-sm bg-muted/30 rounded-lg px-2 py-1.5 border border-border/40">
+                    {/* Root/Home button */}
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        className={cn(
+                            "h-7 px-2 gap-1.5 rounded-md",
+                            !selectedFolder
+                                ? "bg-emerald-500/10 text-emerald-600 font-medium"
+                                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                        )}
                         onClick={() => outletContext?.setSelectedFolder(null as any)}
-                        className="hover:text-foreground transition-colors"
                     >
-                        <Home className="h-3 w-3" />
-                    </button>
-                    <ChevronRight className="h-3 w-3" />
-                    <span className="font-medium text-foreground">{selectedFolder.name}</span>
-                    <Badge variant="secondary" className="text-[10px] ml-2">
+                        <Home className="h-3.5 w-3.5" />
+                        <span>Archives</span>
+                    </Button>
+
+                    {/* Selected folder */}
+                    <ChevronRight className="h-4 w-4 text-muted-foreground/50 mx-0.5" />
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 px-2 gap-1.5 rounded-md bg-emerald-500/10 text-emerald-600 font-medium max-w-[180px]"
+                        disabled
+                    >
+                        <Folder className="h-3.5 w-3.5" />
+                        <span className="truncate">{selectedFolder.name}</span>
+                    </Button>
+
+                    {/* Item count badge */}
+                    <Badge variant="secondary" className="text-[10px] ml-2 bg-emerald-500/10 text-emerald-600">
                         {documents.length} archive{documents.length !== 1 ? 's' : ''}
                     </Badge>
-                </div>
+                </nav>
             )}
 
             {/* Header */}
@@ -553,13 +575,42 @@ export default function ArchiveCategoryPage() {
                     className="text-center py-12"
                 >
                     <FolderOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                    <h3 className="font-medium mb-2">Aucune archive</h3>
-                    <p className="text-sm text-muted-foreground">
+                    <h3 className="font-medium mb-2">
+                        {selectedFolder
+                            ? 'Ce dossier est vide'
+                            : 'Aucune archive'}
+                    </h3>
+                    <p className="text-sm text-muted-foreground mb-4">
                         {selectedFolder
                             ? `Aucune archive dans "${selectedFolder.name}"`
                             : 'Aucune archive trouvée dans cette catégorie'
                         }
                     </p>
+                    <div className="flex flex-col items-center gap-2">
+                        {/* Primary action: Import files */}
+                        <Button
+                            className="bg-emerald-500 hover:bg-emerald-600"
+                            onClick={() => {
+                                const input = document.createElement('input');
+                                input.type = 'file';
+                                input.multiple = true;
+                                input.accept = '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.jpg,.jpeg,.png,.gif,.webp';
+                                input.click();
+                            }}
+                        >
+                            <Upload className="h-4 w-4 mr-2" />
+                            Archiver des fichiers
+                        </Button>
+                        {/* Secondary action: Create subfolder */}
+                        <button
+                            onClick={() => {
+                                // Would trigger create folder dialog
+                            }}
+                            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                            ou <span className="underline">créer un dossier</span>
+                        </button>
+                    </div>
                 </motion.div>
             )}
 

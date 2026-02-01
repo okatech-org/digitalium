@@ -62,6 +62,7 @@ import {
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { useSpaceFromUrl } from '@/contexts/SpaceContext';
+import { useToast } from '@/hooks/use-toast';
 import {
     digitaliumDocuments,
     digitaliumFiles,
@@ -71,7 +72,9 @@ import {
     DigitaliumFile,
     DigitaliumFolder
 } from '@/data/digitaliumMockData';
-import { IDocumentOutletContext } from './IDocumentLayout';
+import { IDocumentOutletContext, ImportedFile } from './IDocumentLayout';
+import { DocumentPreviewDialog } from './components/DocumentPreviewDialog';
+import { getFileContent } from '@/services/fileStorage';
 
 // Category configuration
 interface CategoryConfig {
@@ -220,6 +223,7 @@ const formatRelativeTime = (timestamp: number) => {
 export default function DocumentCategoryPage() {
     const location = useLocation();
     const { isBackoffice } = useSpaceFromUrl();
+    const { toast } = useToast();
 
     // Get selected folder from parent layout context
     const {
@@ -228,7 +232,9 @@ export default function DocumentCategoryPage() {
         toggleFolders,
         folders,
         getSubfolders,
-        openCreateFolderDialog
+        openCreateFolderDialog,
+        importedFiles,
+        importFiles,
     } = useOutletContext<IDocumentOutletContext>();
 
     // Local view mode state - fully managed by this component
@@ -237,6 +243,16 @@ export default function DocumentCategoryPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState<string>('all');
     const [starredOnly, setStarredOnly] = useState(false);
+
+    // Document preview state
+    const [previewDocument, setPreviewDocument] = useState<{
+        id: string;
+        title: string;
+        type: string;
+        size?: string;
+        dataUrl?: string;
+        mimeType?: string;
+    } | null>(null);
 
     // Determine category from URL
     const pathParts = location.pathname.split('/');
@@ -263,12 +279,14 @@ export default function DocumentCategoryPage() {
     // Get files from selected folder - works for all spaces
     const documents = useMemo(() => {
         if (resolvedCategory === 'my' && selectedFolder) {
-            // Get files from the selected folder
-            const files = getFilesInFolder(selectedFolder.id);
+            // Get files from the selected folder (mock + imported)
+            const mockFiles = getFilesInFolder(selectedFolder.id);
+            const localFiles = importedFiles.filter(f => f.folderId === selectedFolder.id);
+            const allFiles = [...mockFiles, ...localFiles];
             const subfolders = getSubfolders(selectedFolder.id);
 
             // Convert DigitaliumFile to display format
-            const fileDocuments = files.map(f => ({
+            const fileDocuments = allFiles.map(f => ({
                 id: f.id,
                 title: f.name,
                 type: f.type === 'pdf' ? 'contract' : f.type,
@@ -286,6 +304,7 @@ export default function DocumentCategoryPage() {
             // Sous-dossiers comme cartes cliquables
             const folderItems = subfolders.map(sf => {
                 const itemCount = getFolderItemCount(sf.id);
+                const importedCount = importedFiles.filter(f => f.folderId === sf.id).length;
                 return {
                     id: sf.id,
                     title: sf.name,
@@ -294,7 +313,7 @@ export default function DocumentCategoryPage() {
                     lastEdit: sf.modifiedAt,
                     collaborators: [],
                     starred: false,
-                    size: `${itemCount.files + itemCount.folders} éléments`,
+                    size: `${itemCount.files + itemCount.folders + importedCount} éléments`,
                     visibility: 'team',
                     owner: '',
                     isTemplate: false,
@@ -310,7 +329,7 @@ export default function DocumentCategoryPage() {
 
         // Fallback to legacy documents for other categories
         return generateContextualDocuments(resolvedCategory, isBackoffice);
-    }, [resolvedCategory, isBackoffice, selectedFolder, folders, getSubfolders]);
+    }, [resolvedCategory, isBackoffice, selectedFolder, folders, getSubfolders, importedFiles]);
 
     const filteredDocuments = documents.filter(doc => {
         if (statusFilter !== 'all' && doc.status !== statusFilter) return false;
@@ -352,33 +371,69 @@ export default function DocumentCategoryPage() {
                 </>
             ) : (
                 <>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => {
+                        toast({
+                            title: "Modifier le document",
+                            description: `Ouverture de "${doc.title}" en mode édition...`,
+                        });
+                    }}>
                         <Edit className="h-4 w-4 mr-2" />
                         Modifier
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => {
+                        toast({
+                            title: "Partager",
+                            description: `Options de partage pour "${doc.title}"`,
+                        });
+                    }}>
                         <Share2 className="h-4 w-4 mr-2" />
                         Partager
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => {
+                        toast({
+                            title: "Téléchargement",
+                            description: `Téléchargement de "${doc.title}" en cours...`,
+                        });
+                    }}>
                         <Download className="h-4 w-4 mr-2" />
                         Télécharger
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => {
+                        toast({
+                            title: "Document dupliqué",
+                            description: `Une copie de "${doc.title}" a été créée.`,
+                        });
+                    }}>
                         <Copy className="h-4 w-4 mr-2" />
                         Dupliquer
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => {
+                        toast({
+                            title: "Signature électronique",
+                            description: `"${doc.title}" envoyé pour signature via iSignature.`,
+                        });
+                    }}>
                         <PenTool className="h-4 w-4 mr-2" />
                         Envoyer à signature
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => {
+                        toast({
+                            title: "Archivage",
+                            description: `"${doc.title}" archivé dans iArchive.`,
+                        });
+                    }}>
                         <Archive className="h-4 w-4 mr-2" />
                         Archiver
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem className="text-red-500">
+                    <DropdownMenuItem className="text-red-500" onClick={() => {
+                        toast({
+                            title: "Document supprimé",
+                            description: `"${doc.title}" a été déplacé vers la corbeille.`,
+                            variant: "destructive",
+                        });
+                    }}>
                         <Trash2 className="h-4 w-4 mr-2" />
                         Supprimer
                     </DropdownMenuItem>
@@ -394,327 +449,544 @@ export default function DocumentCategoryPage() {
         }
     };
 
-    return (
-        <div className="space-y-4">
-            {/* Breadcrumb Navigation (SubAdmin only) */}
-            {isBackoffice && resolvedCategory === 'my' && breadcrumb.length > 0 && (
-                <nav className="flex items-center gap-1 text-sm text-muted-foreground">
-                    {breadcrumb.map((folder, index) => (
-                        <React.Fragment key={folder.id}>
-                            {index > 0 && <ChevronRight className="h-4 w-4" />}
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className={cn(
-                                    "h-7 px-2",
-                                    index === breadcrumb.length - 1
-                                        ? "font-medium text-foreground"
-                                        : "hover:text-foreground"
-                                )}
-                                onClick={() => setSelectedFolder(folder)}
-                            >
-                                {index === 0 && <Home className="h-3.5 w-3.5 mr-1" />}
-                                {folder.name}
-                            </Button>
-                        </React.Fragment>
-                    ))}
-                </nav>
-            )}
+    // Handler for clicking on a document (opens preview)
+    const handleDocumentClick = async (doc: any) => {
+        if (doc.isFolder) {
+            handleFolderClick(doc);
+        } else {
+            // Find the corresponding imported file if available
+            const importedFile = importedFiles.find((f: ImportedFile) => f.id === doc.id);
 
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <div className={cn('p-2 rounded-lg', config.color.split(' ')[1])}>
-                        <CategoryIcon className={cn('h-5 w-5', config.color.split(' ')[0])} />
+            // Load file content from IndexedDB
+            let dataUrl: string | undefined;
+            let mimeType: string | undefined = importedFile?.mimeType;
+
+            if (importedFile) {
+                const storedContent = await getFileContent(doc.id);
+                if (storedContent) {
+                    dataUrl = storedContent.dataUrl;
+                    mimeType = storedContent.mimeType;
+                }
+            }
+
+            setPreviewDocument({
+                id: doc.id,
+                title: doc.title,
+                type: doc.type,
+                size: doc.size,
+                dataUrl,
+                mimeType,
+            });
+        }
+    };
+
+    return (
+        <>
+            <div className="space-y-4">
+                {/* Breadcrumb Navigation - macOS Finder style */}
+                {resolvedCategory === 'my' && selectedFolder && (
+                    <nav className="flex items-center gap-0.5 text-sm bg-muted/30 rounded-lg px-2 py-1.5 border border-border/40">
+                        {/* Always show root/home */}
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className={cn(
+                                "h-7 px-2 gap-1.5 rounded-md",
+                                selectedFolder.id === 'root' || breadcrumb.length === 0
+                                    ? "bg-primary/10 text-primary font-medium"
+                                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                            )}
+                            onClick={() => {
+                                const rootFolder = folders.find(f => f.id === 'root');
+                                if (rootFolder) setSelectedFolder(rootFolder);
+                            }}
+                        >
+                            <Home className="h-3.5 w-3.5" />
+                            <span>Mes Dossiers</span>
+                        </Button>
+
+                        {/* Breadcrumb segments */}
+                        {breadcrumb.filter(f => f.id !== 'root').map((folder, index, arr) => (
+                            <React.Fragment key={folder.id}>
+                                <ChevronRight className="h-4 w-4 text-muted-foreground/50 mx-0.5" />
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className={cn(
+                                        "h-7 px-2 gap-1.5 rounded-md max-w-[180px]",
+                                        index === arr.length - 1
+                                            ? "bg-primary/10 text-primary font-medium"
+                                            : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                                    )}
+                                    onClick={() => setSelectedFolder(folder)}
+                                >
+                                    {folder.icon && <span className="text-sm">{folder.icon}</span>}
+                                    <span className="truncate">{folder.name}</span>
+                                </Button>
+                            </React.Fragment>
+                        ))}
+                    </nav>
+                )}
+
+                {/* Header */}
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className={cn('p-2 rounded-lg', config.color.split(' ')[1])}>
+                            <CategoryIcon className={cn('h-5 w-5', config.color.split(' ')[0])} />
+                        </div>
+                        <div>
+                            <h2 className="text-lg font-semibold">
+                                {isBackoffice && resolvedCategory === 'my' && selectedFolder
+                                    ? selectedFolder.name
+                                    : config.title}
+                            </h2>
+                            <p className="text-sm text-muted-foreground">
+                                {filteredDocuments.length} élément{filteredDocuments.length !== 1 ? 's' : ''}
+                                {isBackoffice && selectedFolder && selectedFolder.id !== 'root'
+                                    ? ''
+                                    : ''}
+                            </p>
+                        </div>
                     </div>
-                    <div>
-                        <h2 className="text-lg font-semibold">
-                            {isBackoffice && resolvedCategory === 'my' && selectedFolder
-                                ? selectedFolder.name
-                                : config.title}
-                        </h2>
-                        <p className="text-sm text-muted-foreground">
-                            {filteredDocuments.length} élément{filteredDocuments.length !== 1 ? 's' : ''}
-                            {isBackoffice && selectedFolder && selectedFolder.id !== 'root'
-                                ? ''
-                                : ''}
-                        </p>
-                    </div>
-                </div>
-                {resolvedCategory !== 'trash' && resolvedCategory !== 'shared' && (
-                    <div className="flex gap-2">
-                        {resolvedCategory === 'my' && (
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={openCreateFolderDialog}
-                            >
-                                <FolderPlus className="h-4 w-4 mr-2" />
-                                Dossier
+                    {resolvedCategory !== 'trash' && resolvedCategory !== 'shared' && (
+                        <div className="flex gap-2">
+                            {resolvedCategory === 'my' && (
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={openCreateFolderDialog}
+                                >
+                                    <FolderPlus className="h-4 w-4 mr-2" />
+                                    Dossier
+                                </Button>
+                            )}
+                            <Button className="bg-blue-500 hover:bg-blue-600" size="sm">
+                                <Upload className="h-4 w-4 mr-2" />
+                                {resolvedCategory === 'templates' ? 'Nouveau modèle' : 'Importer'}
                             </Button>
-                        )}
-                        <Button className="bg-blue-500 hover:bg-blue-600" size="sm">
-                            <Upload className="h-4 w-4 mr-2" />
-                            {resolvedCategory === 'templates' ? 'Nouveau modèle' : 'Importer'}
+                        </div>
+                    )}
+                </div>
+
+                {/* Filters */}
+                <div className="flex gap-3 items-center">
+                    {/* View Toggle + Arborescence */}
+                    <div className="flex border rounded-lg overflow-hidden bg-background">
+                        <Button
+                            variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                            size="icon"
+                            className={cn('h-9 w-9 rounded-none', viewMode === 'grid' && 'bg-primary')}
+                            onClick={() => setViewMode('grid')}
+                        >
+                            <Grid className="h-4 w-4" />
+                        </Button>
+                        <Button
+                            variant={viewMode === 'list' ? 'default' : 'ghost'}
+                            size="icon"
+                            className={cn('h-9 w-9 rounded-none', viewMode === 'list' && 'bg-primary')}
+                            onClick={() => setViewMode('list')}
+                        >
+                            <List className="h-4 w-4" />
+                        </Button>
+                        {/* Arborescence button */}
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-9 w-9 rounded-none border-l"
+                            onClick={toggleFolders}
+                            title="Afficher l'arborescence"
+                        >
+                            <FolderTree className="h-4 w-4" />
                         </Button>
                     </div>
-                )}
-            </div>
 
-            {/* Filters */}
-            <div className="flex gap-3 items-center">
-                {/* View Toggle + Arborescence */}
-                <div className="flex border rounded-lg overflow-hidden bg-background">
+                    <div className="relative flex-1 max-w-sm">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            placeholder="Rechercher..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="pl-9"
+                        />
+                    </div>
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                        <SelectTrigger className="w-40">
+                            <Filter className="h-4 w-4 mr-2" />
+                            <SelectValue placeholder="Statut" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Tous les statuts</SelectItem>
+                            {Object.entries(STATUS_CONFIG).map(([key, val]) => (
+                                <SelectItem key={key} value={key}>{val.label}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                     <Button
-                        variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                        variant={starredOnly ? 'default' : 'outline'}
                         size="icon"
-                        className={cn('h-9 w-9 rounded-none', viewMode === 'grid' && 'bg-primary')}
-                        onClick={() => setViewMode('grid')}
+                        onClick={() => setStarredOnly(!starredOnly)}
+                        className={starredOnly ? 'bg-amber-500 hover:bg-amber-600' : ''}
                     >
-                        <Grid className="h-4 w-4" />
-                    </Button>
-                    <Button
-                        variant={viewMode === 'list' ? 'default' : 'ghost'}
-                        size="icon"
-                        className={cn('h-9 w-9 rounded-none', viewMode === 'list' && 'bg-primary')}
-                        onClick={() => setViewMode('list')}
-                    >
-                        <List className="h-4 w-4" />
-                    </Button>
-                    {/* Arborescence button */}
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-9 w-9 rounded-none border-l"
-                        onClick={toggleFolders}
-                        title="Afficher l'arborescence"
-                    >
-                        <FolderTree className="h-4 w-4" />
+                        <Star className={cn('h-4 w-4', starredOnly && 'fill-current')} />
                     </Button>
                 </div>
 
-                <div className="relative flex-1 max-w-sm">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                        placeholder="Rechercher..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-9"
-                    />
-                </div>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-40">
-                        <Filter className="h-4 w-4 mr-2" />
-                        <SelectValue placeholder="Statut" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">Tous les statuts</SelectItem>
-                        {Object.entries(STATUS_CONFIG).map(([key, val]) => (
-                            <SelectItem key={key} value={key}>{val.label}</SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-                <Button
-                    variant={starredOnly ? 'default' : 'outline'}
-                    size="icon"
-                    onClick={() => setStarredOnly(!starredOnly)}
-                    className={starredOnly ? 'bg-amber-500 hover:bg-amber-600' : ''}
-                >
-                    <Star className={cn('h-4 w-4', starredOnly && 'fill-current')} />
-                </Button>
-            </div>
+                {/* Documents Grid / List */}
+                <AnimatePresence mode="wait">
+                    {viewMode === 'grid' ? (
+                        <motion.div
+                            key="grid"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+                        >
+                            {filteredDocuments.map((doc, i) => (
+                                <motion.div
+                                    key={doc.id}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: i * 0.03 }}
+                                >
+                                    {/* Folder Card - Distinct macOS-style design */}
+                                    {(doc as any).isFolder ? (
+                                        <Card
+                                            className="group cursor-pointer transition-all h-full border-2 border-transparent hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-500/10"
+                                            onClick={() => handleFolderClick(doc)}
+                                            onDoubleClick={() => handleFolderClick(doc)}
+                                        >
+                                            <CardContent className="p-4 flex flex-col h-full">
+                                                {/* Folder Icon - Large and prominent */}
+                                                <div className="flex items-center justify-center py-4">
+                                                    <div className="relative">
+                                                        {/* Folder base with custom color */}
+                                                        <div className={cn(
+                                                            "w-16 h-14 rounded-lg relative",
+                                                            (doc as any).color ? `bg-${(doc as any).color}-500` : 'bg-yellow-500'
+                                                        )} style={{
+                                                            background: `linear-gradient(145deg, 
+                                                            ${(doc as any).color === 'blue' ? '#3b82f6' :
+                                                                    (doc as any).color === 'emerald' ? '#10b981' :
+                                                                        (doc as any).color === 'orange' ? '#f97316' :
+                                                                            (doc as any).color === 'purple' ? '#8b5cf6' :
+                                                                                (doc as any).color === 'pink' ? '#ec4899' :
+                                                                                    (doc as any).color === 'red' ? '#ef4444' :
+                                                                                        (doc as any).color === 'cyan' ? '#06b6d4' :
+                                                                                            '#eab308'} 0%, 
+                                                            ${(doc as any).color === 'blue' ? '#2563eb' :
+                                                                    (doc as any).color === 'emerald' ? '#059669' :
+                                                                        (doc as any).color === 'orange' ? '#ea580c' :
+                                                                            (doc as any).color === 'purple' ? '#7c3aed' :
+                                                                                (doc as any).color === 'pink' ? '#db2777' :
+                                                                                    (doc as any).color === 'red' ? '#dc2626' :
+                                                                                        (doc as any).color === 'cyan' ? '#0891b2' :
+                                                                                            '#ca8a04'} 100%)`
+                                                        }}>
+                                                            {/* Folder tab */}
+                                                            <div className="absolute -top-2 left-2 w-6 h-3 rounded-t-md" style={{
+                                                                background: 'inherit',
+                                                                filter: 'brightness(1.1)'
+                                                            }} />
+                                                            {/* Paper stack effect */}
+                                                            <div className="absolute inset-x-2 top-2 bottom-1 bg-white/90 rounded-sm" />
+                                                        </div>
+                                                        {/* Emoji overlay if available */}
+                                                        {(doc as any).folderData?.icon && (
+                                                            <div className="absolute -bottom-1 -right-1 text-xl bg-background rounded-full w-7 h-7 flex items-center justify-center shadow-sm border">
+                                                                {(doc as any).folderData.icon}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
 
-            {/* Documents Grid / List */}
-            <AnimatePresence mode="wait">
-                {viewMode === 'grid' ? (
-                    <motion.div
-                        key="grid"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
-                    >
-                        {filteredDocuments.map((doc, i) => (
-                            <motion.div
-                                key={doc.id}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: i * 0.05 }}
-                            >
-                                <Card
-                                    className="group cursor-pointer hover:border-blue-500/50 transition-all h-full"
+                                                {/* Folder Name */}
+                                                <h3 className="font-medium text-sm text-center line-clamp-2 mb-2">{doc.title}</h3>
+
+                                                {/* Item count */}
+                                                <p className="text-xs text-muted-foreground text-center">
+                                                    {doc.size}
+                                                </p>
+
+                                                {/* Hover action hint */}
+                                                <div className="mt-auto pt-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <Badge variant="secondary" className="w-full justify-center text-xs py-1">
+                                                        <FolderOpen className="h-3 w-3 mr-1.5" />
+                                                        Ouvrir
+                                                    </Badge>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    ) : (
+                                        /* Document Card - Existing design with improvements */
+                                        <Card
+                                            className="group cursor-pointer hover:border-blue-500/50 transition-all h-full"
+                                            onClick={() => handleDocumentClick(doc)}
+                                        >
+                                            <CardContent className="p-4 flex flex-col h-full">
+                                                {/* Header */}
+                                                <div className="flex items-start justify-between mb-3">
+                                                    <div className={cn('p-2 rounded-lg',
+                                                        DOCUMENT_TYPES[doc.type as keyof typeof DOCUMENT_TYPES]?.color.replace('text-', 'bg-') + '/10'
+                                                    )}>
+                                                        {getDocIcon(doc.type)}
+                                                    </div>
+                                                    <div className="flex items-center gap-1">
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="h-8 w-8 opacity-0 group-hover:opacity-100"
+                                                            onClick={(e) => e.stopPropagation()}
+                                                        >
+                                                            {doc.starred ? (
+                                                                <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
+                                                            ) : (
+                                                                <StarOff className="h-4 w-4" />
+                                                            )}
+                                                        </Button>
+                                                        <DropdownMenu>
+                                                            <DropdownMenuTrigger asChild>
+                                                                <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100">
+                                                                    <MoreVertical className="h-4 w-4" />
+                                                                </Button>
+                                                            </DropdownMenuTrigger>
+                                                            {renderDocumentActions(doc, resolvedCategory === 'trash')}
+                                                        </DropdownMenu>
+                                                    </div>
+                                                </div>
+
+                                                {/* Title */}
+                                                <h3 className="font-medium text-sm mb-2 line-clamp-2 flex-1">{doc.title}</h3>
+
+                                                {/* Owner (for shared/team) */}
+                                                {config.showOwner && (doc as any).owner && (
+                                                    <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
+                                                        <UserCheck className="h-3 w-3" />
+                                                        {(doc as any).owner}
+                                                    </p>
+                                                )}
+
+                                                {/* Status */}
+                                                {getStatusBadge(doc.status)}
+
+                                                {/* Footer */}
+                                                <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground">
+                                                    <span className="flex items-center gap-1">
+                                                        <Clock className="h-3 w-3" />
+                                                        {doc.lastEdit}
+                                                    </span>
+                                                    {config.showSharedWith && doc.collaborators?.length > 0 && (
+                                                        <div className="flex -space-x-2">
+                                                            {doc.collaborators.slice(0, 3).map((c: string, idx: number) => (
+                                                                <div
+                                                                    key={idx}
+                                                                    className="w-6 h-6 rounded-full bg-primary/20 border-2 border-background flex items-center justify-center text-xs font-medium"
+                                                                >
+                                                                    {c}
+                                                                </div>
+                                                            ))}
+                                                            {doc.collaborators.length > 3 && (
+                                                                <div className="w-6 h-6 rounded-full bg-muted border-2 border-background flex items-center justify-center text-xs">
+                                                                    +{doc.collaborators.length - 3}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    )}
+                                </motion.div>
+                            ))}
+                        </motion.div>
+                    ) : ( // List View
+                        <motion.div
+                            key="list"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="space-y-2"
+                        >
+                            {filteredDocuments.map((doc, i) => (
+                                <motion.div
+                                    key={doc.id}
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: i * 0.02 }}
+                                    className={cn(
+                                        "flex items-center gap-4 p-3 rounded-lg border transition-all cursor-pointer group",
+                                        (doc as any).isFolder
+                                            ? "hover:border-blue-500/50 hover:bg-blue-500/5"
+                                            : "hover:border-primary/30"
+                                    )}
                                     onClick={() => (doc as any).isFolder && handleFolderClick(doc)}
                                 >
-                                    <CardContent className="p-4 flex flex-col h-full">
-                                        {/* Header */}
-                                        <div className="flex items-start justify-between mb-3">
-                                            <div className={cn('p-2 rounded-lg',
-                                                DOCUMENT_TYPES[doc.type as keyof typeof DOCUMENT_TYPES]?.color.replace('text-', 'bg-') + '/10'
-                                            )}>
-                                                {getDocIcon(doc.type)}
+                                    {/* Icon - Different for folders vs files */}
+                                    {(doc as any).isFolder ? (
+                                        <div className="flex items-center gap-2">
+                                            <div className="relative">
+                                                <div className="w-10 h-9 rounded relative" style={{
+                                                    background: `linear-gradient(145deg, 
+                                                    ${(doc as any).color === 'blue' ? '#3b82f6' :
+                                                            (doc as any).color === 'emerald' ? '#10b981' :
+                                                                (doc as any).color === 'orange' ? '#f97316' :
+                                                                    (doc as any).color === 'purple' ? '#8b5cf6' :
+                                                                        (doc as any).color === 'pink' ? '#ec4899' :
+                                                                            '#eab308'} 0%, 
+                                                    ${(doc as any).color === 'blue' ? '#2563eb' :
+                                                            (doc as any).color === 'emerald' ? '#059669' :
+                                                                (doc as any).color === 'orange' ? '#ea580c' :
+                                                                    (doc as any).color === 'purple' ? '#7c3aed' :
+                                                                        (doc as any).color === 'pink' ? '#db2777' :
+                                                                            '#ca8a04'} 100%)`
+                                                }}>
+                                                    {/* Folder tab */}
+                                                    <div className="absolute -top-1.5 left-1 w-4 h-2 rounded-t-sm" style={{
+                                                        background: 'inherit',
+                                                        filter: 'brightness(1.1)'
+                                                    }} />
+                                                    {/* Paper effect */}
+                                                    <div className="absolute inset-x-1.5 top-1.5 bottom-0.5 bg-white/90 rounded-sm" />
+                                                </div>
                                             </div>
-                                            <div className="flex items-center gap-1">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-8 w-8 opacity-0 group-hover:opacity-100"
-                                                    onClick={(e) => e.stopPropagation()}
-                                                >
-                                                    {doc.starred ? (
-                                                        <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
-                                                    ) : (
-                                                        <StarOff className="h-4 w-4" />
-                                                    )}
-                                                </Button>
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild>
-                                                        <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100">
-                                                            <MoreVertical className="h-4 w-4" />
-                                                        </Button>
-                                                    </DropdownMenuTrigger>
-                                                    {renderDocumentActions(doc, resolvedCategory === 'trash')}
-                                                </DropdownMenu>
-                                            </div>
+                                            {(doc as any).folderData?.icon && (
+                                                <span className="text-lg">{(doc as any).folderData.icon}</span>
+                                            )}
                                         </div>
+                                    ) : (
+                                        <div className={cn('p-2 rounded-lg',
+                                            DOCUMENT_TYPES[doc.type as keyof typeof DOCUMENT_TYPES]?.color.replace('text-', 'bg-') + '/10'
+                                        )}>
+                                            {getDocIcon(doc.type)}
+                                        </div>
+                                    )}
 
-                                        {/* Title */}
-                                        <h3 className="font-medium text-sm mb-2 line-clamp-2 flex-1">{doc.title}</h3>
+                                    {/* Content */}
+                                    <div className="flex-1 min-w-0">
+                                        <h3 className="font-medium truncate">{doc.title}</h3>
+                                        <p className="text-sm text-muted-foreground flex items-center gap-2">
+                                            {(doc as any).isFolder ? (
+                                                <span className="flex items-center gap-1">
+                                                    <FolderOpen className="h-3 w-3" />
+                                                    {doc.size}
+                                                </span>
+                                            ) : (
+                                                <>
+                                                    <Clock className="h-3 w-3" />
+                                                    {doc.lastEdit}
+                                                </>
+                                            )}
+                                            {config.showOwner && (doc as any).owner && (
+                                                <>
+                                                    <span>•</span>
+                                                    <span>{(doc as any).owner}</span>
+                                                </>
+                                            )}
+                                        </p>
+                                    </div>
 
-                                        {/* Owner (for shared/team) */}
-                                        {config.showOwner && (doc as any).owner && (
-                                            <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
-                                                <UserCheck className="h-3 w-3" />
-                                                {(doc as any).owner}
-                                            </p>
-                                        )}
+                                    {/* Status badge - only for files */}
+                                    {!(doc as any).isFolder && getStatusBadge(doc.status)}
 
-                                        {/* Status */}
-                                        {getStatusBadge(doc.status)}
-
-                                        {/* Footer */}
-                                        <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground">
-                                            <span className="flex items-center gap-1">
-                                                <Clock className="h-3 w-3" />
-                                                {doc.lastEdit}
-                                            </span>
+                                    {/* Folder: Show chevron, File: Show collaborators */}
+                                    {(doc as any).isFolder ? (
+                                        <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-blue-500 transition-colors" />
+                                    ) : (
+                                        <>
                                             {config.showSharedWith && doc.collaborators?.length > 0 && (
                                                 <div className="flex -space-x-2">
                                                     {doc.collaborators.slice(0, 3).map((c: string, idx: number) => (
                                                         <div
                                                             key={idx}
-                                                            className="w-6 h-6 rounded-full bg-primary/20 border-2 border-background flex items-center justify-center text-xs font-medium"
+                                                            className="w-7 h-7 rounded-full bg-primary/20 border-2 border-background flex items-center justify-center text-xs font-medium"
                                                         >
                                                             {c}
                                                         </div>
                                                     ))}
-                                                    {doc.collaborators.length > 3 && (
-                                                        <div className="w-6 h-6 rounded-full bg-muted border-2 border-background flex items-center justify-center text-xs">
-                                                            +{doc.collaborators.length - 3}
-                                                        </div>
-                                                    )}
                                                 </div>
                                             )}
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </motion.div>
-                        ))}
-                    </motion.div>
-                ) : ( // List View
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="opacity-0 group-hover:opacity-100"
+                                                onClick={(e) => e.stopPropagation()}
+                                            >
+                                                {doc.starred ? (
+                                                    <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
+                                                ) : (
+                                                    <StarOff className="h-4 w-4" />
+                                                )}
+                                            </Button>
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100">
+                                                        <MoreVertical className="h-4 w-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                {renderDocumentActions(doc, resolvedCategory === 'trash')}
+                                            </DropdownMenu>
+                                        </>
+                                    )}
+                                </motion.div>
+                            ))}
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {/* Empty State */}
+                {filteredDocuments.length === 0 && (
                     <motion.div
-                        key="list"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="space-y-2"
+                        className="text-center py-12"
                     >
-                        {filteredDocuments.map((doc, i) => (
-                            <motion.div
-                                key={doc.id}
-                                initial={{ opacity: 0, x: -10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: i * 0.03 }}
-                                className="flex items-center gap-4 p-4 rounded-lg border hover:border-blue-500/50 transition-all cursor-pointer group"
-                                onClick={() => (doc as any).isFolder && handleFolderClick(doc)}
-                            >
-                                <div className={cn('p-2 rounded-lg',
-                                    DOCUMENT_TYPES[doc.type as keyof typeof DOCUMENT_TYPES]?.color.replace('text-', 'bg-') + '/10'
-                                )}>
-                                    {getDocIcon(doc.type)}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <h3 className="font-medium truncate">{doc.title}</h3>
-                                    <p className="text-sm text-muted-foreground flex items-center gap-2">
-                                        <Clock className="h-3 w-3" />
-                                        {doc.lastEdit}
-                                        {config.showOwner && (doc as any).owner && (
-                                            <>
-                                                <span>•</span>
-                                                <span>{(doc as any).owner}</span>
-                                            </>
-                                        )}
-                                    </p>
-                                </div>
-                                {getStatusBadge(doc.status)}
-                                {config.showSharedWith && doc.collaborators?.length > 0 && (
-                                    <div className="flex -space-x-2">
-                                        {doc.collaborators.slice(0, 3).map((c: string, idx: number) => (
-                                            <div
-                                                key={idx}
-                                                className="w-7 h-7 rounded-full bg-primary/20 border-2 border-background flex items-center justify-center text-xs font-medium"
-                                            >
-                                                {c}
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
+                        <FolderOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
+                        <h3 className="font-medium mb-2">
+                            {selectedFolder && selectedFolder.id !== 'root'
+                                ? 'Ce dossier est vide'
+                                : 'Aucun document'}
+                        </h3>
+                        <p className="text-sm text-muted-foreground mb-4">{config.emptyMessage}</p>
+                        {resolvedCategory === 'my' && (
+                            <div className="flex flex-col items-center gap-2">
+                                {/* Primary action: Import files */}
                                 <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="opacity-0 group-hover:opacity-100"
-                                    onClick={(e) => e.stopPropagation()}
+                                    className="bg-blue-500 hover:bg-blue-600"
+                                    onClick={() => {
+                                        const input = document.createElement('input');
+                                        input.type = 'file';
+                                        input.multiple = true;
+                                        input.accept = '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.jpg,.jpeg,.png,.gif,.webp';
+                                        input.onchange = (e) => {
+                                            const files = (e.target as HTMLInputElement).files;
+                                            if (files && files.length > 0 && selectedFolder) {
+                                                importFiles(Array.from(files), selectedFolder.id);
+                                            }
+                                        };
+                                        input.click();
+                                    }}
                                 >
-                                    {doc.starred ? (
-                                        <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
-                                    ) : (
-                                        <StarOff className="h-4 w-4" />
-                                    )}
+                                    <Upload className="h-4 w-4 mr-2" />
+                                    Importer des fichiers
                                 </Button>
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100">
-                                            <MoreVertical className="h-4 w-4" />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    {renderDocumentActions(doc, resolvedCategory === 'trash')}
-                                </DropdownMenu>
-                            </motion.div>
-                        ))}
+                                {/* Secondary action: Create subfolder */}
+                                <button
+                                    onClick={openCreateFolderDialog}
+                                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                                >
+                                    ou <span className="underline">créer un sous-dossier</span>
+                                </button>
+                            </div>
+                        )}
                     </motion.div>
                 )}
-            </AnimatePresence>
+            </div>
 
-            {/* Empty State */}
-            {filteredDocuments.length === 0 && (
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="text-center py-12"
-                >
-                    <FolderOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                    <h3 className="font-medium mb-2">Aucun document</h3>
-                    <p className="text-sm text-muted-foreground">{config.emptyMessage}</p>
-                    {resolvedCategory === 'my' && (
-                        <Button
-                            className="mt-4 bg-blue-500 hover:bg-blue-600"
-                            onClick={openCreateFolderDialog}
-                        >
-                            <Plus className="h-4 w-4 mr-2" />
-                            Créer un dossier
-                        </Button>
-                    )}
-                </motion.div>
-            )}
-        </div>
+            {/* Document Preview Dialog */}
+            <DocumentPreviewDialog
+                open={!!previewDocument}
+                onOpenChange={(open) => !open && setPreviewDocument(null)}
+                document={previewDocument}
+            />
+        </>
     );
 }

@@ -35,7 +35,7 @@ export interface CreateArchiveFolderDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     parentFolderName: string;
-    parentFolderId: string;
+    parentFolderId: string | null;
     parentPath: string;
     category: ArchiveCategory;
     defaultRetentionYears: number;

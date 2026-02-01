@@ -92,7 +92,18 @@ export default function IArchiveLayout() {
     const toggleFolders = () => setShowFolders(!showFolders);
 
     const openCreateFolderDialog = (parentFolder?: DigitaliumArchiveFolder) => {
-        const parent = parentFolder || getRootFolder() || null;
+        // If no parent provided and no root folder exists, create at root level
+        const root = getRootFolder();
+        const parent = parentFolder || root || {
+            id: 'root-' + currentCategory,
+            name: 'Racine ' + currentCategory,
+            category: currentCategory,
+            parentId: null,
+            path: '/',
+            retentionYears: ARCHIVE_RETENTION_DEFAULTS[currentCategory],
+            createdAt: new Date().toISOString().split('T')[0],
+            modifiedAt: new Date().toISOString().split('T')[0],
+        } as DigitaliumArchiveFolder;
         setParentFolderForCreate(parent);
         setShowCreateFolderDialog(true);
     };
@@ -309,18 +320,16 @@ export default function IArchiveLayout() {
             </div>
 
             {/* Create Folder Dialog */}
-            {parentFolderForCreate && (
-                <CreateArchiveFolderDialog
-                    open={showCreateFolderDialog}
-                    onOpenChange={setShowCreateFolderDialog}
-                    parentFolderName={parentFolderForCreate.name}
-                    parentFolderId={parentFolderForCreate.id}
-                    parentPath={parentFolderForCreate.path}
-                    category={currentCategory}
-                    defaultRetentionYears={ARCHIVE_RETENTION_DEFAULTS[currentCategory]}
-                    onCreateFolder={handleCreateFolder}
-                />
-            )}
+            <CreateArchiveFolderDialog
+                open={showCreateFolderDialog}
+                onOpenChange={setShowCreateFolderDialog}
+                parentFolderName={parentFolderForCreate?.name || 'Racine'}
+                parentFolderId={parentFolderForCreate?.id || null}
+                parentPath={parentFolderForCreate?.path || '/'}
+                category={currentCategory}
+                defaultRetentionYears={ARCHIVE_RETENTION_DEFAULTS[currentCategory]}
+                onCreateFolder={handleCreateFolder}
+            />
         </div>
     );
 }

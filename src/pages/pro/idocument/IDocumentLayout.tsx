@@ -4,7 +4,7 @@
  * In SubAdmin context, shows folder hierarchy for Digitalium backoffice
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -27,8 +27,19 @@ import { useSpaceFromUrl } from '@/contexts/SpaceContext';
 import { FolderExplorer } from '@/components/idocument/FolderExplorer';
 import { CreateFolderDialog } from '@/components/idocument/CreateFolderDialog';
 import { useFolderManager } from '@/hooks/useFolderManager';
-import { DigitaliumFolder } from '@/data/digitaliumMockData';
+import { DigitaliumFolder, DigitaliumFile, FileType, FileStatus } from '@/data/digitaliumMockData';
 import { useToast } from '@/hooks/use-toast';
+import { storeFileContent, getFileContent } from '@/services/fileStorage';
+
+// Imported file type with content for preview
+export interface ImportedFile extends DigitaliumFile {
+    isImported?: boolean;
+    dataUrl?: string; // Base64 data URL for preview
+    mimeType?: string;
+}
+
+// LocalStorage key for file persistence
+const STORAGE_KEY = 'digitalium-imported-files';
 
 // Context type for child routes
 export interface IDocumentOutletContext {
@@ -39,6 +50,9 @@ export interface IDocumentOutletContext {
     folders: DigitaliumFolder[];
     getSubfolders: (parentId: string) => DigitaliumFolder[];
     openCreateFolderDialog: () => void;
+    // File management
+    importedFiles: ImportedFile[];
+    importFiles: (files: File[], folderId: string) => void;
 }
 
 const NAV_ITEMS = [
@@ -70,11 +84,98 @@ export default function IDocumentLayout() {
     const rootFolder = folders.find(f => f.id === 'root') || null;
     const [selectedFolder, setSelectedFolder] = useState<DigitaliumFolder | null>(rootFolder);
 
+    // Local file storage for imported files - metadata in localStorage, content in IndexedDB
+    const [importedFiles, setImportedFiles] = useState<ImportedFile[]>(() => {
+        // Load metadata from localStorage on mount (without dataUrl)
+        try {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+                return JSON.parse(stored) as ImportedFile[];
+            }
+        } catch (e) {
+            console.error('Failed to load imported files from localStorage:', e);
+        }
+        return [];
+    });
+
+    // Persist metadata to localStorage when importedFiles changes (without dataUrl)
+    useEffect(() => {
+        try {
+            // Store only metadata (without dataUrl to avoid quota issues)
+            const metadataOnly = importedFiles.map(({ dataUrl, ...rest }) => rest);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(metadataOnly));
+        } catch (e) {
+            console.error('Failed to save imported files to localStorage:', e);
+        }
+    }, [importedFiles]);
+
     const handleFolderSelect = (folder: DigitaliumFolder) => {
         setSelectedFolder(folder);
     };
 
     const toggleFolders = () => setShowFolders(!showFolders);
+
+    // File import handler with base64 conversion for preview
+    const importFiles = useCallback(async (files: File[], folderId: string) => {
+        const newFiles: ImportedFile[] = [];
+
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+
+            // Read file as data URL for preview
+            const dataUrl = await new Promise<string>((resolve) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result as string);
+                reader.onerror = () => resolve('');
+                reader.readAsDataURL(file);
+            });
+
+            // Determine file type from extension
+            const extension = file.name.split('.').pop()?.toLowerCase() || '';
+            let fileType: FileType = 'other';
+            if (['doc', 'docx'].includes(extension)) fileType = 'document';
+            else if (['xls', 'xlsx'].includes(extension)) fileType = 'spreadsheet';
+            else if (['ppt', 'pptx'].includes(extension)) fileType = 'presentation';
+            else if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extension)) fileType = 'image';
+            else if (['pdf'].includes(extension)) fileType = 'pdf';
+
+            // Format file size
+            const sizeKB = Math.round(file.size / 1024);
+            const sizeStr = sizeKB > 1024
+                ? `${(sizeKB / 1024).toFixed(1)} MB`
+                : `${sizeKB} KB`;
+
+            const now = new Date().toISOString().split('T')[0];
+
+            const fileId = `imported-${Date.now()}-${i}`;
+
+            // Store file content in IndexedDB
+            await storeFileContent(fileId, dataUrl, file.type);
+
+            newFiles.push({
+                id: fileId,
+                name: file.name,
+                type: fileType,
+                extension: extension,
+                size: sizeStr,
+                status: 'draft' as FileStatus,
+                author: 'Moi',
+                createdAt: now,
+                modifiedAt: now,
+                folderId: folderId,
+                isImported: true,
+                // dataUrl is stored in IndexedDB, not in state
+                mimeType: file.type,
+            });
+        }
+
+        setImportedFiles(prev => [...prev, ...newFiles]);
+
+        toast({
+            title: `${files.length} fichier${files.length > 1 ? 's' : ''} importé${files.length > 1 ? 's' : ''}`,
+            description: `Les fichiers ont été ajoutés au dossier.`,
+        });
+    }, [toast]);
 
     const openCreateFolderDialog = () => setShowCreateFolderDialog(true);
 
@@ -100,6 +201,9 @@ export default function IDocumentLayout() {
         folders,
         getSubfolders,
         openCreateFolderDialog,
+        // File management
+        importedFiles,
+        importFiles,
     };
 
     return (
