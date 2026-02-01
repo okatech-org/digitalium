@@ -9,8 +9,10 @@ import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-// Set up the worker
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+// Set up the worker using local file from node_modules
+// Using Vite's ?url import to get the URL of the worker file
+import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
 
 interface PDFViewerProps {
     dataUrl: string;
