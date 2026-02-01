@@ -1,7 +1,6 @@
 /**
  * A4DocumentCard - Document card component with A4 miniature preview
- * Displays PDF thumbnails or appropriate file type previews in A4 format
- * Includes complete action system with toast notifications
+ * Enhanced UX with contextual popovers for actions
  */
 
 import React, { useState, useEffect } from 'react';
@@ -9,12 +8,20 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover';
+import {
     DropdownMenu,
     DropdownMenuTrigger,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
 import {
     FileText,
     MoreVertical,
@@ -32,10 +39,15 @@ import {
     Copy,
     MessageSquare,
     PenTool,
-    Send,
     Users,
     Building2,
-    Info,
+    Link2,
+    Mail,
+    Check,
+    X,
+    ChevronRight,
+    User,
+    Loader2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PDFThumbnail } from '@/components/PDFViewer';
@@ -106,6 +118,12 @@ export function A4DocumentCard({
 }: A4DocumentCardProps) {
     const [dataUrl, setDataUrl] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
+    const [shareOpen, setShareOpen] = useState(false);
+    const [signOpen, setSignOpen] = useState(false);
+    const [shareEmail, setShareEmail] = useState('');
+    const [sharing, setSharing] = useState(false);
+    const [signing, setSigning] = useState(false);
+    const [linkCopied, setLinkCopied] = useState(false);
     const { toast } = useToast();
 
     const isPdf = document.type === 'pdf' || document.mimeType?.includes('pdf');
@@ -134,41 +152,39 @@ export function A4DocumentCard({
         loadContent();
     }, [document.id, document.isImported]);
 
-    // Action handlers with toast notifications
+    // Action handlers
     const handleAnnotation = (e: React.MouseEvent) => {
         e.stopPropagation();
         toast({
             title: "Annotation",
             description: "Ouverture du panneau d'annotation...",
         });
-        // TODO: Open annotation modal
     };
 
     const handleDownload = (e: React.MouseEvent) => {
         e.stopPropagation();
-        toast({
-            title: "Téléchargement en cours",
-            description: `${document.title} est en cours de téléchargement...`,
-        });
-        // Trigger actual download if we have dataUrl
         if (dataUrl) {
             const link = window.document.createElement('a');
             link.href = dataUrl;
             link.download = document.title;
             link.click();
+            toast({
+                title: "Téléchargement démarré",
+                description: document.title,
+            });
+        } else {
+            toast({
+                title: "Téléchargement",
+                description: "Préparation du fichier en cours...",
+            });
         }
     };
 
     const handleDuplicate = (e: React.MouseEvent) => {
         e.stopPropagation();
         toast({
-            title: "Document dupliqué",
-            description: (
-                <div className="flex items-center gap-2">
-                    <Info className="h-4 w-4 text-blue-500" />
-                    <span>Une copie de "{document.title}" a été créée</span>
-                </div>
-            ),
+            title: "✓ Document dupliqué",
+            description: `Copie de "${document.title}" créée`,
         });
         if (onDuplicate) {
             onDuplicate(document.id);
@@ -177,75 +193,82 @@ export function A4DocumentCard({
 
     const handleDelete = (e: React.MouseEvent) => {
         e.stopPropagation();
-        toast({
-            title: "Document supprimé",
-            description: `"${document.title}" a été déplacé vers la corbeille`,
-            variant: "destructive",
-        });
         if (onDelete) {
             onDelete(document.id);
         }
-    };
-
-    const handleShare = (e: React.MouseEvent) => {
-        e.stopPropagation();
         toast({
-            title: "Partager le document",
-            description: (
-                <div className="space-y-2 mt-2">
-                    <p className="text-sm text-muted-foreground">Choisissez une option :</p>
-                    <div className="flex gap-2">
-                        <Button size="sm" variant="outline" className="text-xs">
-                            <Users className="h-3 w-3 mr-1" />
-                            Collaborateur
-                        </Button>
-                        <Button size="sm" variant="outline" className="text-xs">
-                            <Building2 className="h-3 w-3 mr-1" />
-                            Service
-                        </Button>
-                    </div>
-                </div>
-            ),
-            duration: 6000,
+            title: "Document supprimé",
+            description: "Déplacé vers la corbeille",
+            variant: "destructive",
         });
     };
 
-    const handleSignature = (e: React.MouseEvent) => {
+    const handleCopyLink = (e: React.MouseEvent) => {
         e.stopPropagation();
+        navigator.clipboard.writeText(`https://digitalium.ga/doc/${document.id}`);
+        setLinkCopied(true);
+        setTimeout(() => setLinkCopied(false), 2000);
+    };
+
+    const handleShareByEmail = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!shareEmail) return;
+
+        setSharing(true);
+        // Simulate sharing
+        setTimeout(() => {
+            setSharing(false);
+            setShareOpen(false);
+            setShareEmail('');
+            toast({
+                title: "✓ Document partagé",
+                description: `Envoyé à ${shareEmail}`,
+            });
+        }, 1000);
+    };
+
+    const handleShareWithService = (serviceName: string) => {
+        setShareOpen(false);
         toast({
-            title: "Envoi vers iSignature",
-            description: (
-                <div className="space-y-2 mt-2">
-                    <p className="text-sm text-muted-foreground">Envoyer pour signature à :</p>
-                    <div className="flex gap-2 flex-wrap">
-                        <Button size="sm" variant="outline" className="text-xs">
-                            <PenTool className="h-3 w-3 mr-1" />
-                            Moi-même
-                        </Button>
-                        <Button size="sm" variant="outline" className="text-xs">
-                            <Users className="h-3 w-3 mr-1" />
-                            Collaborateur
-                        </Button>
-                        <Button size="sm" variant="outline" className="text-xs">
-                            <Building2 className="h-3 w-3 mr-1" />
-                            Service
-                        </Button>
-                    </div>
-                </div>
-            ),
-            duration: 6000,
+            title: "✓ Document partagé",
+            description: `Partagé avec le service ${serviceName}`,
         });
+    };
+
+    const handleSignSelf = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setSigning(true);
+        setTimeout(() => {
+            setSigning(false);
+            setSignOpen(false);
+            toast({
+                title: "✓ Envoyé vers iSignature",
+                description: "Prêt pour votre signature",
+            });
+        }, 800);
+    };
+
+    const handleSignRequest = (recipient: string) => {
+        setSigning(true);
+        setTimeout(() => {
+            setSigning(false);
+            setSignOpen(false);
+            toast({
+                title: "✓ Demande de signature envoyée",
+                description: `Envoyé à ${recipient}`,
+            });
+        }, 800);
     };
 
     const handleArchive = (e: React.MouseEvent) => {
         e.stopPropagation();
-        toast({
-            title: "Document archivé",
-            description: `"${document.title}" a été archivé avec succès`,
-        });
         if (onArchive) {
             onArchive(document.id);
         }
+        toast({
+            title: "✓ Document archivé",
+            description: document.title,
+        });
     };
 
     return (
@@ -257,16 +280,14 @@ export function A4DocumentCard({
             onClick={() => onDocumentClick(document)}
         >
             <CardContent className="p-0 flex flex-col h-full">
-                {/* A4 Preview Area - Aspect ratio 1:√2 (A4) */}
+                {/* A4 Preview Area */}
                 <div className="relative bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 aspect-[1/1.414] w-full flex items-center justify-center overflow-hidden">
-                    {/* Loading state */}
                     {loading && (
                         <div className="absolute inset-0 flex items-center justify-center">
                             <div className="w-8 h-8 border-3 border-blue-500 border-t-transparent rounded-full animate-spin" />
                         </div>
                     )}
 
-                    {/* PDF thumbnail */}
                     {!loading && isPdf && dataUrl && (
                         <PDFThumbnail
                             dataUrl={dataUrl}
@@ -275,7 +296,6 @@ export function A4DocumentCard({
                         />
                     )}
 
-                    {/* Image thumbnail */}
                     {!loading && isImage && dataUrl && (
                         <img
                             src={dataUrl}
@@ -284,10 +304,8 @@ export function A4DocumentCard({
                         />
                     )}
 
-                    {/* Fallback for files without preview */}
                     {!loading && (!dataUrl || (!isPdf && !isImage)) && (
                         <div className="flex flex-col items-center justify-center p-4 text-center">
-                            {/* A4 paper simulation */}
                             <div className="relative bg-white dark:bg-gray-700 rounded shadow-md border w-[80%] aspect-[1/1.414] flex flex-col items-center justify-center p-4">
                                 {getFileIcon(document.type, 'h-12 w-12')}
                                 <div className="mt-2 text-xs text-muted-foreground truncate max-w-full">
@@ -298,22 +316,21 @@ export function A4DocumentCard({
                         </div>
                     )}
 
-                    {/* Hover overlay with preview prompt */}
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                    {/* Hover overlay */}
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 pointer-events-none">
                         <Badge variant="secondary" className="bg-white/90 dark:bg-gray-900/90 text-foreground shadow-lg">
-                            Cliquer pour aperçu
+                            Aperçu
                         </Badge>
                     </div>
 
-                    {/* Top right actions - Star and Dropdown */}
+                    {/* Top right actions */}
                     <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="h-7 w-7 bg-white/80 dark:bg-gray-900/80 hover:bg-white dark:hover:bg-gray-900 shadow-sm"
+                            className="h-7 w-7 bg-white/90 dark:bg-gray-900/90 hover:bg-white dark:hover:bg-gray-900 shadow-sm"
                             onClick={(e) => {
                                 e.stopPropagation();
-                                // Toggle star
                             }}
                         >
                             {document.starred ? (
@@ -327,7 +344,7 @@ export function A4DocumentCard({
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="h-7 w-7 bg-white/80 dark:bg-gray-900/80 hover:bg-white dark:hover:bg-gray-900 shadow-sm"
+                                    className="h-7 w-7 bg-white/90 dark:bg-gray-900/90 hover:bg-white dark:hover:bg-gray-900 shadow-sm"
                                     onClick={(e) => e.stopPropagation()}
                                 >
                                     <MoreVertical className="h-4 w-4" />
@@ -348,7 +365,7 @@ export function A4DocumentCard({
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
-                                    className="text-red-500"
+                                    className="text-red-500 focus:text-red-500"
                                     onClick={handleDelete}
                                 >
                                     <Trash2 className="h-4 w-4 mr-2" />
@@ -373,33 +390,199 @@ export function A4DocumentCard({
                         )}
                     </div>
 
-                    {/* Bottom actions bar */}
+                    {/* Bottom actions with Popovers */}
                     <div className="flex items-center justify-between pt-2 mt-auto border-t border-border/50">
+                        {/* Partager Popover */}
+                        <Popover open={shareOpen} onOpenChange={setShareOpen}>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-7 px-2 text-xs hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    <Share2 className="h-3.5 w-3.5 mr-1" />
+                                    Partager
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent
+                                className="w-72 p-0"
+                                align="start"
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <div className="p-3 border-b">
+                                    <h4 className="font-medium text-sm">Partager le document</h4>
+                                    <p className="text-xs text-muted-foreground mt-0.5">{document.title}</p>
+                                </div>
+
+                                {/* Copy link */}
+                                <div className="p-3 border-b">
+                                    <div className="flex gap-2">
+                                        <Input
+                                            value={`digitalium.ga/d/${document.id.slice(0, 8)}`}
+                                            readOnly
+                                            className="h-8 text-xs bg-muted"
+                                        />
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            className="h-8 px-2"
+                                            onClick={handleCopyLink}
+                                        >
+                                            {linkCopied ? (
+                                                <Check className="h-3.5 w-3.5 text-green-500" />
+                                            ) : (
+                                                <Link2 className="h-3.5 w-3.5" />
+                                            )}
+                                        </Button>
+                                    </div>
+                                </div>
+
+                                {/* Share by email */}
+                                <div className="p-3 border-b">
+                                    <Label className="text-xs text-muted-foreground">Par email</Label>
+                                    <div className="flex gap-2 mt-1.5">
+                                        <Input
+                                            placeholder="email@exemple.com"
+                                            value={shareEmail}
+                                            onChange={(e) => setShareEmail(e.target.value)}
+                                            className="h-8 text-xs"
+                                        />
+                                        <Button
+                                            size="sm"
+                                            className="h-8 px-3"
+                                            onClick={handleShareByEmail}
+                                            disabled={!shareEmail || sharing}
+                                        >
+                                            {sharing ? (
+                                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                            ) : (
+                                                <Mail className="h-3.5 w-3.5" />
+                                            )}
+                                        </Button>
+                                    </div>
+                                </div>
+
+                                {/* Quick share options */}
+                                <div className="p-2">
+                                    <p className="text-xs text-muted-foreground px-2 pb-1">Partage rapide</p>
+                                    <Button
+                                        variant="ghost"
+                                        className="w-full justify-start h-8 text-xs"
+                                        onClick={() => handleShareWithService('Direction Générale')}
+                                    >
+                                        <Building2 className="h-3.5 w-3.5 mr-2" />
+                                        Direction Générale
+                                        <ChevronRight className="h-3 w-3 ml-auto opacity-50" />
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        className="w-full justify-start h-8 text-xs"
+                                        onClick={() => handleShareWithService('Comptabilité')}
+                                    >
+                                        <Building2 className="h-3.5 w-3.5 mr-2" />
+                                        Comptabilité
+                                        <ChevronRight className="h-3 w-3 ml-auto opacity-50" />
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        className="w-full justify-start h-8 text-xs"
+                                        onClick={() => handleShareWithService('Ressources Humaines')}
+                                    >
+                                        <Users className="h-3.5 w-3.5 mr-2" />
+                                        Ressources Humaines
+                                        <ChevronRight className="h-3 w-3 ml-auto opacity-50" />
+                                    </Button>
+                                </div>
+                            </PopoverContent>
+                        </Popover>
+
+                        {/* Signer Popover */}
+                        <Popover open={signOpen} onOpenChange={setSignOpen}>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-7 px-2 text-xs hover:bg-purple-50 dark:hover:bg-purple-900/20"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    <PenTool className="h-3.5 w-3.5 mr-1" />
+                                    Signer
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent
+                                className="w-64 p-0"
+                                align="center"
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <div className="p-3 border-b bg-gradient-to-r from-purple-500/10 to-blue-500/10">
+                                    <div className="flex items-center gap-2">
+                                        <div className="h-8 w-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
+                                            <PenTool className="h-4 w-4 text-white" />
+                                        </div>
+                                        <div>
+                                            <h4 className="font-medium text-sm">iSignature</h4>
+                                            <p className="text-xs text-muted-foreground">Signature électronique</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="p-2">
+                                    <Button
+                                        variant="ghost"
+                                        className="w-full justify-start h-9 text-xs"
+                                        onClick={handleSignSelf}
+                                        disabled={signing}
+                                    >
+                                        {signing ? (
+                                            <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" />
+                                        ) : (
+                                            <User className="h-3.5 w-3.5 mr-2" />
+                                        )}
+                                        Signer moi-même
+                                        <Badge variant="outline" className="ml-auto text-[10px]">Rapide</Badge>
+                                    </Button>
+
+                                    <Separator className="my-1" />
+
+                                    <p className="text-xs text-muted-foreground px-2 py-1">Demander une signature</p>
+
+                                    <Button
+                                        variant="ghost"
+                                        className="w-full justify-start h-8 text-xs"
+                                        onClick={() => handleSignRequest('Directeur Général')}
+                                    >
+                                        <Users className="h-3.5 w-3.5 mr-2" />
+                                        Directeur Général
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        className="w-full justify-start h-8 text-xs"
+                                        onClick={() => handleSignRequest('Chef de Service')}
+                                    >
+                                        <Users className="h-3.5 w-3.5 mr-2" />
+                                        Chef de Service
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        className="w-full justify-start h-8 text-xs"
+                                        onClick={() => handleSignRequest('Comptable')}
+                                    >
+                                        <User className="h-3.5 w-3.5 mr-2" />
+                                        Comptable
+                                    </Button>
+                                </div>
+                            </PopoverContent>
+                        </Popover>
+
+                        {/* Archiver Button */}
                         <Button
                             variant="ghost"
                             size="sm"
-                            className="h-7 px-2 text-xs"
-                            onClick={handleShare}
-                        >
-                            <Share2 className="h-3 w-3 mr-1" />
-                            Partager
-                        </Button>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 px-2 text-xs"
-                            onClick={handleSignature}
-                        >
-                            <PenTool className="h-3 w-3 mr-1" />
-                            Signer
-                        </Button>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 px-2 text-xs"
+                            className="h-7 px-2 text-xs hover:bg-amber-50 dark:hover:bg-amber-900/20"
                             onClick={handleArchive}
                         >
-                            <Archive className="h-3 w-3 mr-1" />
+                            <Archive className="h-3.5 w-3.5 mr-1" />
                             Archiver
                         </Button>
                     </div>
