@@ -74,6 +74,7 @@ import {
 } from '@/data/digitaliumMockData';
 import { IDocumentOutletContext, ImportedFile } from './IDocumentLayout';
 import { DocumentPreviewDialog } from './components/DocumentPreviewDialog';
+import { A4DocumentCard } from './components/A4DocumentCard';
 import { getFileContent } from '@/services/fileStorage';
 
 // Category configuration
@@ -724,83 +725,25 @@ export default function DocumentCategoryPage() {
                                             </CardContent>
                                         </Card>
                                     ) : (
-                                        /* Document Card - Existing design with improvements */
-                                        <Card
-                                            className="group cursor-pointer hover:border-blue-500/50 transition-all h-full"
-                                            onClick={() => handleDocumentClick(doc)}
-                                        >
-                                            <CardContent className="p-4 flex flex-col h-full">
-                                                {/* Header */}
-                                                <div className="flex items-start justify-between mb-3">
-                                                    <div className={cn('p-2 rounded-lg',
-                                                        DOCUMENT_TYPES[doc.type as keyof typeof DOCUMENT_TYPES]?.color.replace('text-', 'bg-') + '/10'
-                                                    )}>
-                                                        {getDocIcon(doc.type)}
-                                                    </div>
-                                                    <div className="flex items-center gap-1">
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="h-8 w-8 opacity-0 group-hover:opacity-100"
-                                                            onClick={(e) => e.stopPropagation()}
-                                                        >
-                                                            {doc.starred ? (
-                                                                <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
-                                                            ) : (
-                                                                <StarOff className="h-4 w-4" />
-                                                            )}
-                                                        </Button>
-                                                        <DropdownMenu>
-                                                            <DropdownMenuTrigger asChild>
-                                                                <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100">
-                                                                    <MoreVertical className="h-4 w-4" />
-                                                                </Button>
-                                                            </DropdownMenuTrigger>
-                                                            {renderDocumentActions(doc, resolvedCategory === 'trash')}
-                                                        </DropdownMenu>
-                                                    </div>
-                                                </div>
-
-                                                {/* Title */}
-                                                <h3 className="font-medium text-sm mb-2 line-clamp-2 flex-1">{doc.title}</h3>
-
-                                                {/* Owner (for shared/team) */}
-                                                {config.showOwner && (doc as any).owner && (
-                                                    <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
-                                                        <UserCheck className="h-3 w-3" />
-                                                        {(doc as any).owner}
-                                                    </p>
-                                                )}
-
-                                                {/* Status */}
-                                                {getStatusBadge(doc.status)}
-
-                                                {/* Footer */}
-                                                <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground">
-                                                    <span className="flex items-center gap-1">
-                                                        <Clock className="h-3 w-3" />
-                                                        {doc.lastEdit}
-                                                    </span>
-                                                    {config.showSharedWith && doc.collaborators?.length > 0 && (
-                                                        <div className="flex -space-x-2">
-                                                            {doc.collaborators.slice(0, 3).map((c: string, idx: number) => (
-                                                                <div
-                                                                    key={idx}
-                                                                    className="w-6 h-6 rounded-full bg-primary/20 border-2 border-background flex items-center justify-center text-xs font-medium"
-                                                                >
-                                                                    {c}
-                                                                </div>
-                                                            ))}
-                                                            {doc.collaborators.length > 3 && (
-                                                                <div className="w-6 h-6 rounded-full bg-muted border-2 border-background flex items-center justify-center text-xs">
-                                                                    +{doc.collaborators.length - 3}
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </CardContent>
-                                        </Card>
+                                        /* Document Card - A4 miniature design */
+                                        <A4DocumentCard
+                                            document={{
+                                                id: doc.id,
+                                                title: doc.title,
+                                                type: doc.type,
+                                                status: doc.status,
+                                                lastEdit: doc.lastEdit,
+                                                starred: doc.starred,
+                                                isImported: (doc as any).isImported,
+                                                mimeType: (doc as any).mimeType,
+                                            }}
+                                            onDocumentClick={handleDocumentClick}
+                                            onDelete={(docId) => {
+                                                if ((doc as any).isImported) {
+                                                    moveToTrash(docId);
+                                                }
+                                            }}
+                                        />
                                     )}
                                 </motion.div>
                             ))}
@@ -986,11 +929,12 @@ export default function DocumentCategoryPage() {
                         )}
                     </motion.div>
                 )}
-            </div>
+            </div >
 
             {/* Document Preview Dialog */}
-            <DocumentPreviewDialog
-                open={!!previewDocument}
+            < DocumentPreviewDialog
+                open={!!previewDocument
+                }
                 onOpenChange={(open) => !open && setPreviewDocument(null)}
                 document={previewDocument}
             />
