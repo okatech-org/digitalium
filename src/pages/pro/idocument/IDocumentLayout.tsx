@@ -55,6 +55,11 @@ export interface IDocumentOutletContext {
     importFiles: (files: File[], folderId: string) => void;
     deleteFile: (fileId: string) => void;
     moveToTrash: (fileId: string) => void;
+    restoreFromTrash: (fileId: string) => void;
+    archiveFile: (fileId: string) => void;
+    sendToSignature: (fileId: string, recipient: string) => void;
+    getTrashFiles: () => ImportedFile[];
+    getArchivedFiles: () => ImportedFile[];
 }
 
 const NAV_ITEMS = [
@@ -217,6 +222,57 @@ export default function IDocumentLayout() {
         });
     }, [toast]);
 
+    // Restore a file from trash
+    const restoreFromTrash = useCallback((fileId: string) => {
+        setImportedFiles(prev => prev.map(f =>
+            f.id === fileId
+                ? { ...f, status: 'draft' as FileStatus, folderId: 'root' }
+                : f
+        ));
+        toast({
+            title: "Fichier restauré",
+            description: "Le fichier a été restauré dans Mes Dossiers.",
+        });
+    }, [toast]);
+
+    // Archive a file (move to iArchive)
+    const archiveFile = useCallback((fileId: string) => {
+        setImportedFiles(prev => prev.map(f =>
+            f.id === fileId
+                ? { ...f, status: 'archived' as FileStatus, folderId: 'archive' }
+                : f
+        ));
+        toast({
+            title: "✓ Document archivé",
+            description: "Le document a été envoyé vers iArchive.",
+        });
+    }, [toast]);
+
+    // Send file to iSignature
+    const sendToSignature = useCallback((fileId: string, recipient: string) => {
+        setImportedFiles(prev => prev.map(f =>
+            f.id === fileId
+                ? { ...f, status: 'review' as FileStatus, signaturePending: true, signatureRecipient: recipient } as any
+                : f
+        ));
+        toast({
+            title: "✓ Envoyé vers iSignature",
+            description: recipient === 'self'
+                ? "Prêt pour votre signature"
+                : `Demande envoyée à ${recipient}`,
+        });
+    }, [toast]);
+
+    // Get files in trash
+    const getTrashFiles = useCallback(() => {
+        return importedFiles.filter(f => f.folderId === 'trash');
+    }, [importedFiles]);
+
+    // Get archived files
+    const getArchivedFiles = useCallback(() => {
+        return importedFiles.filter(f => f.folderId === 'archive');
+    }, [importedFiles]);
+
     // Context to pass to child routes
     const outletContext: IDocumentOutletContext = {
         selectedFolder,
@@ -231,6 +287,11 @@ export default function IDocumentLayout() {
         importFiles,
         deleteFile,
         moveToTrash,
+        restoreFromTrash,
+        archiveFile,
+        sendToSignature,
+        getTrashFiles,
+        getArchivedFiles,
     };
 
     return (

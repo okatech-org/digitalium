@@ -238,6 +238,11 @@ export default function DocumentCategoryPage() {
         importFiles,
         deleteFile,
         moveToTrash,
+        restoreFromTrash,
+        archiveFile,
+        sendToSignature,
+        getTrashFiles,
+        getArchivedFiles,
     } = useOutletContext<IDocumentOutletContext>();
 
     // Local view mode state - fully managed by this component
@@ -332,9 +337,33 @@ export default function DocumentCategoryPage() {
             return [...folderItems, ...fileDocuments];
         }
 
+        // Handle trash category - show imported files in trash
+        if (resolvedCategory === 'trash') {
+            const trashFiles = getTrashFiles();
+            const trashDocuments = trashFiles.map(f => ({
+                id: f.id,
+                title: f.name,
+                type: f.type,
+                status: 'archived' as const,
+                lastEdit: f.modifiedAt,
+                collaborators: [],
+                starred: false,
+                size: f.size,
+                visibility: 'team',
+                owner: f.author,
+                isTemplate: false,
+                isFolder: false,
+                isImported: true,
+                mimeType: f.mimeType || '',
+            }));
+            // Combine with legacy trash documents
+            const legacyDocs = generateContextualDocuments(resolvedCategory, isBackoffice);
+            return [...trashDocuments, ...legacyDocs];
+        }
+
         // Fallback to legacy documents for other categories
         return generateContextualDocuments(resolvedCategory, isBackoffice);
-    }, [resolvedCategory, isBackoffice, selectedFolder, folders, getSubfolders, importedFiles]);
+    }, [resolvedCategory, isBackoffice, selectedFolder, folders, getSubfolders, importedFiles, getTrashFiles]);
 
     const filteredDocuments = documents.filter(doc => {
         if (statusFilter !== 'all' && doc.status !== statusFilter) return false;
@@ -759,6 +788,16 @@ export default function DocumentCategoryPage() {
                                             onDelete={(docId) => {
                                                 if ((doc as any).isImported) {
                                                     moveToTrash(docId);
+                                                }
+                                            }}
+                                            onArchive={(docId) => {
+                                                if ((doc as any).isImported) {
+                                                    archiveFile(docId);
+                                                }
+                                            }}
+                                            onSendToSignature={(docId, recipient) => {
+                                                if ((doc as any).isImported) {
+                                                    sendToSignature(docId, recipient);
                                                 }
                                             }}
                                         />

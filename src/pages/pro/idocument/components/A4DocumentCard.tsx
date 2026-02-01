@@ -69,6 +69,7 @@ interface A4DocumentCardProps {
     onDelete?: (docId: string) => void;
     onArchive?: (docId: string) => void;
     onDuplicate?: (docId: string) => void;
+    onSendToSignature?: (docId: string, recipient: string) => void;
     className?: string;
 }
 
@@ -114,6 +115,7 @@ export function A4DocumentCard({
     onDelete,
     onArchive,
     onDuplicate,
+    onSendToSignature,
     className,
 }: A4DocumentCardProps) {
     const [dataUrl, setDataUrl] = useState<string | null>(null);
@@ -241,10 +243,9 @@ export function A4DocumentCard({
         setTimeout(() => {
             setSigning(false);
             setSignOpen(false);
-            toast({
-                title: "✓ Envoyé vers iSignature",
-                description: "Prêt pour votre signature",
-            });
+            if (onSendToSignature) {
+                onSendToSignature(document.id, 'self');
+            }
         }, 800);
     };
 
@@ -253,10 +254,9 @@ export function A4DocumentCard({
         setTimeout(() => {
             setSigning(false);
             setSignOpen(false);
-            toast({
-                title: "✓ Demande de signature envoyée",
-                description: `Envoyé à ${recipient}`,
-            });
+            if (onSendToSignature) {
+                onSendToSignature(document.id, recipient);
+            }
         }, 800);
     };
 
