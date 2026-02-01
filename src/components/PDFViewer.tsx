@@ -174,11 +174,12 @@ export function PDFViewer({ dataUrl, className, showControls = true }: PDFViewer
 interface PDFThumbnailProps {
     dataUrl: string;
     className?: string;
-    width?: number;
+    fillContainer?: boolean; // If true, canvas fills the container
 }
 
-export function PDFThumbnail({ dataUrl, className, width = 150 }: PDFThumbnailProps) {
+export function PDFThumbnail({ dataUrl, className, fillContainer = false }: PDFThumbnailProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
 
@@ -197,9 +198,23 @@ export function PDFThumbnail({ dataUrl, className, width = 150 }: PDFThumbnailPr
                 const canvas = canvasRef.current!;
                 const context = canvas.getContext('2d')!;
 
-                // Calculate scale to fit width
+                // Get container dimensions for fill mode
+                const containerWidth = containerRef.current?.clientWidth || 200;
+                const containerHeight = containerRef.current?.clientHeight || 280;
+
                 const originalViewport = page.getViewport({ scale: 1 });
-                const scale = width / originalViewport.width;
+
+                let scale: number;
+                if (fillContainer) {
+                    // Scale to cover the entire container (like object-fit: cover)
+                    const scaleX = containerWidth / originalViewport.width;
+                    const scaleY = containerHeight / originalViewport.height;
+                    scale = Math.max(scaleX, scaleY);
+                } else {
+                    // Scale to fit width
+                    scale = containerWidth / originalViewport.width;
+                }
+
                 const viewport = page.getViewport({ scale });
 
                 canvas.height = viewport.height;
@@ -220,23 +235,27 @@ export function PDFThumbnail({ dataUrl, className, width = 150 }: PDFThumbnailPr
         };
 
         loadThumbnail();
-    }, [dataUrl, width]);
+    }, [dataUrl, fillContainer]);
 
     return (
-        <div className={cn("relative bg-white rounded shadow-sm overflow-hidden", className)}>
+        <div ref={containerRef} className={cn("relative overflow-hidden", className)}>
             {loading && (
-                <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
-                    <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-50 dark:bg-gray-800">
+                    <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
                 </div>
             )}
             {error && (
-                <div className="absolute inset-0 flex items-center justify-center bg-gray-50 text-gray-400 text-xs">
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-50 dark:bg-gray-800 text-gray-400 text-xs">
                     Aperçu non disponible
                 </div>
             )}
             <canvas
                 ref={canvasRef}
-                className={cn("block", loading ? "invisible" : "visible")}
+                className={cn(
+                    "block w-full h-full object-cover",
+                    loading ? "invisible" : "visible"
+                )}
+                style={fillContainer ? { objectFit: 'cover', width: '100%', height: '100%' } : undefined}
             />
         </div>
     );

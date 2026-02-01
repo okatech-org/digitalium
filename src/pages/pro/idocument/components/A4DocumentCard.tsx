@@ -145,7 +145,7 @@ export function A4DocumentCard({
                     {!loading && isPdf && dataUrl && (
                         <PDFThumbnail
                             dataUrl={dataUrl}
-                            width={200}
+                            fillContainer
                             className="w-full h-full"
                         />
                     )}
