@@ -3,7 +3,7 @@
  * Full-width layout with horizontal category tabs and folder tree modal
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -35,13 +35,45 @@ import {
     ARCHIVE_RETENTION_DEFAULTS,
 } from '@/data/digitaliumMockData';
 
+// Imported Archive File type (similar to ImportedFile in iDocument)
+export interface ImportedArchive {
+    id: string;
+    name: string;
+    type: string;
+    size: string;
+    folderId: string;
+    category: ArchiveCategory;
+    status: 'draft' | 'review' | 'approved' | 'final' | 'archived';
+    author: string;
+    createdAt: string;
+    modifiedAt: string;
+    isImported?: boolean;
+    dataUrl?: string;
+    mimeType?: string;
+    retentionYears?: number;
+    certified?: boolean;
+    hash?: string;
+}
+
+const ARCHIVE_STORAGE_KEY = 'digitalium-imported-archives';
+
 // Context type for child routes
 export interface IArchiveOutletContext {
     selectedFolder: DigitaliumArchiveFolder | null;
-    setSelectedFolder: (folder: DigitaliumArchiveFolder) => void;
+    setSelectedFolder: (folder: DigitaliumArchiveFolder | null) => void;
     showFolders: boolean;
     toggleFolders: () => void;
     currentCategory: ArchiveCategory;
+    // Folder management (similar to iDocument)
+    folders: DigitaliumArchiveFolder[];
+    getSubfolders: (parentId: string) => DigitaliumArchiveFolder[];
+    openCreateFolderDialog: () => void;
+    // File management
+    importedArchives: ImportedArchive[];
+    importArchive: (files: File[], folderId: string) => void;
+    deleteArchive: (fileId: string) => void;
+    moveToTrash: (fileId: string) => void;
+    getArchivesInFolder: (folderId: string) => ImportedArchive[];
 }
 
 // Map URL paths to categories
@@ -79,6 +111,28 @@ export default function IArchiveLayout() {
     const [showCreateFolderDialog, setShowCreateFolderDialog] = useState(false);
     const [selectedFolder, setSelectedFolder] = useState<DigitaliumArchiveFolder | null>(null);
     const [parentFolderForCreate, setParentFolderForCreate] = useState<DigitaliumArchiveFolder | null>(null);
+
+    // Imported archives state (similar to importedFiles in iDocument)
+    const [importedArchives, setImportedArchives] = useState<ImportedArchive[]>(() => {
+        try {
+            const stored = localStorage.getItem(ARCHIVE_STORAGE_KEY);
+            if (stored) {
+                return JSON.parse(stored) as ImportedArchive[];
+            }
+        } catch (e) {
+            console.error('Failed to load imported archives:', e);
+        }
+        return [];
+    });
+
+    // Persist importedArchives to localStorage
+    React.useEffect(() => {
+        try {
+            localStorage.setItem(ARCHIVE_STORAGE_KEY, JSON.stringify(importedArchives));
+        } catch (e) {
+            console.error('Failed to save imported archives:', e);
+        }
+    }, [importedArchives]);
 
     // Storage stats
     const storageUsed = 156;
@@ -123,6 +177,63 @@ export default function IArchiveLayout() {
         });
     };
 
+    // Import archive files (similar to importFiles in iDocument)
+    const importArchive = useCallback((files: File[], folderId: string) => {
+        const newArchives: ImportedArchive[] = files.map(file => ({
+            id: `archive-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            name: file.name,
+            type: file.name.split('.').pop() || 'document',
+            size: file.size < 1024 * 1024
+                ? `${Math.round(file.size / 1024)} KB`
+                : `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
+            folderId,
+            category: currentCategory,
+            status: 'archived',
+            author: 'Utilisateur',
+            createdAt: new Date().toISOString().split('T')[0],
+            modifiedAt: new Date().toISOString().split('T')[0],
+            isImported: true,
+            mimeType: file.type,
+            retentionYears: ARCHIVE_RETENTION_DEFAULTS[currentCategory] as number,
+            certified: true,
+            hash: `SHA256:${Math.random().toString(36).substr(2, 16)}`,
+        }));
+
+        setImportedArchives(prev => [...prev, ...newArchives]);
+        toast({
+            title: "✓ Archives importées",
+            description: `${files.length} fichier(s) archivé(s) avec succès`,
+        });
+    }, [currentCategory, toast]);
+
+    // Delete archive permanently
+    const deleteArchive = useCallback((fileId: string) => {
+        setImportedArchives(prev => prev.filter(f => f.id !== fileId));
+        toast({
+            title: "Archive supprimée",
+            description: "L'archive a été définitivement supprimée.",
+            variant: "destructive",
+        });
+    }, [toast]);
+
+    // Move archive to trash
+    const moveToTrash = useCallback((fileId: string) => {
+        setImportedArchives(prev => prev.map(f =>
+            f.id === fileId
+                ? { ...f, status: 'archived' as const, folderId: 'trash' }
+                : f
+        ));
+        toast({
+            title: "Archive déplacée",
+            description: "L'archive a été déplacée vers la corbeille.",
+        });
+    }, [toast]);
+
+    // Get archives in a specific folder
+    const getArchivesInFolder = useCallback((folderId: string) => {
+        return importedArchives.filter(a => a.folderId === folderId && a.category === currentCategory);
+    }, [importedArchives, currentCategory]);
+
     // Context to pass to child routes
     const outletContext: IArchiveOutletContext = {
         selectedFolder,
@@ -130,6 +241,16 @@ export default function IArchiveLayout() {
         showFolders,
         toggleFolders,
         currentCategory,
+        // Folder management
+        folders,
+        getSubfolders,
+        openCreateFolderDialog: () => openCreateFolderDialog(),
+        // File management
+        importedArchives,
+        importArchive,
+        deleteArchive,
+        moveToTrash,
+        getArchivesInFolder,
     };
 
     return (

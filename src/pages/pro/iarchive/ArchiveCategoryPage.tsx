@@ -167,6 +167,9 @@ const generateContextualArchives = (category: string, isBackoffice: boolean) => 
             size: a.size,
             starred: false,
             folderId: a.folderId,
+            isFolder: false as const,
+            folderData: null,
+            color: undefined as string | undefined,
         }));
 };
 
@@ -180,8 +183,13 @@ export default function ArchiveCategoryPage() {
 
     // Get folder context from IArchiveLayout
     const outletContext = useOutletContext<IArchiveOutletContext | undefined>();
-    const selectedFolder = outletContext?.selectedFolder;
+    const selectedFolder = outletContext?.selectedFolder ?? null;
+    const setSelectedFolder = outletContext?.setSelectedFolder;
     const toggleFolders = outletContext?.toggleFolders;
+    const folders = outletContext?.folders ?? [];
+    const getSubfolders = outletContext?.getSubfolders ?? (() => []);
+    const importedArchives = outletContext?.importedArchives ?? [];
+    const getArchivesInFolder = outletContext?.getArchivesInFolder ?? (() => []);
 
     // Determine category from URL path
     const pathParts = location.pathname.split('/');
@@ -204,12 +212,56 @@ export default function ArchiveCategoryPage() {
     const config = CATEGORY_CONFIG[resolvedCategory];
     const CategoryIcon = config.icon;
 
-    // Generate documents with folder filtering
+    // Generate documents with folder filtering (aligned with iDocument pattern)
     const documents = useMemo(() => {
-        const allDocs = generateContextualArchives(resolvedCategory, isBackoffice);
+        // Get subfolders of current selection (only if a folder is selected)
+        const subfolders = selectedFolder ? getSubfolders(selectedFolder.id) : folders.filter(f => f.parentId === null);
 
-        // Add imported archived files from iDocument
-        const importedArchived = getArchivedFilesFromStorage().map(f => ({
+        // Create folder items (displayed first, like iDocument)
+        const folderItems = subfolders.map(sf => {
+            const archivesInFolder = getArchivesInFolder(sf.id).length;
+            const subfoldersCount = getSubfolders(sf.id).length;
+            return {
+                id: sf.id,
+                title: sf.name,
+                type: 'folder' as string,
+                reference: '',
+                archivedAt: sf.createdAt,
+                retentionEnd: `${sf.retentionYears} ans`,
+                verified: true,
+                hash: '',
+                size: `${archivesInFolder + subfoldersCount} éléments`,
+                starred: false,
+                folderId: sf.parentId || 'root',
+                isFolder: true,
+                folderData: sf,
+                color: sf.color,
+            };
+        });
+
+        // Get archives from current folder
+        const localArchives = selectedFolder
+            ? getArchivesInFolder(selectedFolder.id).map(a => ({
+                id: a.id,
+                title: a.name,
+                type: 'archive',
+                reference: `ARCH-${a.id.slice(0, 8).toUpperCase()}`,
+                archivedAt: a.modifiedAt,
+                retentionEnd: a.retentionYears ? `${a.retentionYears} ans` : 'Permanent',
+                verified: a.certified || true,
+                hash: a.hash || `SHA256:${a.id.slice(-8)}...`,
+                size: a.size,
+                starred: false,
+                folderId: a.folderId,
+                isImported: true,
+                mimeType: a.mimeType,
+                isFolder: false as const,
+                folderData: null,
+                color: undefined as string | undefined,
+            }))
+            : [];
+
+        const importedFromIDocument = !selectedFolder ? getArchivedFilesFromStorage().map(f => ({
             id: f.id,
             title: f.name,
             type: 'archive',
@@ -223,16 +275,19 @@ export default function ArchiveCategoryPage() {
             folderId: 'archive',
             isImported: true,
             mimeType: f.mimeType,
-        }));
+            isFolder: false as const,
+            folderData: null,
+            color: undefined as string | undefined,
+        })) : [];
 
-        const combined = [...importedArchived, ...allDocs];
+        // Mock archives (only in backoffice and matching category)
+        const mockArchives = !selectedFolder
+            ? generateContextualArchives(resolvedCategory, isBackoffice)
+            : [];
 
-        if (selectedFolder) {
-            return combined.filter(doc => doc.folderId === selectedFolder.id);
-        }
-
-        return combined;
-    }, [resolvedCategory, isBackoffice, selectedFolder]);
+        // Combine: folders first, then all archives
+        return [...folderItems, ...localArchives, ...importedFromIDocument, ...mockArchives];
+    }, [resolvedCategory, isBackoffice, selectedFolder, folders, getSubfolders, getArchivesInFolder, importedArchives]);
 
     // Document counts
     const documentCounts: Record<string, number> = useMemo(() => {
@@ -283,6 +338,13 @@ export default function ArchiveCategoryPage() {
             </DropdownMenuItem>
         </DropdownMenuContent>
     );
+
+    // Handler for clicking on a folder item (navigate into folder)
+    const handleFolderClick = (doc: any) => {
+        if (doc.isFolder && doc.folderData && setSelectedFolder) {
+            setSelectedFolder(doc.folderData);
+        }
+    };
 
     return (
         <div className="space-y-4">
@@ -440,14 +502,30 @@ export default function ArchiveCategoryPage() {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: i * 0.05 }}
+                                onClick={() => doc.isFolder && handleFolderClick(doc)}
                             >
-                                <Card className="group cursor-pointer hover:border-emerald-500/50 transition-all h-full">
+                                <Card className={cn(
+                                    "group cursor-pointer hover:border-emerald-500/50 transition-all h-full",
+                                    doc.isFolder && "hover:shadow-lg"
+                                )}>
                                     <CardContent className="p-4 flex flex-col h-full">
                                         {/* Header */}
                                         <div className="flex items-start justify-between mb-3">
-                                            <div className={cn('p-2 rounded-lg bg-emerald-500/10')}>
-                                                <FileText className="h-5 w-5 text-emerald-500" />
-                                            </div>
+                                            {/* Folder or Document icon */}
+                                            {doc.isFolder ? (
+                                                <div
+                                                    className="p-2 rounded-lg"
+                                                    style={{
+                                                        background: `linear-gradient(135deg, ${doc.color || '#10b981'}30, ${doc.color || '#10b981'}10)`,
+                                                    }}
+                                                >
+                                                    <FolderOpen className="h-5 w-5" style={{ color: doc.color || '#10b981' }} />
+                                                </div>
+                                            ) : (
+                                                <div className={cn('p-2 rounded-lg bg-emerald-500/10')}>
+                                                    <FileText className="h-5 w-5 text-emerald-500" />
+                                                </div>
+                                            )}
                                             <div className="flex items-center gap-1">
                                                 <Button
                                                     variant="ghost"
@@ -461,27 +539,40 @@ export default function ArchiveCategoryPage() {
                                                         <StarOff className="h-4 w-4" />
                                                     )}
                                                 </Button>
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild>
-                                                        <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100">
-                                                            <MoreVertical className="h-4 w-4" />
-                                                        </Button>
-                                                    </DropdownMenuTrigger>
-                                                    {renderDocumentActions(doc)}
-                                                </DropdownMenu>
+                                                {!doc.isFolder && (
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100">
+                                                                <MoreVertical className="h-4 w-4" />
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        {renderDocumentActions(doc)}
+                                                    </DropdownMenu>
+                                                )}
                                             </div>
                                         </div>
 
                                         {/* Title */}
                                         <h3 className="font-medium text-sm mb-2 line-clamp-2 flex-1">{doc.title}</h3>
 
-                                        {/* Reference */}
-                                        <p className="text-xs text-muted-foreground mb-2 font-mono">
-                                            {doc.reference}
-                                        </p>
+                                        {/* Reference or folder info */}
+                                        {doc.isFolder ? (
+                                            <p className="text-xs text-muted-foreground mb-2">
+                                                {doc.size}
+                                            </p>
+                                        ) : (
+                                            <p className="text-xs text-muted-foreground mb-2 font-mono">
+                                                {doc.reference}
+                                            </p>
+                                        )}
 
-                                        {/* Status */}
-                                        {doc.verified ? (
+                                        {/* Status badge */}
+                                        {doc.isFolder ? (
+                                            <Badge variant="secondary" className="bg-blue-500/10 text-blue-500 text-xs w-fit">
+                                                <FolderOpen className="h-3 w-3 mr-1" />
+                                                Dossier
+                                            </Badge>
+                                        ) : doc.verified ? (
                                             <Badge variant="secondary" className="bg-green-500/10 text-green-500 text-xs w-fit">
                                                 <Shield className="h-3 w-3 mr-1" />
                                                 Vérifié
@@ -499,7 +590,7 @@ export default function ArchiveCategoryPage() {
                                                 <Clock className="h-3 w-3" />
                                                 {doc.archivedAt}
                                             </span>
-                                            <span>{doc.size}</span>
+                                            {!doc.isFolder && <span>{doc.size}</span>}
                                         </div>
                                     </CardContent>
                                 </Card>
