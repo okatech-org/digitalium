@@ -570,7 +570,23 @@ export default function DocumentCategoryPage() {
                                     Dossier
                                 </Button>
                             )}
-                            <Button className="bg-blue-500 hover:bg-blue-600" size="sm">
+                            <Button
+                                className="bg-blue-500 hover:bg-blue-600"
+                                size="sm"
+                                onClick={() => {
+                                    const input = document.createElement('input');
+                                    input.type = 'file';
+                                    input.multiple = true;
+                                    input.accept = '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.jpg,.jpeg,.png,.gif,.webp';
+                                    input.onchange = (e) => {
+                                        const files = (e.target as HTMLInputElement).files;
+                                        if (files && files.length > 0 && selectedFolder) {
+                                            importFiles(Array.from(files), selectedFolder.id);
+                                        }
+                                    };
+                                    input.click();
+                                }}
+                            >
                                 <Upload className="h-4 w-4 mr-2" />
                                 {resolvedCategory === 'templates' ? 'Nouveau modèle' : 'Importer'}
                             </Button>
