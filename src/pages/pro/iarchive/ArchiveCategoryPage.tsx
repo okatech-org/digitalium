@@ -65,6 +65,7 @@ import { cn } from '@/lib/utils';
 import { useSpaceFromUrl } from '@/contexts/SpaceContext';
 import { digitaliumArchives, digitaliumArchiveFolders, ArchiveCategory } from '@/data/digitaliumMockData';
 import { IArchiveOutletContext } from './IArchiveLayout';
+import { getArchivedFilesFromStorage } from '@/services/documentFilesService';
 
 // Category configuration
 interface CategoryConfig {
@@ -207,11 +208,30 @@ export default function ArchiveCategoryPage() {
     const documents = useMemo(() => {
         const allDocs = generateContextualArchives(resolvedCategory, isBackoffice);
 
+        // Add imported archived files from iDocument
+        const importedArchived = getArchivedFilesFromStorage().map(f => ({
+            id: f.id,
+            title: f.name,
+            type: 'archive',
+            reference: `ARCH-${f.id.slice(0, 8).toUpperCase()}`,
+            archivedAt: f.modifiedAt || new Date().toISOString().split('T')[0],
+            retentionEnd: 'Permanent',
+            verified: true,
+            hash: `SHA256:${f.id.slice(-8)}...`,
+            size: f.size,
+            starred: false,
+            folderId: 'archive',
+            isImported: true,
+            mimeType: f.mimeType,
+        }));
+
+        const combined = [...importedArchived, ...allDocs];
+
         if (selectedFolder) {
-            return allDocs.filter(doc => doc.folderId === selectedFolder.id);
+            return combined.filter(doc => doc.folderId === selectedFolder.id);
         }
 
-        return allDocs;
+        return combined;
     }, [resolvedCategory, isBackoffice, selectedFolder]);
 
     // Document counts

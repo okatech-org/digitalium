@@ -3,7 +3,7 @@
  * A4 Miniature Grid Layout with actions below each document
  */
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
     FileText,
@@ -19,6 +19,7 @@ import {
     CheckCircle2,
     Download,
     Calendar,
+    PenTool,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -44,9 +45,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
 import { useSignatureSearch } from './ISignatureLayout';
-
-// Mock data - REMOVED: Data now comes from database
-const MOCK_PENDING: { id: string; title: string; sentAt: string; deadline: string; type: string; signers: { name: string; initials: string; signed: boolean; date?: string; lastReminder?: string }[] }[] = [];
+import { getPendingSignatureFiles } from '@/services/documentFilesService';
 
 // Generate document preview content
 const getDocumentPreviewContent = (doc: { title: string; type?: string; sentAt: string }): string[] => {
@@ -66,10 +65,31 @@ const getDocumentPreviewContent = (doc: { title: string; type?: string; sentAt: 
 
 export default function PendingSignatures() {
     const [docToCancel, setDocToCancel] = useState<string | null>(null);
-    const docInfo = MOCK_PENDING.find(d => d.id === docToCancel);
     const { searchQuery } = useSignatureSearch();
+    const [refreshKey, setRefreshKey] = useState(0);
 
-    const filteredDocs = MOCK_PENDING.filter(doc => {
+    // Get pending signature files from iDocument storage
+    const pendingDocs = useMemo(() => {
+        const files = getPendingSignatureFiles();
+        return files.map(f => ({
+            id: f.id,
+            title: f.name,
+            sentAt: f.modifiedAt || new Date().toISOString().split('T')[0],
+            deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('fr-FR'),
+            type: f.type,
+            signers: [{
+                name: (f as any).signatureRecipient === 'self' ? 'Moi-même' : ((f as any).signatureRecipient || 'Destinataire'),
+                initials: (f as any).signatureRecipient === 'self' ? 'ME' : ((f as any).signatureRecipient?.slice(0, 2).toUpperCase() || 'DE'),
+                signed: false,
+                lastReminder: undefined as string | undefined,
+            }],
+            isImported: true,
+        }));
+    }, [refreshKey]);
+
+    const docInfo = pendingDocs.find(d => d.id === docToCancel);
+
+    const filteredDocs = pendingDocs.filter(doc => {
         if (!searchQuery) return true;
         const query = searchQuery.toLowerCase();
         return doc.title.toLowerCase().includes(query);
@@ -95,7 +115,7 @@ export default function PendingSignatures() {
                         {filteredDocs.length} document{filteredDocs.length !== 1 ? 's' : ''} envoyé{filteredDocs.length !== 1 ? 's' : ''} en attente de signatures
                     </p>
                 </div>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" onClick={() => setRefreshKey(k => k + 1)}>
                     <RefreshCw className="h-4 w-4 mr-2" />
                     Actualiser
                 </Button>
@@ -126,13 +146,13 @@ export default function PendingSignatures() {
                                 "relative bg-white dark:bg-zinc-900 rounded-lg shadow-md overflow-hidden",
                                 "aspect-[210/297]",
                                 "border-2 transition-all duration-200",
-                                "border-blue-300 dark:border-blue-700 hover:border-blue-500 hover:shadow-xl"
+                                "border-purple-300 dark:border-purple-700 hover:border-purple-500 hover:shadow-xl"
                             )}>
                                 {/* Status Badge */}
                                 <div className="absolute top-2 left-2 z-20">
-                                    <Badge variant="secondary" className="bg-blue-500/90 text-white text-[9px] px-1.5">
-                                        <Clock className="h-2.5 w-2.5 mr-1" />
-                                        En attente
+                                    <Badge variant="secondary" className="bg-purple-500/90 text-white text-[9px] px-1.5">
+                                        <PenTool className="h-2.5 w-2.5 mr-1" />
+                                        Signature
                                     </Badge>
                                 </div>
 
@@ -209,7 +229,7 @@ export default function PendingSignatures() {
 
                             {/* Document Info Below A4 */}
                             <div className="mt-3 space-y-2 px-1">
-                                <h4 className="font-semibold text-foreground text-sm line-clamp-2 leading-tight group-hover:text-blue-500 transition-colors">
+                                <h4 className="font-semibold text-foreground text-sm line-clamp-2 leading-tight group-hover:text-purple-500 transition-colors">
                                     {doc.title}
                                 </h4>
 
@@ -223,7 +243,7 @@ export default function PendingSignatures() {
                                         <Clock className="h-3 w-3" />
                                         {doc.deadline}
                                     </span>
-                                    <Badge variant="secondary" className="text-[9px] px-1.5 h-4 bg-blue-500/10 text-blue-500">
+                                    <Badge variant="secondary" className="text-[9px] px-1.5 h-4 bg-purple-500/10 text-purple-500">
                                         <Users className="h-2.5 w-2.5 mr-1" />
                                         {signedCount}/{totalSigners}
                                     </Badge>
@@ -246,8 +266,11 @@ export default function PendingSignatures() {
             {filteredDocs.length === 0 && (
                 <Card className="border-dashed">
                     <CardContent className="py-12 text-center">
-                        <Clock className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
-                        <p className="text-muted-foreground">Aucun document en attente</p>
+                        <PenTool className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
+                        <p className="text-muted-foreground">Aucun document en attente de signature</p>
+                        <p className="text-xs text-muted-foreground mt-2">
+                            Envoyez un document à signer depuis iDocument
+                        </p>
                     </CardContent>
                 </Card>
             )}
@@ -284,3 +307,4 @@ export default function PendingSignatures() {
         </div>
     );
 }
+
