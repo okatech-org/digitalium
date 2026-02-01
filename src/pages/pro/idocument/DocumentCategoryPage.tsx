@@ -235,6 +235,8 @@ export default function DocumentCategoryPage() {
         openCreateFolderDialog,
         importedFiles,
         importFiles,
+        deleteFile,
+        moveToTrash,
     } = useOutletContext<IDocumentOutletContext>();
 
     // Local view mode state - fully managed by this component
@@ -428,11 +430,16 @@ export default function DocumentCategoryPage() {
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem className="text-red-500" onClick={() => {
-                        toast({
-                            title: "Document supprimé",
-                            description: `"${doc.title}" a été déplacé vers la corbeille.`,
-                            variant: "destructive",
-                        });
+                        // Call moveToTrash for imported files
+                        if ((doc as any).isImported) {
+                            moveToTrash(doc.id);
+                        } else {
+                            toast({
+                                title: "Document supprimé",
+                                description: `"${doc.title}" a été déplacé vers la corbeille.`,
+                                variant: "destructive",
+                            });
+                        }
                     }}>
                         <Trash2 className="h-4 w-4 mr-2" />
                         Supprimer

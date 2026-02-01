@@ -18,7 +18,7 @@ export interface ArchiveFolderManagerState {
     addFolder: (folderData: {
         name: string;
         color: string;
-        parentId: string;
+        parentId: string | null;
         path: string;
         category: ArchiveCategory;
         retentionYears?: number;
@@ -55,7 +55,7 @@ export function useArchiveFolderManager(category: ArchiveCategory): ArchiveFolde
     const addFolder = useCallback((folderData: {
         name: string;
         color: string;
-        parentId: string;
+        parentId: string | null;
         path: string;
         category: ArchiveCategory;
         retentionYears?: number;

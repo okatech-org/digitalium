@@ -53,6 +53,8 @@ export interface IDocumentOutletContext {
     // File management
     importedFiles: ImportedFile[];
     importFiles: (files: File[], folderId: string) => void;
+    deleteFile: (fileId: string) => void;
+    moveToTrash: (fileId: string) => void;
 }
 
 const NAV_ITEMS = [
@@ -192,6 +194,29 @@ export default function IDocumentLayout() {
         });
     };
 
+    // Delete a file permanently
+    const deleteFile = useCallback((fileId: string) => {
+        setImportedFiles(prev => prev.filter(f => f.id !== fileId));
+        toast({
+            title: "Fichier supprimé",
+            description: "Le fichier a été supprimé définitivement.",
+            variant: "destructive",
+        });
+    }, [toast]);
+
+    // Move a file to trash (mark as deleted but keep in state)
+    const moveToTrash = useCallback((fileId: string) => {
+        setImportedFiles(prev => prev.map(f =>
+            f.id === fileId
+                ? { ...f, status: 'archived' as FileStatus, folderId: 'trash' }
+                : f
+        ));
+        toast({
+            title: "Fichier déplacé",
+            description: "Le fichier a été déplacé vers la corbeille.",
+        });
+    }, [toast]);
+
     // Context to pass to child routes
     const outletContext: IDocumentOutletContext = {
         selectedFolder,
@@ -204,6 +229,8 @@ export default function IDocumentLayout() {
         // File management
         importedFiles,
         importFiles,
+        deleteFile,
+        moveToTrash,
     };
 
     return (

@@ -129,11 +129,26 @@ export function DocumentPreviewDialog({
                     {hasPreview ? (
                         <div className="w-full h-full flex items-center justify-center">
                             {isPdf && (
-                                <iframe
-                                    src={document.dataUrl}
+                                <object
+                                    data={document.dataUrl}
+                                    type="application/pdf"
                                     className="w-full h-full rounded-lg border bg-white shadow-lg"
                                     title={document.title}
-                                />
+                                >
+                                    <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+                                        <FileText className="h-16 w-16 text-red-500 mb-4" />
+                                        <p className="text-lg font-medium mb-2">
+                                            Impossible d'afficher le PDF directement
+                                        </p>
+                                        <p className="text-sm text-muted-foreground mb-4">
+                                            Votre navigateur ne supporte pas l'affichage intégré des PDFs.
+                                        </p>
+                                        <Button onClick={() => window.open(document.dataUrl, '_blank')}>
+                                            <ExternalLink className="h-4 w-4 mr-2" />
+                                            Ouvrir dans un nouvel onglet
+                                        </Button>
+                                    </div>
+                                </object>
                             )}
                             {isImage && !isPdf && (
                                 <img
