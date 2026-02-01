@@ -292,7 +292,7 @@ export default function DocumentCategoryPage() {
             const fileDocuments = allFiles.map(f => ({
                 id: f.id,
                 title: f.name,
-                type: f.type === 'pdf' ? 'contract' : f.type,
+                type: f.type, // Keep original type (pdf, image, etc.) for preview detection
                 status: f.status,
                 lastEdit: f.modifiedAt,
                 collaborators: f.collaborators?.map(c => c.charAt(0)) || [],
@@ -302,6 +302,8 @@ export default function DocumentCategoryPage() {
                 owner: f.author,
                 isTemplate: false,
                 isFolder: false,
+                isImported: (f as any).isImported || false, // Pass isImported flag
+                mimeType: (f as any).mimeType || '', // Pass mimeType for preview
             }));
 
             // Sous-dossiers comme cartes cliquables
