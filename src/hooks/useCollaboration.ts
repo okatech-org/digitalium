@@ -1,17 +1,32 @@
 "use client";
 
+/**
+ * useCollaboration Hook
+ *
+ * Real-time collaborative document editing using Firestore + Yjs.
+ * Migrated from Supabase Realtime to Firestore onSnapshot listeners.
+ */
+
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
-import { createClient } from "@supabase/supabase-js";
 import { useAuth } from "@/contexts/FirebaseAuthContext";
+import { db } from "@/config/firebase";
+import {
+    doc,
+    getDoc,
+    setDoc,
+    updateDoc,
+    deleteDoc,
+    collection,
+    onSnapshot,
+    query,
+    where,
+    Timestamp,
+    addDoc,
+    serverTimestamp,
+} from "firebase/firestore";
 import * as Y from "yjs";
 import { IndexeddbPersistence } from "y-indexeddb";
 import { useToast } from "@/components/ui/use-toast";
-
-// Create untyped Supabase client for new tables
-// TODO: After running migration, regenerate types and switch to typed client
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-const supabaseUntyped = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 interface Collaborator {
     userId: string;
@@ -55,6 +70,11 @@ const generateUserColor = (userId: string): string => {
     return colors[Math.abs(hash) % colors.length];
 };
 
+// Firestore collection references
+const COLLAB_DOCS_COLLECTION = 'collaborative_documents';
+const PRESENCE_COLLECTION = 'document_presence';
+const EDIT_HISTORY_COLLECTION = 'document_edit_history';
+
 export function useCollaboration({ documentId, onSync }: UseCollaborationOptions) {
     const { user } = useAuth();
     const { toast } = useToast();
@@ -79,19 +99,21 @@ export function useCollaboration({ documentId, onSync }: UseCollaborationOptions
     }), [user]);
 
     // =========================================
-    // Load Document from Supabase
+    // Load Document from Firestore
     // =========================================
     const loadDocument = useCallback(async () => {
         try {
-            const { data, error } = await supabaseUntyped
-                .from('collaborative_documents')
-                .select('*')
-                .eq('id', documentId)
-                .single();
+            const docRef = doc(db, COLLAB_DOCS_COLLECTION, documentId);
+            const docSnap = await getDoc(docRef);
 
-            if (error) throw error;
-            setDocument(data as CollaborativeDocument);
-            return data as CollaborativeDocument;
+            if (!docSnap.exists()) {
+                console.error('[useCollaboration] Document not found:', documentId);
+                return null;
+            }
+
+            const data = { id: docSnap.id, ...docSnap.data() } as CollaborativeDocument;
+            setDocument(data);
+            return data;
         } catch (error) {
             console.error('[useCollaboration] Erreur chargement document:', error);
             return null;
@@ -133,9 +155,9 @@ export function useCollaboration({ documentId, onSync }: UseCollaborationOptions
     }, [documentId, loadDocument, onSync]);
 
     // =========================================
-    // Sync to Supabase (debounced)
+    // Sync to Firestore (debounced)
     // =========================================
-    const syncToSupabase = useCallback(async () => {
+    const syncToFirestore = useCallback(async () => {
         const ydoc = ydocRef.current;
         if (!ydoc || isSyncing || !user) return;
 
@@ -145,24 +167,21 @@ export function useCollaboration({ documentId, onSync }: UseCollaborationOptions
             const update = Y.encodeStateAsUpdate(ydoc);
             const base64Content = btoa(String.fromCharCode(...update));
 
-            const { error } = await supabaseUntyped
-                .from('collaborative_documents')
-                .update({
-                    content: base64Content,
-                    last_edited_by: user.uid,
-                    last_edited_at: new Date().toISOString(),
-                    version: (document?.version || 0) + 1,
-                    status: 'editing',
-                })
-                .eq('id', documentId);
-
-            if (error) throw error;
+            const docRef = doc(db, COLLAB_DOCS_COLLECTION, documentId);
+            await updateDoc(docRef, {
+                content: base64Content,
+                last_edited_by: user.uid,
+                last_edited_at: new Date().toISOString(),
+                version: (document?.version || 0) + 1,
+                status: 'editing',
+            });
 
             // Log edit action
-            await supabaseUntyped.from('document_edit_history').insert({
+            await addDoc(collection(db, EDIT_HISTORY_COLLECTION), {
                 document_id: documentId,
                 user_id: user.uid,
                 action: 'edited',
+                created_at: serverTimestamp(),
             });
         } catch (error) {
             console.error('[useCollaboration] Erreur sync:', error);
@@ -185,7 +204,7 @@ export function useCollaboration({ documentId, onSync }: UseCollaborationOptions
             if (syncTimeoutRef.current) {
                 clearTimeout(syncTimeoutRef.current);
             }
-            syncTimeoutRef.current = setTimeout(syncToSupabase, 1000);
+            syncTimeoutRef.current = setTimeout(syncToFirestore, 1000);
         };
 
         ydoc.on('update', handleUpdate);
@@ -196,27 +215,25 @@ export function useCollaboration({ documentId, onSync }: UseCollaborationOptions
                 clearTimeout(syncTimeoutRef.current);
             }
         };
-    }, [syncToSupabase]);
+    }, [syncToFirestore]);
 
     // =========================================
-    // Presence Management
+    // Presence Management (Firestore)
     // =========================================
     const updatePresence = useCallback(async (cursorPosition?: { from: number; to: number }) => {
         if (!user) return;
 
         try {
-            await supabaseUntyped
-                .from('document_presence')
-                .upsert({
-                    document_id: documentId,
-                    user_id: user.uid,
-                    user_name: currentUser.name,
-                    user_color: currentUser.color,
-                    cursor_position: cursorPosition || null,
-                    last_seen: new Date().toISOString(),
-                }, {
-                    onConflict: 'document_id,user_id',
-                });
+            const presenceId = `${documentId}_${user.uid}`;
+            const presenceRef = doc(db, PRESENCE_COLLECTION, presenceId);
+            await setDoc(presenceRef, {
+                document_id: documentId,
+                user_id: user.uid,
+                user_name: currentUser.name,
+                user_color: currentUser.color,
+                cursor_position: cursorPosition || null,
+                last_seen: new Date().toISOString(),
+            }, { merge: true });
         } catch (error) {
             console.error('[useCollaboration] Erreur mise à jour présence:', error);
         }
@@ -226,107 +243,82 @@ export function useCollaboration({ documentId, onSync }: UseCollaborationOptions
         if (!user) return;
 
         try {
-            await supabaseUntyped
-                .from('document_presence')
-                .delete()
-                .eq('document_id', documentId)
-                .eq('user_id', user.uid);
+            const presenceId = `${documentId}_${user.uid}`;
+            const presenceRef = doc(db, PRESENCE_COLLECTION, presenceId);
+            await deleteDoc(presenceRef);
         } catch (error) {
             console.error('[useCollaboration] Erreur suppression présence:', error);
         }
     }, [documentId, user]);
 
-    // Load presences
-    const loadPresences = useCallback(async () => {
-        try {
-            const { data, error } = await supabaseUntyped
-                .from('document_presence')
-                .select('*')
-                .eq('document_id', documentId)
-                .gt('last_seen', new Date(Date.now() - 5 * 60 * 1000).toISOString());
-
-            if (error) throw error;
-            setPresences((data as Presence[]) || []);
-        } catch (error) {
-            console.error('[useCollaboration] Erreur chargement présences:', error);
-        }
-    }, [documentId]);
-
-    // Presence heartbeat & realtime subscription
+    // Presence heartbeat & realtime subscription via Firestore onSnapshot
     useEffect(() => {
         // Initial presence
         updatePresence();
-        loadPresences();
 
         // Heartbeat every 30s
         presenceIntervalRef.current = setInterval(() => {
             updatePresence();
-            loadPresences();
         }, 30000);
 
-        // Realtime subscription for presence changes
-        const channel = supabaseUntyped
-            .channel(`presence:${documentId}`)
-            .on(
-                'postgres_changes',
-                {
-                    event: '*',
-                    schema: 'public',
-                    table: 'document_presence',
-                    filter: `document_id=eq.${documentId}`,
-                },
-                () => {
-                    loadPresences();
-                }
-            )
-            .subscribe();
+        // Realtime subscription for presence changes via Firestore onSnapshot
+        const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+        const presenceQuery = query(
+            collection(db, PRESENCE_COLLECTION),
+            where('document_id', '==', documentId),
+            where('last_seen', '>', fiveMinutesAgo)
+        );
+
+        const unsubscribePresence = onSnapshot(presenceQuery, (snapshot) => {
+            const presenceList: Presence[] = snapshot.docs.map(d => ({
+                id: d.id,
+                ...d.data(),
+            } as Presence));
+            setPresences(presenceList);
+        }, (error) => {
+            console.error('[useCollaboration] Erreur snapshot présence:', error);
+        });
 
         return () => {
             if (presenceIntervalRef.current) {
                 clearInterval(presenceIntervalRef.current);
             }
             removePresence();
-            supabaseUntyped.removeChannel(channel);
+            unsubscribePresence();
         };
-    }, [documentId, updatePresence, loadPresences, removePresence]);
+    }, [documentId, updatePresence, removePresence]);
 
     // =========================================
-    // Document Realtime Updates
+    // Document Realtime Updates (Firestore onSnapshot)
     // =========================================
     useEffect(() => {
-        const channel = supabaseUntyped
-            .channel(`doc:${documentId}`)
-            .on(
-                'postgres_changes',
-                {
-                    event: 'UPDATE',
-                    schema: 'public',
-                    table: 'collaborative_documents',
-                    filter: `id=eq.${documentId}`,
-                },
-                (payload) => {
-                    const updatedDoc = payload.new as CollaborativeDocument;
+        const docRef = doc(db, COLLAB_DOCS_COLLECTION, documentId);
 
-                    // Only apply if update came from another user
-                    if (updatedDoc.last_edited_by !== user?.uid) {
-                        setDocument(updatedDoc);
+        const unsubscribeDoc = onSnapshot(docRef, (docSnap) => {
+            if (!docSnap.exists()) return;
 
-                        // Apply Yjs update if content changed
-                        if (updatedDoc.content && ydocRef.current) {
-                            try {
-                                const uint8Array = Uint8Array.from(atob(updatedDoc.content), (c) => c.charCodeAt(0));
-                                Y.applyUpdate(ydocRef.current, uint8Array);
-                            } catch (e) {
-                                console.error('[useCollaboration] Erreur application update distant:', e);
-                            }
-                        }
+            const updatedDoc = { id: docSnap.id, ...docSnap.data() } as CollaborativeDocument;
+
+            // Only apply if update came from another user
+            if (updatedDoc.last_edited_by !== user?.uid) {
+                setDocument(updatedDoc);
+
+                // Apply Yjs update if content changed
+                if (updatedDoc.content && ydocRef.current) {
+                    try {
+                        const uint8Array = Uint8Array.from(atob(updatedDoc.content), (c) => c.charCodeAt(0));
+                        Y.applyUpdate(ydocRef.current, uint8Array);
+                    } catch (e) {
+                        console.error('[useCollaboration] Erreur application update distant:', e);
                     }
                 }
-            )
-            .subscribe();
+            }
+        }, (error) => {
+            console.error('[useCollaboration] Erreur snapshot document:', error);
+        });
 
         return () => {
-            supabaseUntyped.removeChannel(channel);
+            unsubscribeDoc();
         };
     }, [documentId, user?.uid]);
 
@@ -337,23 +329,20 @@ export function useCollaboration({ documentId, onSync }: UseCollaborationOptions
         if (!user) return;
 
         try {
-            const { error } = await supabaseUntyped
-                .from('collaborative_documents')
-                .update({ status: 'archived' })
-                .eq('id', documentId);
-
-            if (error) throw error;
+            const docRef = doc(db, COLLAB_DOCS_COLLECTION, documentId);
+            await updateDoc(docRef, { status: 'archived' });
 
             // Log archive action
-            await supabaseUntyped.from('document_edit_history').insert({
+            await addDoc(collection(db, EDIT_HISTORY_COLLECTION), {
                 document_id: documentId,
                 user_id: user.uid,
                 action: 'archived',
                 snapshot: document?.content,
+                created_at: serverTimestamp(),
             });
 
             toast({
-                title: '📦 Document archivé',
+                title: 'Document archivé',
                 description: 'Le document a été transféré vers iArchive.',
             });
 
@@ -376,28 +365,31 @@ export function useCollaboration({ documentId, onSync }: UseCollaborationOptions
         if (!user) return null;
 
         try {
-            const { data, error } = await supabaseUntyped
-                .from('collaborative_documents')
-                .insert({
-                    title,
-                    owner_id: user.uid,
-                    team_id: teamId,
-                    status: 'draft',
-                    collaborators: [],
-                })
-                .select()
-                .single();
+            const newDocRef = doc(collection(db, COLLAB_DOCS_COLLECTION));
+            const newDocData = {
+                title,
+                owner_id: user.uid,
+                team_id: teamId || null,
+                status: 'draft',
+                collaborators: [],
+                content: '',
+                version: 0,
+                last_edited_at: new Date().toISOString(),
+                last_edited_by: user.uid,
+                created_at: serverTimestamp(),
+            };
 
-            if (error) throw error;
+            await setDoc(newDocRef, newDocData);
 
             // Log creation
-            await supabaseUntyped.from('document_edit_history').insert({
-                document_id: data.id,
+            await addDoc(collection(db, EDIT_HISTORY_COLLECTION), {
+                document_id: newDocRef.id,
                 user_id: user.uid,
                 action: 'created',
+                created_at: serverTimestamp(),
             });
 
-            return data as CollaborativeDocument;
+            return { id: newDocRef.id, ...newDocData } as unknown as CollaborativeDocument;
         } catch (error) {
             console.error('[useCollaboration] Erreur création document:', error);
             toast({
@@ -421,12 +413,8 @@ export function useCollaboration({ documentId, onSync }: UseCollaborationOptions
         ];
 
         try {
-            const { error } = await supabaseUntyped
-                .from('collaborative_documents')
-                .update({ collaborators: newCollaborators })
-                .eq('id', documentId);
-
-            if (error) throw error;
+            const docRef = doc(db, COLLAB_DOCS_COLLECTION, documentId);
+            await updateDoc(docRef, { collaborators: newCollaborators });
             loadDocument();
         } catch (error) {
             console.error('[useCollaboration] Erreur ajout collaborateur:', error);

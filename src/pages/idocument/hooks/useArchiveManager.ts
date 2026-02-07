@@ -1,6 +1,6 @@
 /**
  * useArchiveManager Hook
- * Real Supabase-backed document management
+ * Real Firebase-backed document management
  * New hook that uses archiveService for persistence
  */
 

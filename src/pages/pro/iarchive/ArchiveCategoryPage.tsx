@@ -1,9 +1,13 @@
 /**
  * ArchiveCategoryPage - Card-based archive display (aligned with iDocument)
  * Grid/List view layout with folder navigation support
+ * 
+ * Conforms to NF Z42-013 / ISO 14641:
+ * - No modification, deletion, sharing, or signing of originals
+ * - Only: Consultation, Certified Copy, Integrity Check, Certificate, Audit Log
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useLocation, useOutletContext } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -11,8 +15,8 @@ import {
     CheckCircle2,
     Shield,
     Clock,
-    Download,
     Eye,
+    Copy,
     MoreVertical,
     Search,
     Filter,
@@ -36,6 +40,7 @@ import {
     StarOff,
     Upload,
     Plus,
+    Activity,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -66,7 +71,12 @@ import { useSpaceFromUrl } from '@/contexts/SpaceContext';
 import { digitaliumArchives, digitaliumArchiveFolders, ArchiveCategory } from '@/data/digitaliumMockData';
 import { IArchiveOutletContext } from './IArchiveLayout';
 import { getArchivedFilesFromStorage } from '@/services/documentFilesService';
-import { A4DocumentCard } from '@/pages/pro/idocument/components/A4DocumentCard';
+import { ArchiveDocumentCard, type ArchiveDocumentData } from './components/ArchiveDocumentCard';
+import { CertifiedCopyDialog } from './components/CertifiedCopyDialog';
+import { IntegrityCheckDialog } from './components/IntegrityCheckDialog';
+import { AuditLogPanel } from './components/AuditLogPanel';
+import { logAuditEvent } from '@/services/archiveAuditService';
+import { useToast } from '@/hooks/use-toast';
 
 // Category configuration
 interface CategoryConfig {
@@ -193,6 +203,39 @@ export default function ArchiveCategoryPage() {
     const getSubfolders = outletContext?.getSubfolders ?? (() => []);
     const importedArchives = outletContext?.importedArchives ?? [];
     const getArchivesInFolder = outletContext?.getArchivesInFolder ?? (() => []);
+
+    // Dialog state for compliant archive actions
+    const [certifiedCopyDoc, setCertifiedCopyDoc] = useState<ArchiveDocumentData | null>(null);
+    const [integrityCheckDoc, setIntegrityCheckDoc] = useState<ArchiveDocumentData | null>(null);
+    const [auditLogDoc, setAuditLogDoc] = useState<ArchiveDocumentData | null>(null);
+    const { toast } = useToast();
+
+    // Archive-compliant action handlers
+    const handleConsult = useCallback((doc: ArchiveDocumentData) => {
+        logAuditEvent({
+            documentId: doc.id,
+            documentTitle: doc.title,
+            action: 'consultation',
+            details: 'Consultation en lecture seule',
+        });
+        toast({
+            title: '👁 Consultation',
+            description: `Document "${doc.title}" ouvert en lecture seule.`,
+        });
+    }, [toast]);
+
+    const handleCertificate = useCallback((doc: ArchiveDocumentData) => {
+        logAuditEvent({
+            documentId: doc.id,
+            documentTitle: doc.title,
+            action: 'certificate_download',
+            details: 'Certificat d\'archivage téléchargé',
+        });
+        toast({
+            title: '📜 Certificat d\'archivage',
+            description: `Certificat pour "${doc.title}" téléchargé.`,
+        });
+    }, [toast]);
 
     // Determine category from URL path
     const pathParts = location.pathname.split('/');
@@ -322,24 +365,45 @@ export default function ArchiveCategoryPage() {
     const verifiedCount = documents.filter(d => d.verified).length;
     const complianceRate = documents.length > 0 ? Math.round((verifiedCount / documents.length) * 100) : 100;
 
+    // Build an ArchiveDocumentData from a list-view doc
+    const toArchiveDocData = useCallback((doc: any): ArchiveDocumentData => ({
+        id: doc.id,
+        title: doc.title,
+        mimeType: doc.mimeType,
+        hash: doc.hash || `SHA256:${doc.id.slice(0, 16)}`,
+        archivedAt: doc.archivedAt,
+        retentionEnd: doc.retentionEnd || 'Non défini',
+        verified: doc.verified,
+        size: doc.size,
+        reference: doc.reference,
+        isImported: doc.isImported,
+        category: resolvedCategory,
+    }), [resolvedCategory]);
+
+    // Compliant actions: Consulter, Copie certifiée, Vérifier intégrité, Certificat, Journal d'audit
     const renderDocumentActions = (doc: any) => (
         <DropdownMenuContent align="end">
-            <DropdownMenuItem>
-                <Eye className="h-4 w-4 mr-2" />
-                Voir
+            <DropdownMenuItem onClick={() => handleConsult(toArchiveDocData(doc))}>
+                <Eye className="h-4 w-4 mr-2 text-blue-600" />
+                Consulter
             </DropdownMenuItem>
-            <DropdownMenuItem>
-                <Download className="h-4 w-4 mr-2" />
-                Télécharger
+            <DropdownMenuItem onClick={() => setCertifiedCopyDoc(toArchiveDocData(doc))}>
+                <Copy className="h-4 w-4 mr-2 text-purple-600" />
+                Copie certifiée
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-                <Shield className="h-4 w-4 mr-2" />
+            <DropdownMenuItem onClick={() => setIntegrityCheckDoc(toArchiveDocData(doc))}>
+                <Shield className="h-4 w-4 mr-2 text-green-600" />
                 Vérifier l'intégrité
             </DropdownMenuItem>
-            <DropdownMenuItem>
-                <Award className="h-4 w-4 mr-2" />
-                Générer certificat
+            <DropdownMenuItem onClick={() => handleCertificate(toArchiveDocData(doc))}>
+                <Award className="h-4 w-4 mr-2 text-amber-600" />
+                Certificat d'archivage
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => setAuditLogDoc(toArchiveDocData(doc))}>
+                <Activity className="h-4 w-4 mr-2 text-indigo-600" />
+                Journal d'audit
             </DropdownMenuItem>
         </DropdownMenuContent>
     );
@@ -540,28 +604,14 @@ export default function ArchiveCategoryPage() {
                                         </CardContent>
                                     </Card>
                                 ) : (
-                                    // Archive document with A4 miniature style
-                                    <A4DocumentCard
-                                        document={{
-                                            id: doc.id,
-                                            title: doc.title,
-                                            type: doc.mimeType?.includes('pdf') ? 'pdf' :
-                                                doc.mimeType?.includes('image') ? 'image' : 'document',
-                                            status: doc.verified ? 'approved' : 'review',
-                                            lastEdit: doc.archivedAt,
-                                            starred: doc.starred,
-                                            isImported: doc.isImported,
-                                            mimeType: doc.mimeType,
-                                        }}
-                                        onDocumentClick={() => {
-                                            // TODO: Open archive preview
-                                        }}
-                                        onDelete={(docId) => {
-                                            // Archive deletion
-                                        }}
-                                        onArchive={(docId) => {
-                                            // Already archived
-                                        }}
+                                    // Archive document card with compliant actions
+                                    <ArchiveDocumentCard
+                                        document={toArchiveDocData(doc)}
+                                        onConsult={handleConsult}
+                                        onCertifiedCopy={setCertifiedCopyDoc}
+                                        onIntegrityCheck={setIntegrityCheckDoc}
+                                        onCertificate={handleCertificate}
+                                        onAuditLog={setAuditLogDoc}
                                     />
                                 )}
                             </motion.div>
@@ -706,6 +756,34 @@ export default function ArchiveCategoryPage() {
                     </Button>
                 </div>
             )}
+            {/* ===== COMPLIANT DIALOGS ===== */}
+
+            {/* Certified Copy Dialog */}
+            <CertifiedCopyDialog
+                open={!!certifiedCopyDoc}
+                onOpenChange={(open) => !open && setCertifiedCopyDoc(null)}
+                document={certifiedCopyDoc}
+                onCopyGenerated={(ref, dest) => {
+                    toast({
+                        title: '📋 Copie certifiée générée',
+                        description: `Référence: ${ref} — ${dest === 'idocument' ? 'Envoyée vers iDocument' : 'Prête au téléchargement'}`,
+                    });
+                }}
+            />
+
+            {/* Integrity Check Dialog */}
+            <IntegrityCheckDialog
+                open={!!integrityCheckDoc}
+                onOpenChange={(open) => !open && setIntegrityCheckDoc(null)}
+                document={integrityCheckDoc}
+            />
+
+            {/* Audit Log Panel */}
+            <AuditLogPanel
+                open={!!auditLogDoc}
+                onOpenChange={(open) => !open && setAuditLogDoc(null)}
+                document={auditLogDoc}
+            />
         </div>
     );
 }

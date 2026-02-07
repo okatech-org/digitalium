@@ -16,6 +16,7 @@ import {
     Hash,
     CheckCircle2,
     AlertTriangle,
+    ArchiveRestore,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -59,6 +60,7 @@ interface ArchiveCardProps {
     onShare?: () => void;
     onDelete?: () => void;
     onVerify?: () => void;
+    onUnarchive?: () => void;
 }
 
 function formatBytes(bytes: number): string {
@@ -101,6 +103,7 @@ export function ArchiveCard({
     onShare,
     onDelete,
     onVerify,
+    onUnarchive,
 }: ArchiveCardProps) {
     const daysUntilExpiration = getDaysUntilExpiration(document.retentionEndDate);
     const isExpiringSoon = daysUntilExpiration <= 30 && daysUntilExpiration > 0;
@@ -170,6 +173,14 @@ export function ArchiveCard({
                                 <DropdownMenuItem onClick={onVerify}>
                                     <Shield className="h-4 w-4 mr-2" />
                                     Vérifier intégrité
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                    onClick={onUnarchive}
+                                    className="text-amber-600 focus:text-amber-600"
+                                >
+                                    <ArchiveRestore className="h-4 w-4 mr-2" />
+                                    Désarchiver
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem

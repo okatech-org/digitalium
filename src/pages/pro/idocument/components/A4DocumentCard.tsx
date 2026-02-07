@@ -35,6 +35,7 @@ import {
     Download,
     Share2,
     Archive,
+    ArchiveRestore,
     Trash2,
     Copy,
     MessageSquare,
@@ -70,6 +71,10 @@ interface A4DocumentCardProps {
     onArchive?: (docId: string) => void;
     onDuplicate?: (docId: string) => void;
     onSendToSignature?: (docId: string, recipient: string) => void;
+    /** Custom label for the archive button (default: 'Archiver') */
+    archiveLabel?: string;
+    /** Custom icon for the archive button (default: Archive) */
+    archiveIcon?: React.ComponentType<{ className?: string }>;
     className?: string;
 }
 
@@ -116,6 +121,8 @@ export function A4DocumentCard({
     onArchive,
     onDuplicate,
     onSendToSignature,
+    archiveLabel = 'Archiver',
+    archiveIcon: ArchiveIcon = Archive,
     className,
 }: A4DocumentCardProps) {
     const [dataUrl, setDataUrl] = useState<string | null>(null);
@@ -575,15 +582,15 @@ export function A4DocumentCard({
                             </PopoverContent>
                         </Popover>
 
-                        {/* Archiver Button */}
+                        {/* Archive/Unarchive Button */}
                         <Button
                             variant="ghost"
                             size="sm"
                             className="h-7 px-2 text-xs hover:bg-amber-50 dark:hover:bg-amber-900/20"
                             onClick={handleArchive}
                         >
-                            <Archive className="h-3.5 w-3.5 mr-1" />
-                            Archiver
+                            <ArchiveIcon className="h-3.5 w-3.5 mr-1" />
+                            {archiveLabel}
                         </Button>
                     </div>
                 </div>

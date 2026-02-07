@@ -1,13 +1,17 @@
 /**
  * Third-Party Integrations Service
- * 
+ *
  * Integration helpers for external services:
  * - Google Drive sync
  * - Email notifications
  * - Webhook dispatching
+ *
+ * Migrated from Supabase to Firebase (Cloud Functions + Storage)
  */
 
-import { supabase } from '@/integrations/supabase/client';
+import { functions, storage } from '@/config/firebase';
+import { httpsCallable } from 'firebase/functions';
+import { ref, getDownloadURL } from 'firebase/storage';
 
 // Types
 export type IntegrationType = 'google_drive' | 'email' | 'webhook';
@@ -47,7 +51,6 @@ interface DriveConfig {
  * Initialize Google Drive integration
  */
 export async function initGoogleDriveIntegration(): Promise<{ authUrl: string }> {
-    // In production, this would redirect to Google OAuth
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || 'demo-client-id';
     const redirectUri = `${window.location.origin}/integrations/google/callback`;
     const scope = 'https://www.googleapis.com/auth/drive.file';
@@ -64,53 +67,24 @@ export async function initGoogleDriveIntegration(): Promise<{ authUrl: string }>
 
 /**
  * Sync documents to Google Drive
+ * Uses Cloud Function to handle the actual Drive API calls
  */
 export async function syncToGoogleDrive(
     documentIds: string[],
     config: DriveConfig
 ): Promise<SyncResult> {
-    const errors: string[] = [];
-    let syncedCount = 0;
-
-    for (const docId of documentIds) {
-        try {
-            // Get document
-            const { data: doc, error } = await supabase
-                .from('archive_documents')
-                .select('*')
-                .eq('id', docId)
-                .single();
-
-            if (error || !doc) {
-                errors.push(`Document ${docId}: Not found`);
-                continue;
-            }
-
-            // Get file from storage
-            const { data: fileData, error: downloadError } = await supabase.storage
-                .from('archive-documents')
-                .download(doc.storage_path);
-
-            if (downloadError) {
-                errors.push(`Document ${docId}: Download failed`);
-                continue;
-            }
-
-            // In production, upload to Drive using googleapis
-            console.log(`[Drive Sync] Would upload: ${doc.title} to folder ${config.folderId}`);
-
-            syncedCount++;
-        } catch (err) {
-            errors.push(`Document ${docId}: ${err instanceof Error ? err.message : 'Unknown error'}`);
-        }
+    try {
+        const syncFn = httpsCallable(functions, 'syncToGoogleDrive');
+        const result = await syncFn({ documentIds, config });
+        return result.data as SyncResult;
+    } catch (error) {
+        return {
+            success: false,
+            syncedCount: 0,
+            errors: [error instanceof Error ? error.message : 'Sync failed'],
+            timestamp: new Date(),
+        };
     }
-
-    return {
-        success: errors.length === 0,
-        syncedCount,
-        errors,
-        timestamp: new Date(),
-    };
 }
 
 // ============================================
@@ -136,25 +110,21 @@ interface EmailMessage {
 }
 
 /**
- * Send email notification
+ * Send email notification via Cloud Function
  */
 export async function sendEmailNotification(
     message: EmailMessage,
     config?: EmailConfig
 ): Promise<{ success: boolean; messageId?: string; error?: string }> {
     try {
-        // In production, use Supabase Edge Function or external email service
-        console.log('[Email] Would send:', {
+        const sendEmailFn = httpsCallable(functions, 'sendEmail');
+        const result = await sendEmailFn({
             to: message.to,
             subject: message.subject,
-            hasAttachments: !!message.attachments?.length,
+            html: message.html,
+            config,
         });
-
-        // Mock success
-        return {
-            success: true,
-            messageId: `msg_${Date.now()}`,
-        };
+        return result.data as { success: boolean; messageId?: string };
     } catch (error) {
         return {
             success: false,
@@ -180,7 +150,7 @@ export async function sendShareNotification(
         <p style="margin: 0; font-weight: bold;">${documentTitle}</p>
       </div>
       ${message ? `<p style="color: #666;">${message}</p>` : ''}
-      <a href="${shareUrl}" 
+      <a href="${shareUrl}"
          style="display: inline-block; background: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin-top: 15px;">
         Accéder au document
       </a>
@@ -210,7 +180,7 @@ export async function sendExpirationReminder(
 
     const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h2 style="color: ${urgencyColor};">⚠️ Rappel d'expiration</h2>
+      <h2 style="color: ${urgencyColor};">Rappel d'expiration</h2>
       <p>Un document de votre archive approche de son expiration.</p>
       <div style="background: #f5f5f5; padding: 15px; border-radius: 8px; margin: 20px 0;">
         <p style="margin: 0; font-weight: bold;">${documentTitle}</p>
@@ -221,7 +191,7 @@ export async function sendExpirationReminder(
       <p style="color: #666;">
         Veuillez prendre les mesures nécessaires pour archiver, détruire ou prolonger ce document.
       </p>
-      <a href="${documentUrl}" 
+      <a href="${documentUrl}"
          style="display: inline-block; background: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin-top: 15px;">
         Voir le document
       </a>
@@ -230,7 +200,7 @@ export async function sendExpirationReminder(
 
     return sendEmailNotification({
         to: recipientEmail,
-        subject: `⚠️ Expiration prochaine: ${documentTitle}`,
+        subject: `Expiration prochaine: ${documentTitle}`,
         html,
     });
 }
@@ -261,7 +231,7 @@ export async function dispatchWebhook(
     data: Record<string, unknown>
 ): Promise<{ success: boolean; statusCode?: number; error?: string }> {
     if (!config.events.includes(event)) {
-        return { success: true }; // Event not subscribed
+        return { success: true };
     }
 
     const payload: WebhookPayload = {

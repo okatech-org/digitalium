@@ -8,21 +8,28 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { FolderPlus, Sparkles, Palette } from "lucide-react";
-import { IDossier } from '../types';
+import { IClasseur, IDossier, TreeLocation } from '../types';
 import { DOSSIER_TEMPLATES, CLASSEUR_COLORS, DOSSIER_ICONS } from '../constants';
+import { TreeSelect } from '../components/TreeSelect';
 
 interface NewDossierModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onCreate: (data: Partial<IDossier>) => void;
+    onCreate: (data: Partial<IDossier>, classeurId: string) => void;
     classeurName?: string;
+    /** If provided, pre-selects this classeur */
+    preSelectedClasseurId?: string;
+    /** All classeurs for tree navigation */
+    classeurs?: IClasseur[];
 }
 
 export function NewDossierModal({
     isOpen,
     onClose,
     onCreate,
-    classeurName
+    classeurName,
+    preSelectedClasseurId,
+    classeurs = [],
 }: NewDossierModalProps) {
     const [formData, setFormData] = useState<Partial<IDossier>>({
         name: '',
@@ -31,18 +38,44 @@ export function NewDossierModal({
         color: 'bg-amber-400',
     });
 
+    const [selectedLocation, setSelectedLocation] = useState<TreeLocation | null>(
+        preSelectedClasseurId
+            ? { classeurId: preSelectedClasseurId, classeurName: classeurName }
+            : null
+    );
+    const [showLocationError, setShowLocationError] = useState(false);
+
+    // Reset when modal opens with pre-selected classeur
+    React.useEffect(() => {
+        if (isOpen && preSelectedClasseurId) {
+            setSelectedLocation({
+                classeurId: preSelectedClasseurId,
+                classeurName: classeurName,
+            });
+            setShowLocationError(false);
+        }
+    }, [isOpen, preSelectedClasseurId, classeurName]);
+
     const handleSubmit = () => {
         if (!formData.name?.trim()) return;
+
+        const targetClasseurId = selectedLocation?.classeurId || preSelectedClasseurId;
+        if (!targetClasseurId) {
+            setShowLocationError(true);
+            return;
+        }
 
         onCreate({
             ...formData,
             id: `dossier-${Date.now()}`,
             fichiers: [],
             created_at: new Date().toISOString(),
-        });
+        }, targetClasseurId);
 
         onClose();
         setFormData({ name: '', description: '', icon: '📁', color: 'bg-amber-400' });
+        setSelectedLocation(null);
+        setShowLocationError(false);
     };
 
     const applyTemplate = (template: typeof DOSSIER_TEMPLATES[0]) => {
@@ -54,6 +87,8 @@ export function NewDossierModal({
             color: template.color,
         });
     };
+
+    const showTreeSelect = !preSelectedClasseurId && classeurs.length > 0;
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
@@ -67,10 +102,26 @@ export function NewDossierModal({
                         {classeurName ? (
                             <>Ajouter un dossier dans <strong>{classeurName}</strong></>
                         ) : (
-                            <>Créez un dossier pour organiser vos fichiers.</>
+                            <>Choisissez un classeur et créez un dossier pour organiser vos fichiers.</>
                         )}
                     </DialogDescription>
                 </DialogHeader>
+
+                {/* Tree Select for choosing classeur (when not pre-selected) */}
+                {showTreeSelect && (
+                    <TreeSelect
+                        classeurs={classeurs}
+                        value={selectedLocation}
+                        onChange={(loc) => {
+                            setSelectedLocation(loc);
+                            setShowLocationError(false);
+                        }}
+                        classeurOnly={true}
+                        label="Classeur de destination *"
+                        error={showLocationError}
+                        errorMessage="Veuillez sélectionner un classeur"
+                    />
+                )}
 
                 {/* Quick Templates */}
                 <div className="space-y-2">

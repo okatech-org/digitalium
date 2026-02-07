@@ -1,11 +1,14 @@
 /**
  * Storage Utilities for Digitalium Archive System
  * Handles file uploads, hash generation, and URL signing
+ *
+ * Migrated from Supabase Storage to Firebase Storage
  */
 
-import { supabase } from '@/integrations/supabase/client';
+import { storage } from '@/config/firebase';
+import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
 
-const STORAGE_BUCKET = 'archive-documents';
+const STORAGE_BUCKET_PATH = 'archive-documents';
 
 /**
  * Generate SHA-256 hash of a file
@@ -31,71 +34,59 @@ export function generateStoragePath(userId: string, filename: string): string {
 }
 
 /**
- * Upload file to Supabase Storage
+ * Upload file to Firebase Storage
  */
 export async function uploadToStorage(
     file: File,
     storagePath: string,
     onProgress?: (progress: number) => void
 ): Promise<{ path: string; url: string }> {
-    // Supabase storage upload (no native progress support, simulate)
-    if (onProgress) onProgress(10);
+    const storageRef = ref(storage, `${STORAGE_BUCKET_PATH}/${storagePath}`);
 
-    const { data, error } = await supabase.storage
-        .from(STORAGE_BUCKET)
-        .upload(storagePath, file, {
-            cacheControl: '3600',
-            upsert: false,
+    return new Promise((resolve, reject) => {
+        const uploadTask = uploadBytesResumable(storageRef, file, {
+            contentType: file.type,
+            customMetadata: {
+                originalName: file.name,
+            },
         });
 
-    if (error) {
-        throw new Error(`Upload failed: ${error.message}`);
-    }
-
-    if (onProgress) onProgress(90);
-
-    // Get public URL
-    const { data: urlData } = supabase.storage
-        .from(STORAGE_BUCKET)
-        .getPublicUrl(storagePath);
-
-    if (onProgress) onProgress(100);
-
-    return {
-        path: data.path,
-        url: urlData.publicUrl,
-    };
+        uploadTask.on(
+            'state_changed',
+            (snapshot) => {
+                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                onProgress?.(Math.round(progress));
+            },
+            (error) => reject(new Error(`Upload failed: ${error.message}`)),
+            async () => {
+                const url = await getDownloadURL(uploadTask.snapshot.ref);
+                resolve({
+                    path: storagePath,
+                    url,
+                });
+            }
+        );
+    });
 }
 
 /**
- * Get a signed URL for private file access
+ * Get a download URL for file access
+ * Firebase Storage URLs are already signed/authenticated
  */
 export async function getSignedUrl(
     storagePath: string,
-    expiresInSeconds: number = 3600
+    _expiresInSeconds: number = 3600
 ): Promise<string> {
-    const { data, error } = await supabase.storage
-        .from(STORAGE_BUCKET)
-        .createSignedUrl(storagePath, expiresInSeconds);
-
-    if (error) {
-        throw new Error(`Failed to create signed URL: ${error.message}`);
-    }
-
-    return data.signedUrl;
+    const storageRef = ref(storage, `${STORAGE_BUCKET_PATH}/${storagePath}`);
+    return getDownloadURL(storageRef);
 }
 
 /**
  * Delete file from storage
  */
 export async function deleteFromStorage(storagePath: string): Promise<void> {
-    const { error } = await supabase.storage
-        .from(STORAGE_BUCKET)
-        .remove([storagePath]);
-
-    if (error) {
-        throw new Error(`Delete failed: ${error.message}`);
-    }
+    const storageRef = ref(storage, `${STORAGE_BUCKET_PATH}/${storagePath}`);
+    await deleteObject(storageRef);
 }
 
 /**

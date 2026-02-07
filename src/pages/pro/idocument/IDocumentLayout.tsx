@@ -80,7 +80,7 @@ export default function IDocumentLayout() {
     const location = useLocation();
     const { isBackoffice, organizationName } = useSpaceFromUrl();
     const { toast } = useToast();
-    const [showFolders, setShowFolders] = useState(false);
+    const [showFolders, setShowFolders] = useState(true);
     const [showCreateFolderDialog, setShowCreateFolderDialog] = useState(false);
     const [showImportDialog, setShowImportDialog] = useState(false);
 

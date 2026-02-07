@@ -13,7 +13,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { functions } from "@/config/firebase";
+import { httpsCallable } from "firebase/functions";
 
 const Contact = () => {
   const { toast } = useToast();
@@ -47,16 +48,13 @@ const Contact = () => {
     setIsSubmitting(true);
 
     try {
-      const { error } = await supabase.functions.invoke('submit-lead', {
-        body: {
-          name: formData.name,
-          email: formData.email,
-          message: formData.message,
-          source: "contact_page",
-        },
+      const submitLeadFn = httpsCallable(functions, 'submitLead');
+      await submitLeadFn({
+        name: formData.name,
+        email: formData.email,
+        message: formData.message,
+        source: "contact_page",
       });
-
-      if (error) throw error;
 
       setIsSubmitted(true);
       toast({

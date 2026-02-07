@@ -18,6 +18,7 @@ import { ClasseurList } from './components/ClasseurList';
 import { DossierList } from './components/DossierList';
 import { FichierList } from './components/FichierList';
 import { FichierDetails } from './components/FichierDetails';
+import { TreeSidebar } from './components/TreeSidebar';
 
 // Modals
 import { NewClasseurModal } from './modals/NewClasseurModal';
@@ -48,7 +49,7 @@ const IDocumentPage = () => {
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
-            smartImport.analyzeFiles(Array.from(e.target.files));
+            smartImport.analyzeFiles(Array.from(e.target.files), docManager.classeurs);
             setIsGlobalImportOpen(false);
         }
     };
@@ -82,24 +83,62 @@ const IDocumentPage = () => {
 
         let addedCount = 0;
 
-        documentsToAdd.forEach(item => {
-            if (item.classeurId && item.dossierId) {
-                docManager.handleCreateFichier(item.classeurId, item.dossierId, {
-                    name: item.name,
-                    type: item.type,
-                    description: `Document importé automatiquement (Confiance: ${Math.round(item.confidence * 100)}%)`,
-                    tags: ['import-ia', new Date().getFullYear().toString()],
-                    attachments: [{
-                        id: `att-${Date.now()}`,
-                        name: item.file.name,
-                        type: 'pdf',
-                        size: `${(item.file.size / 1024).toFixed(1)} KB`,
-                        url: URL.createObjectURL(item.file),
-                        created_at: new Date().toISOString()
-                    }]
-                });
-                addedCount++;
+        // Track auto-created structures to avoid duplicates within this batch
+        let workingClasseurId: string | null = null;
+        let workingDossierIdMap: Record<string, string> = {}; // type -> dossierId
+
+        documentsToAdd.forEach((item, index) => {
+            let targetClasseurId = item.classeurId;
+            let targetDossierId = item.dossierId;
+
+            // Auto-create classeur if none exists
+            if (!targetClasseurId) {
+                if (!workingClasseurId) {
+                    const newClasseur = docManager.handleCreateClasseur({
+                        name: `Import ${new Date().toLocaleDateString('fr-FR')}`,
+                        icon: '📥',
+                        color: 'bg-blue-500',
+                        description: 'Classeur créé automatiquement lors de l\'import',
+                    });
+                    workingClasseurId = newClasseur.id;
+                }
+                targetClasseurId = workingClasseurId;
             }
+
+            // Auto-create dossier if none exists
+            if (!targetDossierId) {
+                const typeKey = item.type || 'other';
+                if (!workingDossierIdMap[typeKey]) {
+                    const typeLabels: Record<string, string> = {
+                        contrat: 'Contrats', facture: 'Factures', devis: 'Devis',
+                        rapport: 'Rapports', projet: 'Projets', other: 'Divers',
+                    };
+                    const newDossier = docManager.handleCreateDossier(targetClasseurId, {
+                        name: typeLabels[typeKey] || 'Divers',
+                        icon: '📁',
+                        color: 'bg-blue-400',
+                        description: `Dossier créé automatiquement pour les ${(typeLabels[typeKey] || 'documents').toLowerCase()}`,
+                    });
+                    workingDossierIdMap[typeKey] = newDossier.id;
+                }
+                targetDossierId = workingDossierIdMap[typeKey];
+            }
+
+            docManager.handleCreateFichier(targetClasseurId, targetDossierId, {
+                name: item.name,
+                type: item.type,
+                description: `Document importé automatiquement (Confiance: ${Math.round(item.confidence * 100)}%)`,
+                tags: ['import-ia', new Date().getFullYear().toString()],
+                attachments: [{
+                    id: `att-${Date.now()}-${index}`,
+                    name: item.file.name,
+                    type: 'pdf',
+                    size: `${(item.file.size / 1024).toFixed(1)} KB`,
+                    url: URL.createObjectURL(item.file),
+                    created_at: new Date().toISOString()
+                }]
+            });
+            addedCount++;
         });
 
         smartImport.clearAnalysis();
@@ -138,6 +177,12 @@ const IDocumentPage = () => {
                     onDelete={() => {
                         docManager.handleDeleteFichier(docManager.selectedFichier!.id);
                         docManager.handleNavigateToFichiers();
+                    }}
+                    onChangeArchivalStatus={(fichierId, newStatus, reason) => {
+                        docManager.changeArchivalStatus(fichierId, newStatus, reason);
+                    }}
+                    onCreateVersion={(fichierId, data) => {
+                        docManager.createVersion(fichierId, data);
                     }}
                 />
             );
@@ -235,9 +280,36 @@ const IDocumentPage = () => {
     };
 
     return (
-        <div className="h-full flex flex-col overflow-hidden">
+        <div className="h-full flex overflow-hidden">
+            {/* Tree Sidebar - Always visible */}
+            <div className="w-64 shrink-0 h-full">
+                <TreeSidebar
+                    classeurs={docManager.classeurs}
+                    selectedClasseurId={docManager.selectedClasseur?.id}
+                    selectedDossierId={docManager.selectedDossier?.id}
+                    onSelectClasseur={(classeur) => {
+                        docManager.handleSelectClasseur(classeur);
+                    }}
+                    onSelectDossier={(dossier, classeur) => {
+                        if (!docManager.selectedClasseur || docManager.selectedClasseur.id !== classeur.id) {
+                            docManager.handleSelectClasseur(classeur);
+                        }
+                        // Small delay to ensure classeur is set
+                        setTimeout(() => docManager.handleSelectDossier(dossier), 0);
+                    }}
+                    onCreateClasseur={() => setIsNewClasseurModalOpen(true)}
+                    onCreateDossier={(classeurId) => {
+                        const classeur = docManager.classeurs.find(c => c.id === classeurId);
+                        if (classeur) {
+                            docManager.handleSelectClasseur(classeur);
+                        }
+                        setIsNewDossierModalOpen(true);
+                    }}
+                />
+            </div>
+
             {/* Main Content */}
-            <div className="h-full flex flex-col relative overflow-hidden">
+            <div className="flex-1 h-full flex flex-col relative overflow-hidden">
                 {/* Header Section */}
                 <div className="px-6 pt-6 space-y-4">
                     {/* Stats Cards */}
@@ -334,27 +406,31 @@ const IDocumentPage = () => {
             <NewDossierModal
                 isOpen={isNewDossierModalOpen}
                 onClose={() => setIsNewDossierModalOpen(false)}
-                onCreate={(data) => {
-                    if (docManager.selectedClasseur) {
-                        docManager.handleCreateDossier(docManager.selectedClasseur.id, data);
+                onCreate={(data, classeurId) => {
+                    const targetClasseurId = classeurId || docManager.selectedClasseur?.id;
+                    if (targetClasseurId) {
+                        docManager.handleCreateDossier(targetClasseurId, data);
                     }
                 }}
                 classeurName={docManager.selectedClasseur?.name}
+                preSelectedClasseurId={docManager.selectedClasseur?.id}
+                classeurs={docManager.classeurs}
             />
 
             <NewFichierModal
                 isOpen={isNewFichierModalOpen}
                 onClose={() => setIsNewFichierModalOpen(false)}
-                onCreate={(data) => {
-                    if (docManager.selectedClasseur && docManager.selectedDossier) {
-                        docManager.handleCreateFichier(
-                            docManager.selectedClasseur.id,
-                            docManager.selectedDossier.id,
-                            data
-                        );
+                onCreate={(data, classeurId, dossierId) => {
+                    const targetClasseurId = classeurId || docManager.selectedClasseur?.id;
+                    const targetDossierId = dossierId || docManager.selectedDossier?.id;
+                    if (targetClasseurId && targetDossierId) {
+                        docManager.handleCreateFichier(targetClasseurId, targetDossierId, data);
                     }
                 }}
                 dossierName={docManager.selectedDossier?.name}
+                preSelectedClasseurId={docManager.selectedClasseur?.id}
+                preSelectedDossierId={docManager.selectedDossier?.id}
+                classeurs={docManager.classeurs}
             />
 
             <FilePreviewModal

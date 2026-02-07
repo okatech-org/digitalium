@@ -1,6 +1,6 @@
 
 import { useState, useCallback } from 'react';
-import { SmartAnalysisResult } from '../types';
+import { IClasseur, SmartAnalysisResult } from '../types';
 
 // Simulated document classification based on filename keywords
 function classifyDocument(file: File): { type: string; confidence: number } {
@@ -40,12 +40,56 @@ function generateSmartName(file: File): string {
         .join(' ');
 }
 
+// Map document type to a preferred dossier name for smart matching
+const TYPE_TO_DOSSIER_NAME: Record<string, string[]> = {
+    contrat: ['contrat', 'contrats', 'contract'],
+    facture: ['facture', 'factures', 'invoice', 'comptabilité'],
+    devis: ['devis', 'propositions', 'commercial'],
+    rapport: ['rapport', 'rapports', 'analyses'],
+    projet: ['projet', 'projets', 'project'],
+    other: [],
+};
+
+/**
+ * Try to find the best classeur/dossier match from existing data.
+ * If no match is found, returns empty IDs so the caller can auto-create.
+ */
+function findBestLocation(
+    type: string,
+    classeurs: IClasseur[]
+): { classeurId: string; dossierId: string } {
+    const keywords = TYPE_TO_DOSSIER_NAME[type] || [];
+
+    // Strategy 1: Find a dossier whose name matches the document type
+    for (const classeur of classeurs) {
+        for (const dossier of classeur.dossiers) {
+            const dossierNameLower = dossier.name.toLowerCase();
+            if (keywords.some(kw => dossierNameLower.includes(kw))) {
+                return { classeurId: classeur.id, dossierId: dossier.id };
+            }
+        }
+    }
+
+    // Strategy 2: Use the first classeur/first dossier as fallback
+    if (classeurs.length > 0) {
+        const firstClasseur = classeurs[0];
+        if (firstClasseur.dossiers.length > 0) {
+            return { classeurId: firstClasseur.id, dossierId: firstClasseur.dossiers[0].id };
+        }
+        // Classeur exists but no dossier — return classeurId only, caller will create dossier
+        return { classeurId: firstClasseur.id, dossierId: '' };
+    }
+
+    // No classeurs at all — caller must create everything
+    return { classeurId: '', dossierId: '' };
+}
+
 export function useSmartImport() {
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [analysisProgress, setAnalysisProgress] = useState(0);
     const [analysisResults, setAnalysisResults] = useState<SmartAnalysisResult[]>([]);
 
-    const analyzeFiles = useCallback(async (files: File[]) => {
+    const analyzeFiles = useCallback(async (files: File[], classeurs: IClasseur[] = []) => {
         if (files.length === 0) return;
 
         setIsAnalyzing(true);
@@ -64,17 +108,8 @@ export function useSmartImport() {
             const classification = classifyDocument(file);
             const smartName = generateSmartName(file);
 
-            // Map type to default classeur/dossier
-            const classeurDossierMap: Record<string, { classeurId: string; dossierId: string }> = {
-                contrat: { classeurId: 'entreprise-2024', dossierId: 'contrats-clients' },
-                facture: { classeurId: 'entreprise-2024', dossierId: 'factures-fournisseurs' },
-                devis: { classeurId: 'entreprise-2024', dossierId: 'devis-prospects' },
-                rapport: { classeurId: 'projets-2024', dossierId: 'projet-digitalium' },
-                projet: { classeurId: 'projets-2024', dossierId: 'projet-digitalium' },
-                other: { classeurId: 'entreprise-2024', dossierId: 'contrats-clients' },
-            };
-
-            const location = classeurDossierMap[classification.type] || classeurDossierMap.other;
+            // Find the best matching location from existing classeurs
+            const location = findBestLocation(classification.type, classeurs);
 
             results.push({
                 file,
@@ -119,3 +154,4 @@ export function useSmartImport() {
         clearAnalysis,
     };
 }
+

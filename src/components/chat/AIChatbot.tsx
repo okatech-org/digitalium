@@ -11,7 +11,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { supabase } from "@/integrations/supabase/client";
+import { functions } from "@/config/firebase";
+import { httpsCallable } from "firebase/functions";
 
 interface Message {
   role: "user" | "assistant";
@@ -61,15 +62,17 @@ export const AIChatbot = () => {
     };
 
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`,
-        {
+      // Use Firebase Cloud Functions for chat (streaming endpoint)
+      const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID || 'digitalium-ga';
+      const region = 'europe-west1';
+      const chatUrl = `https://${region}-${projectId}.cloudfunctions.net/chat`;
+
+      const response = await fetch(chatUrl, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
-          body: JSON.stringify({ 
+          body: JSON.stringify({
             messages: [...messages, userMessage].map(m => ({
               role: m.role,
               content: m.content

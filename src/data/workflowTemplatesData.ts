@@ -337,7 +337,117 @@ export const DEFAULT_WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
                 }
             }
         ]
-    }
+    },
+    // ====== UNARCHIVE WORKFLOWS ======
+    {
+        id: 'wf-standard-unarchive',
+        name: 'Désarchivage Standard',
+        description: 'Processus de désarchivage avec validation du responsable. Le document est restauré dans iDocument après approbation.',
+        trigger: 'manual' as WorkflowTrigger,
+        steps: [
+            {
+                id: 'step-notify-unarchive',
+                order: 1,
+                type: 'notify' as WorkflowStepType,
+                name: 'Notification de demande de désarchivage',
+                config: {
+                    notify_roles: ['responsable'],
+                    notify_message: 'Une demande de désarchivage a été soumise et nécessite votre validation.',
+                },
+            },
+            {
+                id: 'step-approve-unarchive',
+                order: 2,
+                type: 'approve' as WorkflowStepType,
+                name: 'Validation du responsable',
+                config: {
+                    approvers: ['responsable-service'],
+                    approval_type: 'any',
+                    timeout_days: 5,
+                },
+            },
+            {
+                id: 'step-move-unarchive',
+                order: 3,
+                type: 'move' as WorkflowStepType,
+                name: 'Restauration dans iDocument',
+                config: {
+                    target_unit_id: 'idocument-root',
+                },
+            },
+            {
+                id: 'step-notify-complete-unarchive',
+                order: 4,
+                type: 'notify' as WorkflowStepType,
+                name: 'Confirmation de désarchivage',
+                config: {
+                    notify_roles: ['demandeur'],
+                    notify_message: 'Votre demande de désarchivage a été traitée avec succès.',
+                },
+            },
+        ],
+        is_active: true,
+        is_system: true,
+        category: 'archivage' as const,
+        created_by: 'system',
+        created_at: '2024-01-01',
+        updated_at: '2024-01-01',
+    },
+    {
+        id: 'wf-legal-unarchive',
+        name: 'Désarchivage Documents Légaux',
+        description: 'Processus renforcé pour le désarchivage de documents juridiques. Nécessite double validation (juridique + direction).',
+        trigger: 'manual' as WorkflowTrigger,
+        steps: [
+            {
+                id: 'step-notify-legal-unarchive',
+                order: 1,
+                type: 'notify' as WorkflowStepType,
+                name: 'Alerte désarchivage document légal',
+                config: {
+                    notify_roles: ['responsable-juridique', 'directeur'],
+                    notify_message: 'Attention : une demande de désarchivage de document légal requiert votre validation.',
+                },
+            },
+            {
+                id: 'step-approve-juridique-unarchive',
+                order: 2,
+                type: 'approve' as WorkflowStepType,
+                name: 'Validation juridique',
+                config: {
+                    approvers: ['responsable-juridique'],
+                    approval_type: 'all',
+                    timeout_days: 7,
+                },
+            },
+            {
+                id: 'step-approve-direction-unarchive',
+                order: 3,
+                type: 'approve' as WorkflowStepType,
+                name: 'Validation Direction',
+                config: {
+                    approvers: ['directeur-service'],
+                    approval_type: 'all',
+                    timeout_days: 5,
+                },
+            },
+            {
+                id: 'step-move-legal-unarchive',
+                order: 4,
+                type: 'move' as WorkflowStepType,
+                name: 'Restauration dans iDocument',
+                config: {
+                    target_unit_id: 'idocument-root',
+                },
+            },
+        ],
+        is_active: true,
+        is_system: true,
+        category: 'archivage' as const,
+        created_by: 'system',
+        created_at: '2024-01-01',
+        updated_at: '2024-01-01',
+    },
 ];
 
 // ========================================

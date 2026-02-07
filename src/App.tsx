@@ -24,22 +24,27 @@ import NotFound from "./pages/NotFound";
 import IdnCallback from "./pages/auth/IdnCallback";
 // Public Pages
 import CompanyPublicPage from "./pages/public/CompanyPublicPage";
-// SysAdmin Pages
+// SysAdmin Pages (infrastructure-specific, not shared)
 import Infrastructure from "./pages/sysadmin/Infrastructure";
 import Monitoring from "./pages/sysadmin/Monitoring";
 import Databases from "./pages/sysadmin/Databases";
 import Logs from "./pages/sysadmin/Logs";
 import SecuritySysAdmin from "./pages/sysadmin/SecuritySysAdmin";
-import Iam from "./pages/sysadmin/Iam";
-import OrganizationConfig from "./pages/sysadmin/OrganizationConfig";
 import SysAdminDashboard from "./pages/sysadmin/SysAdminDashboard";
 import DatabaseReplicas from "./pages/sysadmin/DatabaseReplicas";
 import DatabaseBackups from "./pages/sysadmin/DatabaseBackups";
 import SysAdminSpaceLayout from "@/components/layout/SysAdminSpaceLayout";
-import ClientsManagement from "./pages/sysadmin/ClientsManagement";
-import SubscriptionsSysAdmin from "./pages/sysadmin/SubscriptionsSysAdmin";
-import LeadsProspectsSysAdmin from "./pages/sysadmin/LeadsProspectsSysAdmin";
-import WorkflowTemplates from "./pages/sysadmin/WorkflowTemplates";
+
+// Shared Admin Components (used by both SysAdmin and SubAdmin)
+import {
+  Iam,
+  OrganizationConfig,
+  DesignThemeSettings,
+  WorkflowTemplates,
+  ClientsManagement,
+  LeadsProspectsManagement,
+  SubscriptionsOverview,
+} from "./pages/shared";
 // Institution Pages
 import CivilRegistry from "./pages/institution/CivilRegistry";
 import ServicesConfig from "./pages/institution/ServicesConfig";
@@ -96,7 +101,6 @@ import {
 import DesignThemePage from "./pages/pro/admin/DesignThemePage";
 import { OrganizationProvider } from "./contexts/OrganizationContext";
 import { DesignThemeProvider } from "./contexts/DesignThemeContext";
-import DesignThemeSettings from "./pages/sysadmin/DesignThemeSettings";
 
 // SubAdmin Space Pages
 import SubAdminSpaceLayout from "@/components/layout/SubAdminSpaceLayout";
@@ -285,7 +289,7 @@ const AnimatedRoutes = () => {
         </Route>
 
         {/* Admin Space Routes - Administration institutionnelle */}
-        <Route path="/adminis" element={<ProtectedRoute requireAdmin><AdminSpaceLayout /></ProtectedRoute>}>
+        <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminSpaceLayout /></ProtectedRoute>}>
           <Route index element={<AdminDashboard />} />
           <Route path="leads" element={<LeadsManagement />} />
           <Route path="users" element={<UsersManagement />} />
@@ -300,7 +304,7 @@ const AnimatedRoutes = () => {
         </Route>
 
         {/* SysAdmin Routes - Super-administrateur système */}
-        <Route path="/admin" element={<ProtectedRoute requireAdmin><SysAdminSpaceLayout /></ProtectedRoute>}>
+        <Route path="/sysadmin" element={<ProtectedRoute requireAdmin><SysAdminSpaceLayout /></ProtectedRoute>}>
           <Route index element={<SysAdminDashboard />} />
           <Route path="infrastructure" element={<Infrastructure />} />
           <Route path="monitoring" element={<Monitoring />} />
@@ -314,8 +318,8 @@ const AnimatedRoutes = () => {
           <Route path="design-theme" element={<DesignThemeSettings />} />
           {/* Business Management Routes */}
           <Route path="users" element={<ClientsManagement />} />
-          <Route path="subscriptions" element={<SubscriptionsSysAdmin />} />
-          <Route path="leads" element={<LeadsProspectsSysAdmin />} />
+          <Route path="subscriptions" element={<SubscriptionsOverview />} />
+          <Route path="leads" element={<LeadsProspectsManagement />} />
           <Route path="workflow-templates" element={<WorkflowTemplates />} />
         </Route>
 
@@ -358,8 +362,8 @@ const AnimatedRoutes = () => {
           <Route path="workflow-templates" element={<WorkflowTemplates />} />
           {/* Gestion Métier */}
           <Route path="clients" element={<ClientsManagement />} />
-          <Route path="leads" element={<LeadsProspectsSysAdmin />} />
-          <Route path="subscriptions" element={<SubscriptionsSysAdmin />} />
+          <Route path="leads" element={<LeadsProspectsManagement />} />
+          <Route path="subscriptions" element={<SubscriptionsOverview />} />
         </Route>
 
         {/* Institution Routes */}

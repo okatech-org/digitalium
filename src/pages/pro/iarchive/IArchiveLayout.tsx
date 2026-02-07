@@ -1,6 +1,7 @@
 /**
  * iArchive Module Layout - With Folder Hierarchy
  * Full-width layout with horizontal category tabs and folder tree modal
+ * Supports unarchiving with optional workflow validation
  */
 
 import React, { useState, useMemo, useCallback } from 'react';
@@ -17,6 +18,8 @@ import {
     FolderTree,
     Plus,
     X,
+    ArchiveRestore,
+    GitBranch,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,9 +29,13 @@ import { cn } from '@/lib/utils';
 import { ArchiveCategoryTabs } from './components/ArchiveCategoryTabs';
 import { ArchiveFolderExplorer } from './components/ArchiveFolderExplorer';
 import { CreateArchiveFolderDialog } from './components/CreateArchiveFolderDialog';
+import { UnarchiveDialog } from './components/UnarchiveDialog';
+import { UnarchiveRequestsPanel } from './components/UnarchiveRequestsPanel';
 import { useArchiveFolderManager } from '@/hooks/useArchiveFolderManager';
 import { useSpaceFromUrl } from '@/contexts/SpaceContext';
 import { useToast } from '@/hooks/use-toast';
+import { unarchiveDocument } from '@/services/documentFilesService';
+import { getPendingUnarchiveRequests, type UnarchiveRequest } from '@/services/unarchiveService';
 import {
     DigitaliumArchiveFolder,
     ArchiveCategory,
@@ -74,6 +81,8 @@ export interface IArchiveOutletContext {
     deleteArchive: (fileId: string) => void;
     moveToTrash: (fileId: string) => void;
     getArchivesInFolder: (folderId: string) => ImportedArchive[];
+    // Unarchive management
+    onUnarchive: (doc: { id: string; title: string; category: string }) => void;
 }
 
 // Map URL paths to categories
@@ -110,6 +119,10 @@ export default function IArchiveLayout() {
     const [showFolders, setShowFolders] = useState(false);
     const [showCreateFolderDialog, setShowCreateFolderDialog] = useState(false);
     const [selectedFolder, setSelectedFolder] = useState<DigitaliumArchiveFolder | null>(null);
+    const [showUnarchiveDialog, setShowUnarchiveDialog] = useState(false);
+    const [unarchiveTarget, setUnarchiveTarget] = useState<{ id: string; title: string; category: string } | null>(null);
+    const [showUnarchiveRequests, setShowUnarchiveRequests] = useState(false);
+    const pendingUnarchiveCount = useMemo(() => getPendingUnarchiveRequests().length, []);
     const [parentFolderForCreate, setParentFolderForCreate] = useState<DigitaliumArchiveFolder | null>(null);
 
     // Imported archives state (similar to importedFiles in iDocument)
@@ -234,6 +247,43 @@ export default function IArchiveLayout() {
         return importedArchives.filter(a => a.folderId === folderId && a.category === currentCategory);
     }, [importedArchives, currentCategory]);
 
+    // Unarchive handler - opens the UnarchiveDialog
+    const onUnarchive = useCallback((doc: { id: string; title: string; category: string }) => {
+        setUnarchiveTarget(doc);
+        setShowUnarchiveDialog(true);
+    }, []);
+
+    // Called when unarchive is completed (direct or workflow approved)
+    const handleUnarchiveComplete = useCallback((requestId: string, mode: 'direct' | 'workflow') => {
+        if (mode === 'direct' && unarchiveTarget) {
+            // Direct unarchive: move the document out of archive
+            unarchiveDocument(unarchiveTarget.id);
+            // Also remove from imported archives if it exists there
+            setImportedArchives(prev => prev.filter(a => a.id !== unarchiveTarget.id));
+            toast({
+                title: "✓ Document désarchivé",
+                description: `"${unarchiveTarget.title}" a été restauré dans iDocument.`,
+            });
+        } else {
+            toast({
+                title: "📋 Demande soumise",
+                description: `La demande de désarchivage pour "${unarchiveTarget?.title}" a été envoyée aux approbateurs.`,
+            });
+        }
+        setUnarchiveTarget(null);
+    }, [unarchiveTarget, toast]);
+
+    // Handle completed unarchive request from the requests panel
+    const handleRequestCompleted = useCallback((request: UnarchiveRequest) => {
+        // When a workflow is fully approved, actually unarchive the document
+        unarchiveDocument(request.documentId);
+        setImportedArchives(prev => prev.filter(a => a.id !== request.documentId));
+        toast({
+            title: "✓ Désarchivage approuvé",
+            description: `"${request.documentTitle}" a été restauré dans iDocument.`,
+        });
+    }, [toast]);
+
     // Context to pass to child routes
     const outletContext: IArchiveOutletContext = {
         selectedFolder,
@@ -251,6 +301,8 @@ export default function IArchiveLayout() {
         deleteArchive,
         moveToTrash,
         getArchivesInFolder,
+        // Unarchive
+        onUnarchive,
     };
 
     return (
@@ -311,6 +363,24 @@ export default function IArchiveLayout() {
 
                     {/* Actions */}
                     <div className="flex gap-2">
+                        {/* Unarchive Requests Button */}
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className={cn(
+                                'relative',
+                                showUnarchiveRequests && 'bg-amber-500/10 border-amber-500/50 text-amber-600'
+                            )}
+                            onClick={() => setShowUnarchiveRequests(!showUnarchiveRequests)}
+                        >
+                            <GitBranch className="h-4 w-4 mr-1" />
+                            Demandes
+                            {pendingUnarchiveCount > 0 && (
+                                <Badge className="ml-1.5 h-4 px-1.5 text-[10px] bg-amber-500 text-white">
+                                    {pendingUnarchiveCount}
+                                </Badge>
+                            )}
+                        </Button>
                         <Button variant="outline" size="sm" onClick={() => {
                             toast({
                                 title: "Filtres",
@@ -436,7 +506,13 @@ export default function IArchiveLayout() {
 
                 {/* Main content */}
                 <main className="flex-1 overflow-auto p-6">
-                    <Outlet context={outletContext} />
+                    {showUnarchiveRequests ? (
+                        <UnarchiveRequestsPanel
+                            onRequestCompleted={handleRequestCompleted}
+                        />
+                    ) : (
+                        <Outlet context={outletContext} />
+                    )}
                 </main>
             </div>
 
@@ -450,6 +526,14 @@ export default function IArchiveLayout() {
                 category={currentCategory}
                 defaultRetentionYears={ARCHIVE_RETENTION_DEFAULTS[currentCategory]}
                 onCreateFolder={handleCreateFolder}
+            />
+
+            {/* Unarchive Dialog */}
+            <UnarchiveDialog
+                open={showUnarchiveDialog}
+                onOpenChange={setShowUnarchiveDialog}
+                document={unarchiveTarget}
+                onUnarchiveComplete={handleUnarchiveComplete}
             />
         </div>
     );

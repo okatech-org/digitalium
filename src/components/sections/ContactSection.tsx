@@ -13,7 +13,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { functions } from "@/config/firebase";
+import { httpsCallable } from "firebase/functions";
 import { toast } from "sonner";
 
 const contactInfo = [
@@ -60,11 +61,8 @@ export const ContactSection = () => {
     setIsSubmitting(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke("submit-lead", {
-        body: formData,
-      });
-
-      if (error) throw error;
+      const submitLeadFn = httpsCallable(functions, 'submitLead');
+      await submitLeadFn(formData);
 
       setIsSubmitted(true);
       setFormData({ name: "", email: "", subject: "", message: "" });

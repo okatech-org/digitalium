@@ -41,12 +41,12 @@ export default function SysAdminDashboard() {
 
     // Quick access modules
     const modules: { title: string; description: string; icon: typeof Server; href: string; color: string; status: string; statusColor: string }[] = [
-        { title: 'Infrastructure', description: 'Serveurs et ressources système', icon: Server, href: '/admin/infrastructure', color: 'from-blue-500 to-blue-700', status: 'Actif', statusColor: 'text-green-500' },
-        { title: 'Monitoring', description: 'Métriques et performances en temps réel', icon: BarChart3, href: '/admin/monitoring', color: 'from-purple-500 to-purple-700', status: 'Actif', statusColor: 'text-green-500' },
-        { title: 'Bases de Données', description: 'PostgreSQL, Redis, MongoDB, ClickHouse', icon: Database, href: '/admin/databases', color: 'from-emerald-500 to-emerald-700', status: 'Healthy', statusColor: 'text-green-500' },
-        { title: 'Logs Système', description: 'Journaux et événements du système', icon: Terminal, href: '/admin/logs', color: 'from-slate-500 to-slate-700', status: 'Actif', statusColor: 'text-green-500' },
-        { title: 'Sécurité', description: 'WAF, firewall et détection de menaces', icon: ShieldAlert, href: '/admin/security', color: 'from-red-500 to-red-700', status: 'A+', statusColor: 'text-green-500' },
-        { title: 'Utilisateurs IAM', description: 'Identités et contrôle d\'accès', icon: Users, href: '/admin/iam', color: 'from-orange-500 to-orange-700', status: '12 actifs', statusColor: 'text-blue-500' },
+        { title: 'Infrastructure', description: 'Serveurs et ressources système', icon: Server, href: '/sysadmin/infrastructure', color: 'from-blue-500 to-blue-700', status: 'Actif', statusColor: 'text-green-500' },
+        { title: 'Monitoring', description: 'Métriques et performances en temps réel', icon: BarChart3, href: '/sysadmin/monitoring', color: 'from-purple-500 to-purple-700', status: 'Actif', statusColor: 'text-green-500' },
+        { title: 'Bases de Données', description: 'PostgreSQL, Redis, MongoDB, ClickHouse', icon: Database, href: '/sysadmin/databases', color: 'from-emerald-500 to-emerald-700', status: 'Healthy', statusColor: 'text-green-500' },
+        { title: 'Logs Système', description: 'Journaux et événements du système', icon: Terminal, href: '/sysadmin/logs', color: 'from-slate-500 to-slate-700', status: 'Actif', statusColor: 'text-green-500' },
+        { title: 'Sécurité', description: 'WAF, firewall et détection de menaces', icon: ShieldAlert, href: '/sysadmin/security', color: 'from-red-500 to-red-700', status: 'A+', statusColor: 'text-green-500' },
+        { title: 'Utilisateurs IAM', description: 'Identités et contrôle d\'accès', icon: Users, href: '/sysadmin/iam', color: 'from-orange-500 to-orange-700', status: '12 actifs', statusColor: 'text-blue-500' },
     ];
 
     // Recent alerts
@@ -177,19 +177,19 @@ export default function SysAdminDashboard() {
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-2">
-                        <Button variant="outline" className="w-full justify-start bg-muted/50 border-border text-foreground hover:bg-muted" onClick={() => navigate('/admin/databases/backups')}>
+                        <Button variant="outline" className="w-full justify-start bg-muted/50 border-border text-foreground hover:bg-muted" onClick={() => navigate('/sysadmin/databases/backups')}>
                             <Database className="w-4 h-4 mr-2" />
                             Lancer un Backup DB
                         </Button>
-                        <Button variant="outline" className="w-full justify-start bg-muted/50 border-border text-foreground hover:bg-muted" onClick={() => navigate('/admin/monitoring')}>
+                        <Button variant="outline" className="w-full justify-start bg-muted/50 border-border text-foreground hover:bg-muted" onClick={() => navigate('/sysadmin/monitoring')}>
                             <Activity className="w-4 h-4 mr-2" />
                             Voir les Métriques Live
                         </Button>
-                        <Button variant="outline" className="w-full justify-start bg-muted/50 border-border text-foreground hover:bg-muted" onClick={() => navigate('/admin/logs')}>
+                        <Button variant="outline" className="w-full justify-start bg-muted/50 border-border text-foreground hover:bg-muted" onClick={() => navigate('/sysadmin/logs')}>
                             <Terminal className="w-4 h-4 mr-2" />
                             Accéder aux Logs
                         </Button>
-                        <Button variant="outline" className="w-full justify-start bg-muted/50 border-border text-foreground hover:bg-muted" onClick={() => navigate('/admin/security')}>
+                        <Button variant="outline" className="w-full justify-start bg-muted/50 border-border text-foreground hover:bg-muted" onClick={() => navigate('/sysadmin/security')}>
                             <ShieldAlert className="w-4 h-4 mr-2" />
                             Audit de Sécurité
                         </Button>

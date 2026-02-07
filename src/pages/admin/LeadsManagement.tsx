@@ -1,11 +1,12 @@
 /**
  * LeadsManagement - Admin page for managing leads/contacts
- * Refactored from the original Admin.tsx
+ * Migrated from Supabase to Firebase Cloud Functions
  */
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { supabase } from '@/integrations/supabase/client';
+import { functions } from '@/config/firebase';
+import { httpsCallable } from 'firebase/functions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -65,6 +66,11 @@ const statusConfig: Record<string, { label: string; color: string; icon: React.R
     lost: { label: 'Perdu', color: 'bg-destructive/20 text-destructive border-destructive/30', icon: <XCircle className="w-3 h-3" /> },
 };
 
+// Cloud Functions callables
+const getLeadsFn = httpsCallable(functions, 'getLeads');
+const updateLeadStatusFn = httpsCallable(functions, 'updateLeadStatus');
+const deleteLeadFn = httpsCallable(functions, 'deleteLead');
+
 export default function LeadsManagement() {
     const [leads, setLeads] = useState<Lead[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -80,36 +86,27 @@ export default function LeadsManagement() {
 
     const fetchLeads = async () => {
         setIsLoading(true);
-        const { data, error } = await supabase
-            .from('leads')
-            .select('*')
-            .order('created_at', { ascending: false });
-
-        if (error) {
+        try {
+            const result = await getLeadsFn({
+                statusFilter: statusFilter !== 'all' ? statusFilter : undefined,
+                limit: 200,
+            });
+            const data = result.data as { leads: Lead[]; total: number };
+            setLeads(data.leads || []);
+        } catch (error) {
+            console.error('Error fetching leads:', error);
             toast({
                 variant: "destructive",
                 title: "Erreur",
                 description: "Impossible de charger les leads.",
             });
-        } else {
-            setLeads(data || []);
         }
         setIsLoading(false);
     };
 
     const updateLeadStatus = async (leadId: string, newStatus: string) => {
-        const { error } = await supabase
-            .from('leads')
-            .update({ status: newStatus })
-            .eq('id', leadId);
-
-        if (error) {
-            toast({
-                variant: "destructive",
-                title: "Erreur",
-                description: "Impossible de mettre à jour le statut.",
-            });
-        } else {
+        try {
+            await updateLeadStatusFn({ leadId, status: newStatus });
             setLeads(leads.map(lead =>
                 lead.id === leadId ? { ...lead, status: newStatus } : lead
             ));
@@ -117,28 +114,32 @@ export default function LeadsManagement() {
                 title: "Statut mis à jour",
                 description: `Le lead a été marqué comme "${statusConfig[newStatus]?.label || newStatus}".`,
             });
+        } catch (error) {
+            console.error('Error updating lead:', error);
+            toast({
+                variant: "destructive",
+                title: "Erreur",
+                description: "Impossible de mettre à jour le statut.",
+            });
         }
     };
 
     const deleteLead = async (leadId: string) => {
-        const { error } = await supabase
-            .from('leads')
-            .delete()
-            .eq('id', leadId);
-
-        if (error) {
-            toast({
-                variant: "destructive",
-                title: "Erreur",
-                description: "Impossible de supprimer le lead.",
-            });
-        } else {
+        try {
+            await deleteLeadFn({ leadId });
             setLeads(leads.filter(lead => lead.id !== leadId));
             setSelectedLead(null);
             setLeadToDelete(null);
             toast({
                 title: "Lead supprimé",
                 description: "Le lead a été supprimé avec succès.",
+            });
+        } catch (error) {
+            console.error('Error deleting lead:', error);
+            toast({
+                variant: "destructive",
+                title: "Erreur",
+                description: "Impossible de supprimer le lead.",
             });
         }
     };

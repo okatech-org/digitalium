@@ -63,7 +63,7 @@ interface NavSection {
 // Dashboard - Entry point
 const DASHBOARD_ITEM: NavItem = {
     label: 'Console Système',
-    href: '/admin',
+    href: '/sysadmin',
     icon: LayoutDashboard,
 };
 
@@ -74,34 +74,34 @@ const INFRASTRUCTURE_SECTION: NavSection = {
     items: [
         {
             label: 'Serveurs',
-            href: '/admin/infrastructure',
+            href: '/sysadmin/infrastructure',
             icon: Server,
             badge: '4',
             badgeType: 'success',
         },
         {
             label: 'Monitoring',
-            href: '/admin/monitoring',
+            href: '/sysadmin/monitoring',
             icon: Activity,
         },
         {
             label: 'Bases de Données',
-            href: '/admin/databases',
+            href: '/sysadmin/databases',
             icon: Database,
             children: [
-                { label: 'Vue d\'ensemble', href: '/admin/databases' },
-                { label: 'Réplicas', href: '/admin/databases/replicas' },
-                { label: 'Backups', href: '/admin/databases/backups' },
+                { label: 'Vue d\'ensemble', href: '/sysadmin/databases' },
+                { label: 'Réplicas', href: '/sysadmin/databases/replicas' },
+                { label: 'Backups', href: '/sysadmin/databases/backups' },
             ],
         },
         {
             label: 'Logs Système',
-            href: '/admin/logs',
+            href: '/sysadmin/logs',
             icon: Terminal,
         },
         {
             label: 'Sécurité',
-            href: '/admin/security',
+            href: '/sysadmin/security',
             icon: ShieldAlert,
             badge: 'A+',
             badgeType: 'success',
@@ -116,22 +116,22 @@ const CONFIG_SECTION: NavSection = {
     items: [
         {
             label: 'Utilisateurs IAM',
-            href: '/admin/iam',
+            href: '/sysadmin/iam',
             icon: Users,
         },
         {
             label: 'Configuration Orga',
-            href: '/admin/organization',
+            href: '/sysadmin/organization',
             icon: Building2,
         },
         {
             label: 'Thème Design',
-            href: '/admin/design-theme',
+            href: '/sysadmin/design-theme',
             icon: Palette,
         },
         {
             label: 'Modèles de Workflow',
-            href: '/admin/workflow-templates',
+            href: '/sysadmin/workflow-templates',
             icon: GitBranch,
         },
     ],
@@ -144,17 +144,17 @@ const BUSINESS_SECTION: NavSection = {
     items: [
         {
             label: 'Gestion Clients',
-            href: '/admin/users',
+            href: '/sysadmin/users',
             icon: Users,
         },
         {
             label: 'Leads & Prospects',
-            href: '/admin/leads',
+            href: '/sysadmin/leads',
             icon: TrendingUp,
         },
         {
             label: 'Abonnements',
-            href: '/admin/subscriptions',
+            href: '/sysadmin/subscriptions',
             icon: CreditCard,
         },
     ],
@@ -178,8 +178,8 @@ export default function SysAdminSpaceLayout() {
     };
 
     const isActive = (href: string) => {
-        if (href === '/admin') {
-            return location.pathname === '/admin';
+        if (href === '/sysadmin') {
+            return location.pathname === '/sysadmin';
         }
         return location.pathname.startsWith(href);
     };

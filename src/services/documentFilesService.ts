@@ -60,3 +60,16 @@ export function updateFileInStorage(fileId: string, updates: Partial<ImportedFil
 export function moveFileToFolder(fileId: string, folderId: string): void {
     updateFileInStorage(fileId, { folderId } as any);
 }
+
+/**
+ * Unarchive a document - move it from 'archive' back to a specified folder
+ * Returns true if the document was found and unarchived successfully
+ */
+export function unarchiveDocument(fileId: string, targetFolderId: string = 'root'): boolean {
+    const files = getAllImportedFiles();
+    const file = files.find(f => f.id === fileId);
+    if (!file || file.folderId !== 'archive') return false;
+
+    updateFileInStorage(fileId, { folderId: targetFolderId } as any);
+    return true;
+}

@@ -10,36 +10,78 @@ import {
     Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { FilePlus, Upload } from "lucide-react";
-import { IFichier, IAttachment } from '../types';
+import { FilePlus, Upload, AlertCircle } from "lucide-react";
+import { IClasseur, IFichier, IAttachment, TreeLocation } from '../types';
 import { DOCUMENT_TYPES } from '../constants';
+import { TreeSelect } from '../components/TreeSelect';
 
 interface NewFichierModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onCreate: (data: Partial<IFichier>) => void;
+    onCreate: (data: Partial<IFichier>, classeurId: string, dossierId: string) => void;
     dossierName?: string;
+    /** If provided, pre-selects this location */
+    preSelectedClasseurId?: string;
+    preSelectedDossierId?: string;
+    /** All classeurs for tree navigation */
+    classeurs?: IClasseur[];
 }
 
 export function NewFichierModal({
     isOpen,
     onClose,
     onCreate,
-    dossierName
+    dossierName,
+    preSelectedClasseurId,
+    preSelectedDossierId,
+    classeurs = [],
 }: NewFichierModalProps) {
     const [formData, setFormData] = useState<Partial<IFichier>>({
         name: '',
         description: '',
-        type: 'other',
+        type: undefined, // No default - type is mandatory
         reference: '',
         tags: [],
         attachments: [],
     });
 
     const [tagInput, setTagInput] = useState('');
+    const [selectedLocation, setSelectedLocation] = useState<TreeLocation | null>(
+        preSelectedClasseurId && preSelectedDossierId
+            ? { classeurId: preSelectedClasseurId, dossierId: preSelectedDossierId, dossierName }
+            : null
+    );
+    const [showLocationError, setShowLocationError] = useState(false);
+    const [showTypeError, setShowTypeError] = useState(false);
+
+    // Reset when modal opens with pre-selected location
+    React.useEffect(() => {
+        if (isOpen && preSelectedClasseurId && preSelectedDossierId) {
+            setSelectedLocation({
+                classeurId: preSelectedClasseurId,
+                dossierId: preSelectedDossierId,
+                dossierName,
+            });
+            setShowLocationError(false);
+        }
+    }, [isOpen, preSelectedClasseurId, preSelectedDossierId, dossierName]);
 
     const handleSubmit = () => {
         if (!formData.name?.trim()) return;
+
+        // Validate mandatory type
+        if (!formData.type) {
+            setShowTypeError(true);
+            return;
+        }
+
+        const targetClasseurId = selectedLocation?.classeurId || preSelectedClasseurId;
+        const targetDossierId = selectedLocation?.dossierId || preSelectedDossierId;
+
+        if (!targetClasseurId || !targetDossierId) {
+            setShowLocationError(true);
+            return;
+        }
 
         onCreate({
             ...formData,
@@ -47,11 +89,14 @@ export function NewFichierModal({
             reference: formData.reference || `REF-${Date.now()}`,
             status: 'brouillon',
             created_at: new Date().toISOString(),
-        });
+        }, targetClasseurId, targetDossierId);
 
         onClose();
-        setFormData({ name: '', description: '', type: 'other', reference: '', tags: [], attachments: [] });
+        setFormData({ name: '', description: '', type: undefined, reference: '', tags: [], attachments: [] });
         setTagInput('');
+        setSelectedLocation(null);
+        setShowLocationError(false);
+        setShowTypeError(false);
     };
 
     const addTag = () => {
@@ -71,9 +116,11 @@ export function NewFichierModal({
         });
     };
 
+    const showTreeSelect = !(preSelectedClasseurId && preSelectedDossierId) && classeurs.length > 0;
+
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-2xl border-border/40 shadow-2xl">
+            <DialogContent className="max-w-2xl border-border/40 shadow-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle className="text-xl font-semibold flex items-center gap-2">
                         <FilePlus className="h-5 w-5 text-primary" />
@@ -83,12 +130,28 @@ export function NewFichierModal({
                         {dossierName ? (
                             <>Ajouter un fichier dans <strong>{dossierName}</strong></>
                         ) : (
-                            <>Créez un nouveau fichier avec ses métadonnées.</>
+                            <>Choisissez un emplacement et créez un fichier avec ses métadonnées.</>
                         )}
                     </DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-4 py-4">
+                    {/* Tree Select for choosing location (when not pre-selected) */}
+                    {showTreeSelect && (
+                        <TreeSelect
+                            classeurs={classeurs}
+                            value={selectedLocation}
+                            onChange={(loc) => {
+                                setSelectedLocation(loc);
+                                setShowLocationError(false);
+                            }}
+                            classeurOnly={false}
+                            label="Emplacement (Classeur > Dossier) *"
+                            error={showLocationError}
+                            errorMessage="Veuillez sélectionner un classeur et un dossier"
+                        />
+                    )}
+
                     <div className="grid grid-cols-2 gap-4">
                         {/* Name */}
                         <div className="space-y-2">
@@ -113,15 +176,20 @@ export function NewFichierModal({
                         </div>
                     </div>
 
-                    {/* Type */}
+                    {/* Type - MANDATORY */}
                     <div className="space-y-2">
-                        <Label>Type de document</Label>
+                        <Label className={showTypeError ? 'text-destructive' : ''}>
+                            Type de document *
+                        </Label>
                         <Select
-                            value={formData.type}
-                            onValueChange={(val) => setFormData({ ...formData, type: val as IFichier['type'] })}
+                            value={formData.type || ''}
+                            onValueChange={(val) => {
+                                setFormData({ ...formData, type: val as IFichier['type'] });
+                                setShowTypeError(false);
+                            }}
                         >
-                            <SelectTrigger className="border-border/40">
-                                <SelectValue />
+                            <SelectTrigger className={`border-border/40 ${showTypeError ? 'border-destructive' : ''}`}>
+                                <SelectValue placeholder="Sélectionnez un type..." />
                             </SelectTrigger>
                             <SelectContent>
                                 {Object.entries(DOCUMENT_TYPES).map(([key, config]) => (
@@ -134,6 +202,12 @@ export function NewFichierModal({
                                 ))}
                             </SelectContent>
                         </Select>
+                        {showTypeError && (
+                            <p className="text-xs text-destructive flex items-center gap-1">
+                                <AlertCircle className="h-3 w-3" />
+                                Le type de document est obligatoire
+                            </p>
+                        )}
                     </div>
 
                     {/* Description */}

@@ -101,6 +101,9 @@ export interface OrganizationUnit {
     /** User IDs who are members of this unit */
     members: string[];
 
+    /** Permission group IDs assigned to this unit */
+    groupIds?: string[];
+
     /** Whether this unit is active */
     is_active: boolean;
 
@@ -452,7 +455,106 @@ export interface UserPermissions {
 
     /** Unit-specific permissions (unit_id -> permissions) */
     units: Record<string, OrganizationPermission[]>;
+
+    /** Group-based permissions (group_id -> permissions) */
+    groups: Record<string, OrganizationPermission[]>;
 }
+
+// =====================================================
+// PERMISSION GROUP TYPES
+// =====================================================
+
+export type PermissionGroupRole =
+    | 'viewer'       // Read-only access
+    | 'contributor'  // Can upload and edit own documents
+    | 'editor'       // Can edit all documents in scope
+    | 'approver'     // Can approve documents
+    | 'manager'      // Can manage unit and members
+    | 'admin';       // Full control
+
+export interface PermissionGroup {
+    id: string;
+    organization_id: string;
+    name: string;
+    description?: string;
+    color?: string;
+    role: PermissionGroupRole;
+    /** Permissions granted to this group */
+    permissions: OrganizationPermission[];
+    /** User IDs who are members of this group */
+    memberIds: string[];
+    /** Unit IDs this group has access to (empty = all units) */
+    unitScope: string[];
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+export const DEFAULT_PERMISSION_GROUPS: Omit<PermissionGroup, 'id' | 'organization_id' | 'created_at' | 'updated_at'>[] = [
+    {
+        name: 'Lecteurs',
+        description: 'Accès en lecture seule aux documents',
+        color: 'blue',
+        role: 'viewer',
+        permissions: ['archive:view'],
+        memberIds: [],
+        unitScope: [],
+        is_active: true,
+    },
+    {
+        name: 'Contributeurs',
+        description: 'Peuvent ajouter et modifier leurs propres documents',
+        color: 'emerald',
+        role: 'contributor',
+        permissions: ['archive:view', 'archive:upload'],
+        memberIds: [],
+        unitScope: [],
+        is_active: true,
+    },
+    {
+        name: 'Approbateurs',
+        description: 'Peuvent valider et approuver les documents',
+        color: 'amber',
+        role: 'approver',
+        permissions: ['archive:view', 'archive:upload', 'archive:approve'],
+        memberIds: [],
+        unitScope: [],
+        is_active: true,
+    },
+    {
+        name: 'Gestionnaires',
+        description: 'Gestion complète des unités et membres',
+        color: 'purple',
+        role: 'manager',
+        permissions: ['archive:view', 'archive:upload', 'archive:approve', 'archive:delete', 'org:manage_members', 'org:configure_archive'],
+        memberIds: [],
+        unitScope: [],
+        is_active: true,
+    },
+    {
+        name: 'Administrateurs',
+        description: 'Accès complet à toutes les fonctionnalités',
+        color: 'red',
+        role: 'admin',
+        permissions: [
+            'org:create_unit', 'org:update_unit', 'org:delete_unit', 'org:manage_members',
+            'org:configure_archive', 'org:create_workflow', 'org:apply_template',
+            'archive:upload', 'archive:view', 'archive:approve', 'archive:delete',
+        ],
+        memberIds: [],
+        unitScope: [],
+        is_active: true,
+    },
+];
+
+export const PERMISSION_GROUP_ROLE_CONFIG: Record<PermissionGroupRole, { label: string; color: string; description: string }> = {
+    viewer: { label: 'Lecteur', color: 'bg-blue-500/10 text-blue-600', description: 'Lecture seule' },
+    contributor: { label: 'Contributeur', color: 'bg-emerald-500/10 text-emerald-600', description: 'Ajout et modification' },
+    editor: { label: 'Éditeur', color: 'bg-cyan-500/10 text-cyan-600', description: 'Modification de tous les documents' },
+    approver: { label: 'Approbateur', color: 'bg-amber-500/10 text-amber-600', description: 'Validation et approbation' },
+    manager: { label: 'Gestionnaire', color: 'bg-purple-500/10 text-purple-600', description: 'Gestion des unités' },
+    admin: { label: 'Administrateur', color: 'bg-red-500/10 text-red-600', description: 'Accès complet' },
+};
 
 // =====================================================
 // HELPER FUNCTIONS
@@ -513,7 +615,42 @@ export function getEffectiveArchiveConfig(
 }
 
 /**
+ * Validate a unit code:
+ * - Max 9 characters
+ * - Uppercase letters, digits, dots and hyphens allowed
+ * - Must be unique within the organization (inter-levels)
+ */
+export function validateUnitCode(
+    code: string,
+    existingCodes: string[],
+    currentUnitId?: string
+): { valid: boolean; error?: string } {
+    if (!code || code.trim().length === 0) {
+        return { valid: false, error: 'Le code est obligatoire' };
+    }
+
+    if (code.length > 9) {
+        return { valid: false, error: 'Le code ne doit pas dépasser 9 caractères' };
+    }
+
+    if (!/^[A-Z0-9.\-]+$/.test(code)) {
+        return { valid: false, error: 'Seuls les lettres majuscules, chiffres, points et tirets sont autorisés' };
+    }
+
+    // Check uniqueness (exclude current unit when editing)
+    const isDuplicate = existingCodes.some(
+        existing => existing.toUpperCase() === code.toUpperCase()
+    );
+    if (isDuplicate) {
+        return { valid: false, error: 'Ce code est déjà utilisé par une autre unité' };
+    }
+
+    return { valid: true };
+}
+
+/**
  * Generate a unique code for a new unit
+ * Now supports up to 9 chars with dots and hyphens
  */
 export function generateUnitCode(name: string, existingCodes: string[]): string {
     // Take first 3 letters uppercase
@@ -522,8 +659,8 @@ export function generateUnitCode(name: string, existingCodes: string[]): string 
         .slice(0, 3)
         .toUpperCase();
 
-    if (baseCode.length < 3) {
-        baseCode = baseCode.padEnd(3, 'X');
+    if (baseCode.length < 2) {
+        baseCode = baseCode.padEnd(2, 'X');
     }
 
     // Add number if exists

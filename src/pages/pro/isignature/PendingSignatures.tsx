@@ -1,14 +1,15 @@
 /**
  * PendingSignatures - Documents sent by user, awaiting signatures from others
  * A4 Miniature Grid Layout with actions below each document
+ *
+ * Connected to signatureService backend
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
-    FileText,
+    PenTool,
     Clock,
-    User,
     MoreVertical,
     RefreshCw,
     XCircle,
@@ -16,10 +17,9 @@ import {
     Eye,
     Mail,
     Users,
-    CheckCircle2,
     Download,
     Calendar,
-    PenTool,
+    Loader2,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -45,16 +45,20 @@ import {
 } from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
 import { useSignatureSearch } from './ISignatureLayout';
-import { getPendingSignatureFiles } from '@/services/documentFilesService';
+import signatureService, {
+    type SignatureRequest,
+    type SignatureSignatory,
+} from '@/lib/signatureService';
+import { useToast } from '@/hooks/use-toast';
 
 // Generate document preview content
-const getDocumentPreviewContent = (doc: { title: string; type?: string; sentAt: string }): string[] => {
+const getDocumentPreviewContent = (doc: { title: string; sentAt: string }): string[] => {
     return [
         "DOCUMENT EN ATTENTE",
         "",
         doc.title,
         "",
-        "Envoyé le " + doc.sentAt,
+        "Envoy\u00E9 le " + doc.sentAt,
         "",
         "En attente de signatures",
         "des destinataires...",
@@ -66,33 +70,66 @@ const getDocumentPreviewContent = (doc: { title: string; type?: string; sentAt: 
 export default function PendingSignatures() {
     const [docToCancel, setDocToCancel] = useState<string | null>(null);
     const { searchQuery } = useSignatureSearch();
-    const [refreshKey, setRefreshKey] = useState(0);
+    const { toast } = useToast();
 
-    // Get pending signature files from iDocument storage
-    const pendingDocs = useMemo(() => {
-        const files = getPendingSignatureFiles();
-        return files.map(f => ({
-            id: f.id,
-            title: f.name,
-            sentAt: f.modifiedAt || new Date().toISOString().split('T')[0],
-            deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('fr-FR'),
-            type: f.type,
-            signers: [{
-                name: (f as any).signatureRecipient === 'self' ? 'Moi-même' : ((f as any).signatureRecipient || 'Destinataire'),
-                initials: (f as any).signatureRecipient === 'self' ? 'ME' : ((f as any).signatureRecipient?.slice(0, 2).toUpperCase() || 'DE'),
-                signed: false,
-                lastReminder: undefined as string | undefined,
-            }],
-            isImported: true,
-        }));
-    }, [refreshKey]);
+    const [loading, setLoading] = useState(true);
+    const [requests, setRequests] = useState<SignatureRequest[]>([]);
+    const [signatories, setSignatories] = useState<SignatureSignatory[]>([]);
 
-    const docInfo = pendingDocs.find(d => d.id === docToCancel);
+    const loadData = useCallback(async () => {
+        try {
+            setLoading(true);
+            const data = await signatureService.getRequests('pending');
+            setRequests(data.requests);
+            setSignatories(data.signatories);
+        } catch (error) {
+            console.error('Failed to load pending signatures:', error);
+            toast({
+                title: 'Erreur',
+                description: 'Impossible de charger les demandes en attente.',
+                variant: 'destructive',
+            });
+        } finally {
+            setLoading(false);
+        }
+    }, [toast]);
 
-    const filteredDocs = pendingDocs.filter(doc => {
+    useEffect(() => {
+        loadData();
+    }, [loadData]);
+
+    const getRequestSignatories = (requestId: string) =>
+        signatories.filter(s => s.request_id === requestId);
+
+    const handleCancel = async () => {
+        if (!docToCancel) return;
+        try {
+            await signatureService.cancelRequest(docToCancel);
+            toast({ title: 'Demande annul\u00E9e', description: 'La demande de signature a \u00E9t\u00E9 annul\u00E9e.' });
+            setDocToCancel(null);
+            loadData();
+        } catch (error) {
+            console.error('Failed to cancel request:', error);
+            toast({ title: 'Erreur', description: "Impossible d'annuler la demande.", variant: 'destructive' });
+        }
+    };
+
+    const handleRemind = async (requestId: string) => {
+        try {
+            await signatureService.sendReminder(requestId);
+            toast({ title: 'Relance envoy\u00E9e', description: 'Les signataires ont \u00E9t\u00E9 relanc\u00E9s.' });
+        } catch (error) {
+            console.error('Failed to send reminder:', error);
+            toast({ title: 'Erreur', description: "Impossible d'envoyer la relance.", variant: 'destructive' });
+        }
+    };
+
+    const docInfo = requests.find(d => d.id === docToCancel);
+
+    const filteredDocs = requests.filter(doc => {
         if (!searchQuery) return true;
         const query = searchQuery.toLowerCase();
-        return doc.title.toLowerCase().includes(query);
+        return doc.document_title.toLowerCase().includes(query);
     });
 
     const container = {
@@ -105,6 +142,14 @@ export default function PendingSignatures() {
         show: { opacity: 1, y: 0 }
     };
 
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center py-20">
+                <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
+            </div>
+        );
+    }
+
     return (
         <div className="space-y-4">
             {/* Header */}
@@ -112,10 +157,10 @@ export default function PendingSignatures() {
                 <div>
                     <h2 className="text-lg font-semibold">En attente</h2>
                     <p className="text-sm text-muted-foreground">
-                        {filteredDocs.length} document{filteredDocs.length !== 1 ? 's' : ''} envoyé{filteredDocs.length !== 1 ? 's' : ''} en attente de signatures
+                        {filteredDocs.length} document{filteredDocs.length !== 1 ? 's' : ''} envoy\u00E9{filteredDocs.length !== 1 ? 's' : ''} en attente de signatures
                     </p>
                 </div>
-                <Button variant="outline" size="sm" onClick={() => setRefreshKey(k => k + 1)}>
+                <Button variant="outline" size="sm" onClick={loadData}>
                     <RefreshCw className="h-4 w-4 mr-2" />
                     Actualiser
                 </Button>
@@ -129,18 +174,19 @@ export default function PendingSignatures() {
                 className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5"
             >
                 {filteredDocs.map((doc) => {
-                    const signedCount = doc.signers.filter(s => s.signed).length;
-                    const totalSigners = doc.signers.length;
-                    const progress = (signedCount / totalSigners) * 100;
-                    const pendingSigners = doc.signers.filter(s => !s.signed);
-                    const previewLines = getDocumentPreviewContent(doc);
+                    const reqSignatories = getRequestSignatories(doc.id);
+                    const signedCount = reqSignatories.filter(s => s.status === 'signed').length;
+                    const totalSigners = reqSignatories.length;
+                    const progress = totalSigners > 0 ? (signedCount / totalSigners) * 100 : 0;
+                    const pendingSigners = reqSignatories.filter(s => s.status === 'pending');
+                    const sentAt = new Date(doc.created_at).toLocaleDateString('fr-FR');
+                    const deadline = doc.expires_at
+                        ? new Date(doc.expires_at).toLocaleDateString('fr-FR')
+                        : 'Pas de limite';
+                    const previewLines = getDocumentPreviewContent({ title: doc.document_title, sentAt });
 
                     return (
-                        <motion.div
-                            key={doc.id}
-                            variants={item}
-                            className="group cursor-pointer"
-                        >
+                        <motion.div key={doc.id} variants={item} className="group cursor-pointer">
                             {/* A4 Document Thumbnail */}
                             <div className={cn(
                                 "relative bg-white dark:bg-zinc-900 rounded-lg shadow-md overflow-hidden",
@@ -148,7 +194,6 @@ export default function PendingSignatures() {
                                 "border-2 transition-all duration-200",
                                 "border-purple-300 dark:border-purple-700 hover:border-purple-500 hover:shadow-xl"
                             )}>
-                                {/* Status Badge */}
                                 <div className="absolute top-2 left-2 z-20">
                                     <Badge variant="secondary" className="bg-purple-500/90 text-white text-[9px] px-1.5">
                                         <PenTool className="h-2.5 w-2.5 mr-1" />
@@ -156,7 +201,6 @@ export default function PendingSignatures() {
                                     </Badge>
                                 </div>
 
-                                {/* Action Menu */}
                                 <div className="absolute top-2 right-2 z-20">
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
@@ -169,7 +213,7 @@ export default function PendingSignatures() {
                                                 <Eye className="h-4 w-4 mr-2" />
                                                 Voir le document
                                             </DropdownMenuItem>
-                                            <DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => handleRemind(doc.id)}>
                                                 <Mail className="h-4 w-4 mr-2" />
                                                 Relancer tous
                                             </DropdownMenuItem>
@@ -185,7 +229,6 @@ export default function PendingSignatures() {
                                     </DropdownMenu>
                                 </div>
 
-                                {/* Document Content Preview */}
                                 <div className="absolute inset-0 p-3 pt-8 overflow-hidden">
                                     <div className="text-[6px] leading-[8px] text-gray-700 dark:text-gray-300 font-mono select-none">
                                         {previewLines.map((line, i) => (
@@ -196,33 +239,30 @@ export default function PendingSignatures() {
                                     </div>
                                 </div>
 
-                                {/* Gradient Overlay */}
                                 <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white dark:from-zinc-900 via-white/95 dark:via-zinc-900/95 to-transparent" />
 
-                                {/* Signers Progress Indicator */}
                                 <div className="absolute bottom-2 left-2 right-2">
                                     <div className="flex items-center gap-1.5 mb-1">
-                                        {doc.signers.slice(0, 3).map((signer, j) => (
+                                        {reqSignatories.slice(0, 3).map((signer, j) => (
                                             <Avatar key={j} className={cn(
                                                 "h-4 w-4 border",
-                                                signer.signed ? "border-green-500" : "border-orange-500"
+                                                signer.status === 'signed' ? "border-green-500" : "border-orange-500"
                                             )}>
                                                 <AvatarFallback className={cn(
                                                     "text-[6px]",
-                                                    signer.signed ? "bg-green-500/20 text-green-600" : "bg-orange-500/20 text-orange-600"
+                                                    signer.status === 'signed' ? "bg-green-500/20 text-green-600" : "bg-orange-500/20 text-orange-600"
                                                 )}>
-                                                    {signer.initials}
+                                                    {signer.user_name.split(' ').map(n => n[0]).join('').substring(0, 2)}
                                                 </AvatarFallback>
                                             </Avatar>
                                         ))}
-                                        {doc.signers.length > 3 && (
-                                            <span className="text-[8px] text-muted-foreground">+{doc.signers.length - 3}</span>
+                                        {reqSignatories.length > 3 && (
+                                            <span className="text-[8px] text-muted-foreground">+{reqSignatories.length - 3}</span>
                                         )}
                                     </div>
                                     <Progress value={progress} className="h-1" />
                                 </div>
 
-                                {/* Corner Fold */}
                                 <div className="absolute top-0 right-0 w-4 h-4 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-zinc-700 dark:to-zinc-600"
                                     style={{ clipPath: 'polygon(100% 0, 0 100%, 100% 100%)' }} />
                             </div>
@@ -230,28 +270,24 @@ export default function PendingSignatures() {
                             {/* Document Info Below A4 */}
                             <div className="mt-3 space-y-2 px-1">
                                 <h4 className="font-semibold text-foreground text-sm line-clamp-2 leading-tight group-hover:text-purple-500 transition-colors">
-                                    {doc.title}
+                                    {doc.document_title}
                                 </h4>
-
                                 <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
                                     <Calendar className="h-3 w-3" />
-                                    <span>Envoyé le {doc.sentAt}</span>
+                                    <span>Envoy\u00E9 le {sentAt}</span>
                                 </div>
-
                                 <div className="flex items-center justify-between text-[10px] text-muted-foreground">
                                     <span className="flex items-center gap-1">
                                         <Clock className="h-3 w-3" />
-                                        {doc.deadline}
+                                        {deadline}
                                     </span>
                                     <Badge variant="secondary" className="text-[9px] px-1.5 h-4 bg-purple-500/10 text-purple-500">
                                         <Users className="h-2.5 w-2.5 mr-1" />
                                         {signedCount}/{totalSigners}
                                     </Badge>
                                 </div>
-
-                                {/* Remind Button */}
                                 {pendingSigners.length > 0 && (
-                                    <Button variant="outline" size="sm" className="w-full h-8 text-xs">
+                                    <Button variant="outline" size="sm" className="w-full h-8 text-xs" onClick={() => handleRemind(doc.id)}>
                                         <Bell className="h-3 w-3 mr-1.5" />
                                         Relancer ({pendingSigners.length})
                                     </Button>
@@ -262,14 +298,13 @@ export default function PendingSignatures() {
                 })}
             </motion.div>
 
-            {/* Empty state */}
             {filteredDocs.length === 0 && (
                 <Card className="border-dashed">
                     <CardContent className="py-12 text-center">
                         <PenTool className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
                         <p className="text-muted-foreground">Aucun document en attente de signature</p>
                         <p className="text-xs text-muted-foreground mt-2">
-                            Envoyez un document à signer depuis iDocument
+                            Envoyez un document \u00E0 signer depuis iDocument
                         </p>
                     </CardContent>
                 </Card>
@@ -283,8 +318,8 @@ export default function PendingSignatures() {
                         <AlertDialogDescription>
                             {docInfo && (
                                 <>
-                                    Vous êtes sur le point d'annuler la demande de signature pour
-                                    "<strong>{docInfo.title}</strong>".
+                                    Vous \u00EAtes sur le point d'annuler la demande de signature pour
+                                    &laquo; <strong>{docInfo.document_title}</strong> &raquo;.
                                     Cette action notifiera tous les signataires.
                                 </>
                             )}
@@ -292,13 +327,7 @@ export default function PendingSignatures() {
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Conserver</AlertDialogCancel>
-                        <AlertDialogAction
-                            className="bg-red-500 hover:bg-red-600"
-                            onClick={() => {
-                                // TODO: Implement actual cancel API call
-                                setDocToCancel(null);
-                            }}
-                        >
+                        <AlertDialogAction className="bg-red-500 hover:bg-red-600" onClick={handleCancel}>
                             Annuler la demande
                         </AlertDialogAction>
                     </AlertDialogFooter>
@@ -307,4 +336,3 @@ export default function PendingSignatures() {
         </div>
     );
 }
-

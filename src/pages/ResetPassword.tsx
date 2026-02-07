@@ -8,7 +8,8 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Lock, Zap, CheckCircle, XCircle } from 'lucide-react';
 import { z } from 'zod';
-import { supabase } from '@/integrations/supabase/client';
+import { auth } from '@/config/firebase';
+import { confirmPasswordReset, verifyPasswordResetCode } from 'firebase/auth';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 
@@ -16,13 +17,14 @@ const ResetPassword = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const { toast } = useToast();
-  
+
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [isValidSession, setIsValidSession] = useState<boolean | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [oobCode, setOobCode] = useState<string | null>(null);
 
   const passwordSchema = z.object({
     password: z.string().min(6, t("auth.passwordMin")),
@@ -33,36 +35,29 @@ const ResetPassword = () => {
   });
 
   useEffect(() => {
-    // Check if we have a valid session from password reset
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      // Check URL hash for recovery token (Supabase redirects with hash)
-      const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      const accessToken = hashParams.get('access_token');
-      const type = hashParams.get('type');
-      
-      if (type === 'recovery' && accessToken) {
-        // Set the session from the recovery token
-        const { error } = await supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: hashParams.get('refresh_token') || '',
-        });
-        
-        if (error) {
-          console.error('Error setting session:', error);
-          setIsValidSession(false);
-        } else {
+    // Firebase sends password reset links with ?mode=resetPassword&oobCode=xxx
+    const checkResetCode = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const mode = urlParams.get('mode');
+      const code = urlParams.get('oobCode');
+
+      if (mode === 'resetPassword' && code) {
+        try {
+          // Verify the password reset code is valid
+          await verifyPasswordResetCode(auth, code);
+          setOobCode(code);
           setIsValidSession(true);
+        } catch (error) {
+          console.error('Invalid reset code:', error);
+          setIsValidSession(false);
         }
-      } else if (session) {
-        setIsValidSession(true);
       } else {
+        // No valid reset parameters found
         setIsValidSession(false);
       }
     };
 
-    checkSession();
+    checkResetCode();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -81,34 +76,44 @@ const ResetPassword = () => {
       return;
     }
 
-    setIsLoading(true);
-    const { error } = await supabase.auth.updateUser({ password });
-    setIsLoading(false);
-
-    if (error) {
+    if (!oobCode) {
       toast({
         variant: "destructive",
         title: t("auth.error"),
-        description: error.message,
+        description: "Code de réinitialisation manquant.",
       });
-    } else {
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await confirmPasswordReset(auth, oobCode, password);
       setIsSuccess(true);
       toast({
         title: t("auth.passwordUpdated"),
         description: t("auth.passwordUpdatedMsg"),
       });
-      
+
       // Redirect to dashboard after 2 seconds
       setTimeout(() => {
         navigate('/dashboard');
       }, 2000);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      toast({
+        variant: "destructive",
+        title: t("auth.error"),
+        description: errorMessage,
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      
+
       <main className="flex-1 flex items-center justify-center px-4 pt-32 pb-16">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -138,9 +143,9 @@ const ResetPassword = () => {
                 {isSuccess ? t("auth.passwordUpdated") : t("auth.newPassword")}
               </h2>
               <p className="text-muted-foreground text-sm mt-1">
-                {isSuccess 
+                {isSuccess
                   ? t("auth.redirecting")
-                  : isValidSession === false 
+                  : isValidSession === false
                     ? t("auth.invalidResetLink")
                     : t("auth.newPasswordDescription")
                 }
@@ -157,7 +162,7 @@ const ResetPassword = () => {
             {/* Invalid session state */}
             {isValidSession === false && (
               <div className="text-center">
-                <Button 
+                <Button
                   onClick={() => navigate('/')}
                   className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity"
                 >
@@ -209,9 +214,9 @@ const ResetPassword = () => {
                   {errors.confirmPassword && <p className="text-xs text-destructive">{errors.confirmPassword}</p>}
                 </div>
 
-                <Button 
-                  type="submit" 
-                  className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity" 
+                <Button
+                  type="submit"
+                  className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity"
                   disabled={isLoading}
                 >
                   {isLoading ? (

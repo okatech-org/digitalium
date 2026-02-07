@@ -3,9 +3,9 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import {
-    DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
+    DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
-import { MoreVertical, FolderOpen, Trash2, Edit, Files } from "lucide-react";
+import { MoreVertical, FolderOpen, Trash2, Edit, Files, Share2, ShieldCheck, FolderPlus } from "lucide-react";
 import { IDossier } from '../types';
 
 interface DossierListProps {
@@ -13,13 +13,19 @@ interface DossierListProps {
     onSelectDossier: (dossier: IDossier) => void;
     onEditDossier?: (dossier: IDossier) => void;
     onDeleteDossier?: (dossier: IDossier) => void;
+    onShareDossier?: (dossier: IDossier) => void;
+    onManageAccess?: (dossier: IDossier) => void;
+    onCreateSubDossier?: (parentDossier: IDossier) => void;
 }
 
 export function DossierList({
     dossiers,
     onSelectDossier,
     onEditDossier,
-    onDeleteDossier
+    onDeleteDossier,
+    onShareDossier,
+    onManageAccess,
+    onCreateSubDossier,
 }: DossierListProps) {
 
     if (dossiers.length === 0) {
@@ -121,7 +127,7 @@ export function DossierList({
                                             <MoreVertical className="h-3 w-3" />
                                         </Button>
                                     </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end" className="w-44">
+                                    <DropdownMenuContent align="end" className="w-52">
                                         <DropdownMenuItem onClick={() => onSelectDossier(dossier)}>
                                             <FolderOpen className="h-4 w-4 mr-2" /> Ouvrir
                                         </DropdownMenuItem>
@@ -130,10 +136,29 @@ export function DossierList({
                                                 <Edit className="h-4 w-4 mr-2" /> Renommer
                                             </DropdownMenuItem>
                                         )}
-                                        {onDeleteDossier && (
-                                            <DropdownMenuItem className="text-destructive" onClick={() => onDeleteDossier(dossier)}>
-                                                <Trash2 className="h-4 w-4 mr-2" /> Supprimer
+                                        {onCreateSubDossier && (
+                                            <DropdownMenuItem onClick={() => onCreateSubDossier(dossier)}>
+                                                <FolderPlus className="h-4 w-4 mr-2" /> Créer un sous-dossier
                                             </DropdownMenuItem>
+                                        )}
+                                        <DropdownMenuSeparator />
+                                        {onShareDossier && (
+                                            <DropdownMenuItem onClick={() => onShareDossier(dossier)}>
+                                                <Share2 className="h-4 w-4 mr-2" /> Partager
+                                            </DropdownMenuItem>
+                                        )}
+                                        {onManageAccess && (
+                                            <DropdownMenuItem onClick={() => onManageAccess(dossier)}>
+                                                <ShieldCheck className="h-4 w-4 mr-2" /> Gérer les accès
+                                            </DropdownMenuItem>
+                                        )}
+                                        {onDeleteDossier && (
+                                            <>
+                                                <DropdownMenuSeparator />
+                                                <DropdownMenuItem className="text-destructive" onClick={() => onDeleteDossier(dossier)}>
+                                                    <Trash2 className="h-4 w-4 mr-2" /> Supprimer
+                                                </DropdownMenuItem>
+                                            </>
                                         )}
                                     </DropdownMenuContent>
                                 </DropdownMenu>

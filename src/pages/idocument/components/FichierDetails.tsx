@@ -1,34 +1,47 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
     ChevronLeft, FileText, Download, Eye, Calendar, User, Tag,
-    Hash, File as FileIcon, Trash2, Paperclip
+    Hash, File as FileIcon, Trash2, Paperclip, GitBranch, Shield,
+    Clock, Scale, ArrowRight,
 } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { IFichier, IAttachment } from '../types';
-import { STATUS_CONFIG, FILE_TYPE_CONFIG, DOCUMENT_TYPES } from '../constants';
+import { IFichier, IAttachment, ArchivalStatus, IDocumentVersion } from '../types';
+import { STATUS_CONFIG, FILE_TYPE_CONFIG, DOCUMENT_TYPES, ARCHIVAL_STATUS_CONFIG, isActionAllowed } from '../constants';
+import { ArchivalStatusBadge } from './ArchivalStatusBadge';
+import { DocumentVersionHistory } from './DocumentVersionHistory';
+import { RetentionByStatusPanel } from './RetentionByStatusPanel';
+import { ArchivalStatusTransitionDialog } from '../modals/ArchivalStatusTransitionDialog';
 
 interface FichierDetailsProps {
     fichier: IFichier;
     onBack: () => void;
     onPreviewFile: (file: IAttachment) => void;
     onDelete: () => void;
+    onChangeArchivalStatus?: (fichierId: string, newStatus: ArchivalStatus, reason: string) => void;
+    onCreateVersion?: (fichierId: string, data: { changeDescription: string; changeType: 'major' | 'minor' | 'patch' }) => void;
 }
 
 export function FichierDetails({
     fichier,
     onBack,
     onPreviewFile,
-    onDelete
+    onDelete,
+    onChangeArchivalStatus,
+    onCreateVersion,
 }: FichierDetailsProps) {
+    const [showTransitionDialog, setShowTransitionDialog] = useState(false);
 
     const DocIcon = DOCUMENT_TYPES[fichier.type]?.icon || FileIcon;
     const statusConfig = STATUS_CONFIG[fichier.status] || STATUS_CONFIG['brouillon'];
+    const archivalStatus = fichier.archivalStatus || 'actif';
+    const canDelete = isActionAllowed(archivalStatus, 'delete');
+    const canEdit = isActionAllowed(archivalStatus, 'edit');
 
     return (
         <motion.div
@@ -50,21 +63,47 @@ export function FichierDetails({
                             <DocIcon className="h-8 w-8" />
                         </div>
                         <div>
-                            <div className="flex items-center gap-3 mb-2">
+                            <div className="flex items-center gap-3 mb-2 flex-wrap">
                                 <h2 className="text-2xl font-bold text-foreground">{fichier.name}</h2>
                                 <Badge variant="secondary" className={`${statusConfig.color} border-0`}>
                                     {statusConfig.label}
                                 </Badge>
+                                <ArchivalStatusBadge status={archivalStatus} showDescription />
+                                {fichier.currentVersionNumber && (
+                                    <Badge variant="outline" className="text-xs font-mono bg-muted/50">
+                                        <GitBranch className="h-3 w-3 mr-1" />
+                                        v{fichier.currentVersionNumber}.0
+                                    </Badge>
+                                )}
                             </div>
                             <p className="text-muted-foreground max-w-2xl">{fichier.description}</p>
                         </div>
                     </div>
 
-                    <div className="flex gap-2">
-                        <Button variant="outline" className="text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/20" onClick={onDelete}>
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Supprimer
-                        </Button>
+                    <div className="flex gap-2 flex-shrink-0">
+                        {/* Change archival status */}
+                        {isActionAllowed(archivalStatus, 'change_status') && onChangeArchivalStatus && (
+                            <Button
+                                variant="outline"
+                                className="text-primary hover:text-primary hover:bg-primary/10 border-primary/20"
+                                onClick={() => setShowTransitionDialog(true)}
+                            >
+                                <ArrowRight className="h-4 w-4 mr-2" />
+                                Cycle de vie
+                            </Button>
+                        )}
+                        {canDelete && (
+                            <Button variant="outline" className="text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/20" onClick={onDelete}>
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Supprimer
+                            </Button>
+                        )}
+                        {!canDelete && (
+                            <Badge variant="outline" className="text-xs bg-amber-500/10 text-amber-700 border-amber-500/30 px-3 py-1.5">
+                                <Shield className="h-3 w-3 mr-1" />
+                                Suppression bloquée
+                            </Badge>
+                        )}
                     </div>
                 </div>
             </div>
@@ -77,6 +116,14 @@ export function FichierDetails({
                             <Paperclip className="h-4 w-4 mr-2" />
                             Pièces jointes ({fichier.attachments.length})
                         </TabsTrigger>
+                        <TabsTrigger value="versions" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0 font-medium">
+                            <GitBranch className="h-4 w-4 mr-2" />
+                            Versions ({(fichier.versions || []).length})
+                        </TabsTrigger>
+                        <TabsTrigger value="lifecycle" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0 font-medium">
+                            <Shield className="h-4 w-4 mr-2" />
+                            Cycle de vie
+                        </TabsTrigger>
                         <TabsTrigger value="details" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0 font-medium">
                             Informations détaillées
                         </TabsTrigger>
@@ -84,6 +131,7 @@ export function FichierDetails({
                 </div>
 
                 <div className="flex-1 overflow-auto p-6 bg-muted/20">
+                    {/* TAB: Attachments */}
                     <TabsContent value="attachments" className="mt-0 h-full">
                         {fichier.attachments.length === 0 ? (
                             <div className="flex flex-col items-center justify-center h-40 text-muted-foreground">
@@ -122,6 +170,76 @@ export function FichierDetails({
                         )}
                     </TabsContent>
 
+                    {/* TAB: Versions */}
+                    <TabsContent value="versions" className="mt-0">
+                        <DocumentVersionHistory
+                            fichier={fichier}
+                            onCreateVersion={(data) => {
+                                if (onCreateVersion) {
+                                    onCreateVersion(fichier.id, data);
+                                }
+                            }}
+                        />
+                    </TabsContent>
+
+                    {/* TAB: Lifecycle / Retention */}
+                    <TabsContent value="lifecycle" className="mt-0 space-y-6">
+                        {/* Archival Status Summary */}
+                        <div className="bg-card rounded-xl border border-border/40 shadow-sm p-6 space-y-4">
+                            <h3 className="font-semibold text-foreground flex items-center gap-2">
+                                <Shield className="h-4 w-4 text-primary" />
+                                Statut archivistique
+                            </h3>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Statut actuel</label>
+                                    <div className="mt-1.5">
+                                        <ArchivalStatusBadge status={archivalStatus} size="md" showDescription />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Modifié le</label>
+                                    <div className="flex items-center gap-2 mt-1.5 text-sm text-foreground">
+                                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                                        {fichier.archivalStatusChangedAt
+                                            ? format(new Date(fichier.archivalStatusChangedAt), 'dd MMM yyyy à HH:mm', { locale: fr })
+                                            : 'Non renseigné'
+                                        }
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Modifié par</label>
+                                    <div className="flex items-center gap-2 mt-1.5 text-sm text-foreground">
+                                        <User className="h-4 w-4 text-muted-foreground" />
+                                        {fichier.archivalStatusChangedBy || 'Système'}
+                                    </div>
+                                </div>
+                            </div>
+                            {fichier.finalDisposition && (
+                                <div className="mt-3 pt-3 border-t border-border/30">
+                                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Sort final prévu</label>
+                                    <div className="mt-1.5">
+                                        <Badge variant="outline" className="text-sm capitalize">
+                                            {fichier.finalDisposition === 'conservation' && '📦 Conservation définitive'}
+                                            {fichier.finalDisposition === 'destruction' && '🔥 Destruction réglementaire'}
+                                            {fichier.finalDisposition === 'tri' && '🔍 Tri sélectif'}
+                                        </Badge>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Retention Policy Panel */}
+                        <div className="bg-card rounded-xl border border-border/40 shadow-sm p-6">
+                            <RetentionByStatusPanel
+                                documentType={fichier.type}
+                                currentArchivalStatus={archivalStatus}
+                                retentionEndDate={fichier.retentionEndDate}
+                            />
+                        </div>
+                    </TabsContent>
+
+                    {/* TAB: Details */}
                     <TabsContent value="details" className="mt-0 space-y-8">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div className="bg-card p-6 rounded-xl border border-border/40 shadow-sm space-y-6">
@@ -177,15 +295,30 @@ export function FichierDetails({
                                             #{tag}
                                         </Badge>
                                     ))}
-                                    <Button variant="ghost" size="sm" className="h-7 text-xs text-primary rounded-full border border-dashed border-primary/30">
-                                        + Ajouter
-                                    </Button>
+                                    {canEdit && (
+                                        <Button variant="ghost" size="sm" className="h-7 text-xs text-primary rounded-full border border-dashed border-primary/30">
+                                            + Ajouter
+                                        </Button>
+                                    )}
                                 </div>
                             </div>
                         </div>
                     </TabsContent>
                 </div>
             </Tabs>
+
+            {/* Archival Status Transition Dialog */}
+            <ArchivalStatusTransitionDialog
+                open={showTransitionDialog}
+                onClose={() => setShowTransitionDialog(false)}
+                fichier={fichier}
+                onTransition={(newStatus, reason) => {
+                    if (onChangeArchivalStatus) {
+                        onChangeArchivalStatus(fichier.id, newStatus, reason);
+                    }
+                }}
+            />
         </motion.div>
     );
 }
+

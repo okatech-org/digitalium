@@ -56,44 +56,44 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
     {
         label: 'Tableau de bord',
-        href: '/adminis',
+        href: '/admin',
         icon: LayoutDashboard,
     },
     {
         label: 'Leads & Contacts',
-        href: '/adminis/leads',
+        href: '/admin/leads',
         icon: UserPlus,
         badge: 12,
         badgeType: 'warning',
     },
     {
         label: 'Utilisateurs',
-        href: '/adminis/users',
+        href: '/admin/users',
         icon: Users,
         children: [
-            { label: 'Tous les utilisateurs', href: '/adminis/users' },
-            { label: 'Par organisation', href: '/adminis/users/organizations' },
-            { label: 'Rôles & Permissions', href: '/adminis/users/roles' },
+            { label: 'Tous les utilisateurs', href: '/admin/users' },
+            { label: 'Par organisation', href: '/admin/users/organizations' },
+            { label: 'Rôles & Permissions', href: '/admin/users/roles' },
         ],
     },
     {
         label: 'Abonnements',
-        href: '/adminis/subscriptions',
+        href: '/admin/subscriptions',
         icon: CreditCard,
         children: [
-            { label: 'Tous les abonnements', href: '/adminis/subscriptions' },
-            { label: 'Factures', href: '/adminis/subscriptions/invoices' },
-            { label: 'Transactions', href: '/adminis/subscriptions/transactions' },
+            { label: 'Tous les abonnements', href: '/admin/subscriptions' },
+            { label: 'Factures', href: '/admin/subscriptions/invoices' },
+            { label: 'Transactions', href: '/admin/subscriptions/transactions' },
         ],
     },
     {
         label: 'Organisations',
-        href: '/adminis/organizations',
+        href: '/admin/organizations',
         icon: Building2,
     },
     {
         label: 'Analytiques',
-        href: '/adminis/analytics',
+        href: '/admin/analytics',
         icon: TrendingUp,
     },
 ];
@@ -101,22 +101,22 @@ const NAV_ITEMS: NavItem[] = [
 const SYSTEM_ITEMS: NavItem[] = [
     {
         label: 'Infrastructure',
-        href: '/admin/infrastructure',
+        href: '/sysadmin/infrastructure',
         icon: Database,
     },
     {
         label: 'Monitoring',
-        href: '/admin/monitoring',
+        href: '/sysadmin/monitoring',
         icon: Gauge,
     },
     {
         label: 'Sécurité',
-        href: '/admin/security',
+        href: '/sysadmin/security',
         icon: Shield,
     },
     {
         label: 'Configuration Orga',
-        href: '/admin/organization',
+        href: '/sysadmin/organization',
         icon: Building2,
     },
 ];
@@ -138,8 +138,8 @@ export default function AdminSpaceLayout() {
     };
 
     const isActive = (href: string) => {
-        if (href === '/adminis') {
-            return location.pathname === '/adminis';
+        if (href === '/admin') {
+            return location.pathname === '/admin';
         }
         return location.pathname.startsWith(href);
     };

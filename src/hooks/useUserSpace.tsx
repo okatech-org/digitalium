@@ -30,38 +30,50 @@ import { InstitutionSpace } from '@/components/dashboard/InstitutionSpace';
 import { SystemAdminSpace } from '@/components/dashboard/SystemAdminSpace';
 
 export function useUserSpace() {
-    const { user, isAdmin } = useAuth();
+    const { user, isAdmin, isSystemAdmin, isPlatformAdmin, isOrgAdmin, userRole, organizations } = useAuth();
     const email = user?.email || '';
 
-    if (email.includes('demo-sysadmin')) {
+    // =========================================================================
+    // Level 0: System Admin (infrastructure, monitoring, security)
+    // =========================================================================
+    if (isSystemAdmin || email.includes('demo-sysadmin')) {
         return {
             type: 'sysadmin',
             title: 'Console Système',
             badge: { label: 'Admin Système', className: 'bg-slate-800 text-slate-200 border-slate-700' },
             component: <SystemAdminSpace />,
             menuItems: [
-                { title: 'Vue d\'ensemble', icon: Server, href: '/admin' },
-                { title: 'Infrastructure', icon: Server, href: '/admin/infrastructure' },
-                { title: 'Monitoring', icon: Activity, href: '/admin/monitoring' },
-                { title: 'Bases de Données', icon: Database, href: '/admin/databases' },
-                { title: 'Logs Système', icon: Terminal, href: '/admin/logs' },
-                { title: 'Sécurité', icon: ShieldAlert, href: '/admin/security' },
-                { title: 'Utilisateurs IAM', icon: Users, href: '/admin/iam' },
+                { title: 'Vue d\'ensemble', icon: Server, href: '/sysadmin' },
+                { title: 'Infrastructure', icon: Server, href: '/sysadmin/infrastructure' },
+                { title: 'Monitoring', icon: Activity, href: '/sysadmin/monitoring' },
+                { title: 'Bases de Données', icon: Database, href: '/sysadmin/databases' },
+                { title: 'Logs Système', icon: Terminal, href: '/sysadmin/logs' },
+                { title: 'Sécurité', icon: ShieldAlert, href: '/sysadmin/security' },
+                { title: 'Utilisateurs IAM', icon: Users, href: '/sysadmin/iam' },
             ],
         };
     }
 
-    if (email.includes('demo-admin') || isAdmin) {
+    // =========================================================================
+    // Level 1: Platform Admin (Ornella — manages clients/orgs)
+    // Level 2: Org Admin (DG — manages their organization)
+    // =========================================================================
+    if (isPlatformAdmin || isOrgAdmin || email.includes('demo-admin')) {
         return {
             type: 'institution',
-            title: 'Espace Institutionnel',
-            badge: { label: 'Administration', className: 'bg-red-500/10 text-red-500 border-red-500/20' },
+            title: isPlatformAdmin ? 'Espace Administration Plateforme' : 'Espace Institutionnel',
+            badge: {
+                label: isPlatformAdmin ? 'Admin Plateforme' : 'Admin Organisation',
+                className: isPlatformAdmin
+                    ? 'bg-purple-500/10 text-purple-500 border-purple-500/20'
+                    : 'bg-red-500/10 text-red-500 border-red-500/20',
+            },
             component: <InstitutionSpace />,
             menuItems: [
                 { title: 'Vue d\'ensemble', icon: Shield, href: '/dashboard' },
                 { title: 'État Civil', icon: Users, href: '/civil-registry' },
                 { title: 'Services Publics', icon: Landmark, href: '/services-config' },
-                { title: 'Administration', icon: Shield, href: '/adminis' },
+                { title: 'Administration', icon: Shield, href: '/admin' },
                 { title: 'Rapports Publics', icon: FileBarChart, href: '/reports' },
                 { title: 'Infrastructures', icon: Database, href: '/infrastructure' },
                 { title: 'Alertes', icon: Siren, href: '/alerts' },
@@ -70,7 +82,14 @@ export function useUserSpace() {
         };
     }
 
-    if (email.includes('demo-entreprise') || email.endsWith('@entreprise.ga')) {
+    // =========================================================================
+    // Level 3-4: Manager / Member in an org → Enterprise/Pro space
+    // =========================================================================
+    if (
+        organizations.length > 0 ||
+        email.includes('demo-entreprise') ||
+        email.endsWith('@entreprise.ga')
+    ) {
         return {
             type: 'enterprise',
             title: 'Espace Professionnel',
@@ -89,7 +108,9 @@ export function useUserSpace() {
         };
     }
 
-    // Default to Citizen
+    // =========================================================================
+    // Default: Citizen / Individual user
+    // =========================================================================
     return {
         type: 'citizen',
         title: 'Espace Citoyen',

@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/FirebaseAuthContext';
-import { supabase } from '@/integrations/supabase/client';
+import { functions } from '@/config/firebase';
+import { httpsCallable } from 'firebase/functions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -58,7 +59,7 @@ export default function Admin() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
-  
+
   const { signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -69,76 +70,68 @@ export default function Admin() {
 
   const fetchLeads = async () => {
     setIsLoading(true);
-    const { data, error } = await supabase
-      .from('leads')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) {
+    try {
+      const getLeadsFn = httpsCallable(functions, 'getLeads');
+      const result = await getLeadsFn({});
+      const data = result.data as { leads: Lead[] };
+      setLeads(data.leads || []);
+    } catch (error) {
       toast({
         variant: "destructive",
         title: "Erreur",
         description: "Impossible de charger les leads.",
       });
-    } else {
-      setLeads(data || []);
     }
     setIsLoading(false);
   };
 
   const updateLeadStatus = async (leadId: string, newStatus: string) => {
-    const { error } = await supabase
-      .from('leads')
-      .update({ status: newStatus })
-      .eq('id', leadId);
-
-    if (error) {
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Impossible de mettre à jour le statut.",
-      });
-    } else {
-      setLeads(leads.map(lead => 
+    try {
+      const updateStatusFn = httpsCallable(functions, 'updateLeadStatus');
+      await updateStatusFn({ leadId, status: newStatus });
+      setLeads(leads.map(lead =>
         lead.id === leadId ? { ...lead, status: newStatus } : lead
       ));
       toast({
         title: "Statut mis à jour",
         description: `Le lead a été marqué comme "${statusConfig[newStatus]?.label || newStatus}".`,
       });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Impossible de mettre à jour le statut.",
+      });
     }
   };
 
   const deleteLead = async (leadId: string) => {
-    const { error } = await supabase
-      .from('leads')
-      .delete()
-      .eq('id', leadId);
-
-    if (error) {
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Impossible de supprimer le lead.",
-      });
-    } else {
+    try {
+      const deleteLeadFn = httpsCallable(functions, 'deleteLead');
+      await deleteLeadFn({ leadId });
       setLeads(leads.filter(lead => lead.id !== leadId));
       setSelectedLead(null);
       toast({
         title: "Lead supprimé",
         description: "Le lead a été supprimé avec succès.",
       });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Impossible de supprimer le lead.",
+      });
     }
   };
 
   const filteredLeads = leads.filter(lead => {
-    const matchesSearch = 
+    const matchesSearch =
       lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       lead.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (lead.company?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
-    
+
     const matchesStatus = statusFilter === 'all' || lead.status === statusFilter;
-    
+
     return matchesSearch && matchesStatus;
   });
 
@@ -163,7 +156,7 @@ export default function Admin() {
               <p className="text-sm text-muted-foreground">Gestion des leads</p>
             </div>
           </div>
-          <Button onClick={() => navigate('/admin/billing')} variant="outline">
+          <Button onClick={() => navigate('/sysadmin/billing')} variant="outline">
             <CreditCard className="w-4 h-4 mr-2" />
             Gestion Billing
           </Button>
@@ -278,7 +271,7 @@ export default function Admin() {
                     </TableHeader>
                     <TableBody>
                       {filteredLeads.map((lead) => (
-                        <TableRow 
+                        <TableRow
                           key={lead.id}
                           className={`cursor-pointer ${selectedLead?.id === lead.id ? 'bg-primary/10' : ''}`}
                           onClick={() => setSelectedLead(lead)}
@@ -290,8 +283,8 @@ export default function Admin() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Badge 
-                              variant="outline" 
+                            <Badge
+                              variant="outline"
                               className={statusConfig[lead.status || 'new']?.color || ''}
                             >
                               {statusConfig[lead.status || 'new']?.icon}
@@ -336,8 +329,8 @@ export default function Admin() {
                 >
                   <div>
                     <h3 className="text-lg font-semibold">{selectedLead.name}</h3>
-                    <Badge 
-                      variant="outline" 
+                    <Badge
+                      variant="outline"
                       className={`mt-1 ${statusConfig[selectedLead.status || 'new']?.color || ''}`}
                     >
                       {statusConfig[selectedLead.status || 'new']?.icon}
@@ -384,8 +377,8 @@ export default function Admin() {
 
                   <div>
                     <p className="text-sm text-muted-foreground mb-2">Changer le statut</p>
-                    <Select 
-                      value={selectedLead.status || 'new'} 
+                    <Select
+                      value={selectedLead.status || 'new'}
                       onValueChange={(value) => updateLeadStatus(selectedLead.id, value)}
                     >
                       <SelectTrigger className="bg-muted/50">
@@ -401,8 +394,8 @@ export default function Admin() {
                     </Select>
                   </div>
 
-                  <Button 
-                    variant="destructive" 
+                  <Button
+                    variant="destructive"
                     className="w-full"
                     onClick={() => deleteLead(selectedLead.id)}
                   >
